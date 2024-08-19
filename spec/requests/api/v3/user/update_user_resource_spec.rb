@@ -34,7 +34,7 @@ RSpec.describe API::V3::Users::UsersAPI do
   include API::V3::Utilities::PathHelper
 
   let(:path) { api_v3_paths.user(user.id) }
-  let(:user) { create(:user) }
+  let!(:user) { create(:user) }
   let(:parameters) { {} }
 
   before do
@@ -94,6 +94,161 @@ RSpec.describe API::V3::Users::UsersAPI do
         expect(last_response.body)
           .to be_json_eql("urn:openproject-org:api:v3:errors:PropertyConstraintViolation".to_json)
                 .at_path("errorIdentifier")
+      end
+    end
+
+    describe "custom fields" do
+      let!(:required_custom_field) do
+        create(:user_custom_field,
+               :text,
+               name: "Department",
+               is_required: true)
+      end
+
+      context "with a required custom field" do
+        context "when no custom field value is provided" do
+          let(:parameters) do
+            {
+              email: "updated@example.org"
+            }
+          end
+
+          it_behaves_like "successful update", mail: "updated@example.org"
+
+          it "keeps the custom field value empty" do
+            send_request
+            expect(user.reload.typed_custom_value_for(required_custom_field))
+              .to be_empty
+          end
+        end
+
+        context "when the custom field is provided but empty" do
+          let(:parameters) do
+            {
+              email: "updated@example.org",
+              required_custom_field.attribute_name(:camel_case) => {
+                raw: ""
+              }
+            }
+          end
+
+          it "responds with 422 and explains the custom field error" do
+            send_request
+            expect(last_response).to have_http_status(:unprocessable_entity)
+
+            response_body = parse_json(last_response.body)
+
+            expect(response_body.dig("_embedded", "details", "attribute"))
+              .to eq("customField#{required_custom_field.id}")
+            expect(response_body["message"]).to eq("Department can't be blank.")
+          end
+        end
+
+        context "when the custom field value is provided and valid" do
+          let(:parameters) do
+            {
+              email: "updated@example.org",
+              required_custom_field.attribute_name(:camel_case) => {
+                raw: "Engineering"
+              }
+            }
+          end
+
+          it_behaves_like "successful update", mail: "updated@example.org"
+
+          it "updates the user with the custom field value" do
+            send_request
+            expect(user.reload.typed_custom_value_for(required_custom_field))
+              .to eq("Engineering")
+          end
+        end
+      end
+
+      context "with a visible custom field" do
+        let!(:custom_field) do
+          create(:user_custom_field, :text)
+        end
+
+        let(:parameters) do
+          {
+            email: "updated@example.org",
+            custom_field.attribute_name(:camel_case) => {
+              raw: "CF text"
+            }
+          }
+        end
+
+        it_behaves_like "successful update", mail: "updated@example.org"
+
+        it "sets the cf value" do
+          send_request
+          expect(user.reload.typed_custom_value_for(custom_field))
+            .to eq("CF text")
+        end
+      end
+
+      context "with an admin only custom field" do
+        let(:is_required) { false }
+        let!(:admin_only_custom_field) do
+          create(:user_custom_field, :text, admin_only: true, is_required:)
+        end
+
+        context "with admin permissions" do
+          let(:current_user) { create(:admin) }
+          let(:parameters) do
+            {
+              email: "updated@example.org",
+              admin_only_custom_field.attribute_name(:camel_case) => {
+                raw: "CF text"
+              }
+            }
+          end
+
+          it_behaves_like "successful update", mail: "updated@example.org"
+
+          it "sets the cf value" do
+            send_request
+            expect(user.reload.typed_custom_value_for(admin_only_custom_field))
+              .to eq("CF text")
+          end
+        end
+
+        context "with non-admin permissions" do
+          let(:current_user) { create(:user, global_permissions: [:manage_user]) }
+          let(:parameters) do
+            {
+              email: "updated@example.org",
+              admin_only_custom_field.attribute_name(:camel_case) => {
+                raw: "CF text"
+              }
+            }
+          end
+
+          it_behaves_like "successful update", mail: "updated@example.org"
+
+          it "does not set the cf value" do
+            send_request
+            expect(user.reload.custom_values.where(custom_field: admin_only_custom_field))
+              .to be_empty
+          end
+
+          context "and when the custom field is required" do
+            let(:is_required) { true }
+            let(:parameters) do
+              {
+                email: "updated@example.org"
+              }
+            end
+
+            it_behaves_like "successful update", mail: "updated@example.org"
+
+            it "does not set the cf value" do
+              send_request
+              expect(user.reload.custom_values.where(custom_field: admin_only_custom_field))
+                .to be_empty
+            end
+          end
+        end
       end
     end
   end

@@ -161,6 +161,174 @@ RSpec.describe API::V3::Users::UpdateFormAPI, content_type: :json do
         expect(response).to have_http_status(:not_found)
       end
     end
+
+    describe "custom fields" do
+      let!(:required_custom_field) do
+        create(:user_custom_field,
+               :text,
+               name: "Department",
+               is_required: true)
+      end
+
+      context "with a required custom field" do
+        context "when no custom field value is provided" do
+          let(:payload) do
+            {
+              email: "updated@example.org"
+            }
+          end
+
+          it "has no validation errors", :aggregate_failures do
+            expect(response).to have_http_status(:ok)
+            expect(body).to have_json_size(0).at_path("_embedded/validationErrors")
+            expect(body)
+              .to be_json_eql("updated@example.org".to_json)
+              .at_path("_embedded/payload/email")
+            expect(body)
+              .to be_json_eql(api_v3_paths.user(user.id).to_json)
+              .at_path("_links/commit/href")
+          end
+        end
+
+        context "when the custom field is provided but empty" do
+          let(:payload) do
+            {
+              email: "updated@example.org",
+              required_custom_field.attribute_name(:camel_case) => {
+                raw: ""
+              }
+            }
+          end
+
+          it "has validation errors for the required custom field", :aggregate_failures do
+            expect(response).to have_http_status(:ok)
+            expect(body).to have_json_path("_embedded/validationErrors/customField#{required_custom_field.id}")
+            expect(body)
+              .to be_json_eql("Department can't be blank.".to_json)
+              .at_path("_embedded/validationErrors/customField#{required_custom_field.id}/message")
+            expect(body).not_to have_json_path("_links/commit")
+          end
+        end
+
+        context "when the custom field value is provided and valid" do
+          let(:payload) do
+            {
+              email: "updated@example.org",
+              required_custom_field.attribute_name(:camel_case) => {
+                raw: "Engineering"
+              }
+            }
+          end
+
+          it "has no validation errors", :aggregate_failures do
+            expect(response).to have_http_status(:ok)
+            expect(body).to have_json_size(0).at_path("_embedded/validationErrors")
+            expect(body)
+              .to be_json_eql("Engineering".to_json)
+              .at_path("_embedded/payload/customField#{required_custom_field.id}/raw")
+            expect(body)
+              .to be_json_eql(api_v3_paths.user(user.id).to_json)
+              .at_path("_links/commit/href")
+          end
+        end
+      end
+
+      context "with a visible custom field" do
+        let(:visible_custom_field) do
+          create(:user_custom_field, :text)
+        end
+
+        let(:payload) do
+          {
+            email: "updated@example.org",
+            visible_custom_field.attribute_name(:camel_case) => {
+              raw: "CF text"
+            }
+          }
+        end
+
+        it "has no validation errors", :aggregate_failures do
+          expect(response).to have_http_status(:ok)
+          expect(body).to have_json_size(0).at_path("_embedded/validationErrors")
+          expect(body)
+            .to be_json_eql("CF text".to_json)
+            .at_path("_embedded/payload/customField#{visible_custom_field.id}/raw")
+          expect(body)
+            .to be_json_eql(api_v3_paths.user(user.id).to_json)
+            .at_path("_links/commit/href")
+        end
+      end
+
+      context "with an admin only custom field" do
+        let(:is_required) { false }
+        let!(:admin_only_custom_field) do
+          create(:user_custom_field, :text, admin_only: true, is_required:)
+        end
+
+        context "with admin permissions" do
+          let(:current_user) { create(:admin) }
+          let(:payload) do
+            {
+              email: "updated@example.org",
+              admin_only_custom_field.attribute_name(:camel_case) => {
+                raw: "CF text"
+              }
+            }
+          end
+
+          it "has no validation errors", :aggregate_failures do
+            expect(response).to have_http_status(:ok)
+            expect(body).to have_json_size(0).at_path("_embedded/validationErrors")
+            expect(body)
+              .to be_json_eql("CF text".to_json)
+              .at_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
+            expect(body)
+              .to be_json_eql(api_v3_paths.user(user.id).to_json)
+              .at_path("_links/commit/href")
+          end
+        end
+
+        context "with non-admin permissions" do
+          let(:payload) do
+            {
+              email: "updated@example.org",
+              admin_only_custom_field.attribute_name(:camel_case) => {
+                raw: "CF text"
+              }
+            }
+          end
+
+          it "ignores the invisible custom field", :aggregate_failures do
+            expect(response).to have_http_status(:ok)
+            expect(body)
+              .not_to have_json_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
+            expect(body).to have_json_size(0).at_path("_embedded/validationErrors")
+            expect(body)
+              .to be_json_eql(api_v3_paths.user(user.id).to_json)
+              .at_path("_links/commit/href")
+          end
+
+          context "and when the custom field is required" do
+            let(:is_required) { true }
+            let(:payload) do
+              {
+                email: "updated@example.org"
+              }
+            end
+
+            it "ignores the invisible custom field", :aggregate_failures do
+              expect(response).to have_http_status(:ok)
+              expect(body)
+                .not_to have_json_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
+              expect(body).to have_json_size(0).at_path("_embedded/validationErrors")
+              expect(body)
+                .to be_json_eql(api_v3_paths.user(user.id).to_json)
+                .at_path("_links/commit/href")
+            end
+          end
+        end
+      end
+    end
   end
 
   context "with unauthorized user" do
