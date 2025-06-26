@@ -51,11 +51,7 @@ class Overviews::ProjectCustomFieldSectionsController < ApplicationController
                       model: @project,
                       contract_options: { project_attributes_only: true }
                     )
-                    .call(
-                      permitted_params.project.merge(
-                        _limit_custom_fields_validation_to_section_id: @section.id
-                      )
-                    )
+                    .call(permitted_params.project)
 
     if service_call.success?
       update_sidebar_component

@@ -174,17 +174,6 @@ RSpec.describe Projects::CreateService, type: :model do
           end
         end
       end
-
-      context "with a section scoped validation" do
-        let(:project_attributes) do
-          { custom_field_values: { text_custom_field.id => "foo" },
-            _limit_custom_fields_validation_to_section_id: section.id }
-        end
-
-        it "rejects section validation scoping for project creation" do
-          expect { subject }.to raise_error(ArgumentError)
-        end
-      end
     end
   end
 end

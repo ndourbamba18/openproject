@@ -237,13 +237,17 @@ module Redmine
           self.custom_field_values = new_values
         end
 
-        def custom_field_values_to_validate
-          custom_field_values
+        def custom_values_to_validate
+          @custom_values_to_validate || custom_field_values
+        end
+
+        def custom_values_to_validate=(custom_values)
+          @custom_values_to_validate = Array(custom_values)
         end
 
         def validate_custom_values
           set_default_values! if new_record?
-          custom_field_values_to_validate
+          custom_values_to_validate
             .reject(&:marked_for_destruction?)
             .select(&:invalid?)
             .each { |custom_value| add_custom_value_errors! custom_value }

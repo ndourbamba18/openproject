@@ -242,7 +242,7 @@ RSpec.describe Project, "customizable" do
 
         # after a project is created, a new required custom field is added
         # which gets automatically activated for all projects
-        create(:text_project_custom_field,
+        new_custom_field = create(:text_project_custom_field,
                is_required: true,
                project_custom_field_section: another_section)
 
@@ -250,16 +250,24 @@ RSpec.describe Project, "customizable" do
         expect(project.reload).not_to be_valid(:saving_custom_fields)
         expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
 
-        # but we still want to allow updating other sections without invalid required custom field values
-        # by limiting the validation scope to a section temporarily
-        project._limit_custom_fields_validation_to_section_id = section.id
+        # Passing the new required custom field to the custom_values_to_validate
+        # also should make the record invalid
+        project.custom_values_to_validate = project.custom_values
+
+        expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
+
+        # but we still want to allow updating forms without the invalid required custom field values.
+        # This is possible to do by setting a list of custom fields to be validated.
+        project.custom_values_to_validate =
+          project.custom_values.reject { |v| v.custom_field == new_custom_field }
 
         expect(project).to be_valid(:saving_custom_fields)
 
         expect { project.save!(context: :saving_custom_fields) }.not_to raise_error
 
-        # Removing the section scoped limitation should result a validation error again.
-        project._limit_custom_fields_validation_to_section_id = nil
+        # Removing the custom values to be validates should validate all the custom fields again
+        project.remove_instance_variable(:@custom_values_to_validate)
+
         expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end

@@ -48,7 +48,6 @@ module Projects
 
     def after_perform(service_call)
       ret = super
-      reset_section_scoped_validation
       touch_on_custom_values_update
       notify_on_identifier_renamed
       send_update_notification
@@ -98,12 +97,6 @@ module Projects
       # already been checked in Projects::UpdateContract
       service = service_class.new(user:, model:, contract_class: EmptyContract)
       service.call
-    end
-
-    def reset_section_scoped_validation
-      # Reset the section scope after saving in order to not silently
-      # carry this setting in this instance.
-      model._limit_custom_fields_validation_to_section_id = nil
     end
   end
 end

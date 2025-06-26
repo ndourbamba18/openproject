@@ -58,11 +58,22 @@ module BaseServices
       model.attributes = params
 
       set_default_attributes(params) if model.new_record?
+      set_custom_values_to_validate(params) if model.respond_to?(:customizable?)
       ensure_default_attributes(params)
     end
 
     def set_default_attributes(_params)
       # nothing to do for now but a subclass may
+    end
+
+    def set_custom_values_to_validate(params)
+      return unless params.key?(:custom_field_values)
+
+      # Filter custom values to only validate those that are being updated
+      custom_field_ids = params[:custom_field_values].stringify_keys.keys.map(&:to_i)
+      model.custom_values_to_validate = model.custom_values.filter do |cv|
+        custom_field_ids.include?(cv.custom_field_id)
+      end
     end
 
     def ensure_default_attributes(_params)

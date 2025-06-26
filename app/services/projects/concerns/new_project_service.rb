@@ -32,12 +32,6 @@ module Projects::Concerns
   module NewProjectService
     private
 
-    def before_perform(service_call)
-      super.tap do |super_call|
-        reject_section_scoped_validation(super_call.result)
-      end
-    end
-
     def after_validate(service_call)
       super.tap do |super_call|
         build_missing_project_custom_field_project_mappings(super_call.result)
@@ -82,13 +76,6 @@ module Projects::Concerns
         OpenProject::Events::PROJECT_CREATED,
         project: new_project
       )
-    end
-
-    def reject_section_scoped_validation(new_project)
-      if new_project._limit_custom_fields_validation_to_section_id.present?
-        raise ArgumentError,
-              "Section scoped validation is not supported for project creation, only for project updates"
-      end
     end
 
     def disable_custom_fields_with_empty_values(new_project)
