@@ -221,7 +221,7 @@ module Redmine
         end
 
         def custom_values_to_validate
-          @custom_values_to_validate || custom_field_values
+          (persisted? && @custom_values_to_validate) || custom_field_values
         end
 
         def custom_values_to_validate=(custom_values)

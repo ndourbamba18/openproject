@@ -33,6 +33,7 @@ require_relative "../support/shared/become_member"
 
 RSpec.describe Group do
   let(:group) { create(:group) }
+  let(:new_group) { described_class.new(lastname: "New group") }
   let(:user) { create(:user) }
   let(:watcher) { create(:user) }
   let(:project) { create(:project_with_types) }
@@ -45,8 +46,7 @@ RSpec.describe Group do
   end
 
   it "creates" do
-    g = described_class.new(lastname: "New group")
-    expect(g.save).to be true
+    expect(new_group.save).to be true
   end
 
   describe "with long but allowed attributes" do
@@ -145,7 +145,8 @@ RSpec.describe Group do
   end
 
   it_behaves_like "acts_as_customizable included" do
-    let(:model_instance) { group }
-    let(:custom_field) { create(:group_custom_field, :string) }
+    let!(:model_instance) { group }
+    let!(:new_model_instance) { new_group }
+    let!(:custom_field) { create(:group_custom_field, :string, is_required: false) }
   end
 end
