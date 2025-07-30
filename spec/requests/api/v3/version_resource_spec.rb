@@ -210,6 +210,80 @@ RSpec.describe "API v3 Version resource", content_type: :json do
         .at_path("customField#{int_cf.id}")
     end
 
+    context "if attempting to set invalid custom field values" do
+      let!(:required_custom_field) do
+        create(:version_custom_field, :string,
+               name: "Release Notes",
+               is_required: true)
+      end
+
+      context "when required custom field is provided but empty" do
+        let(:body) do
+          {
+            name: "Updated version",
+            "customField#{required_custom_field.id}" => "",
+            _links: {
+              definingProject: {
+                href: api_v3_paths.project(project.id)
+              }
+            }
+          }.to_json
+        end
+
+        it "returns 422 with custom field validation error" do
+          expect(last_response)
+            .to have_http_status(422)
+
+          expect(last_response.body)
+            .to be_json_eql("Release Notes can't be blank.".to_json)
+            .at_path("message")
+        end
+
+        it "does not alter the version" do
+          expect(version.reload.name)
+            .not_to eq("Updated version")
+        end
+      end
+
+      context "when required custom field is being cleared" do
+        before do
+          # Set an initial value for the custom field
+          version.custom_field_values = { required_custom_field.id => "Initial release notes" }
+          version.save!
+        end
+
+        let(:body) do
+          {
+            name: "Updated version",
+            "customField#{required_custom_field.id}" => "",
+            _links: {
+              definingProject: {
+                href: api_v3_paths.project(project.id)
+              }
+            }
+          }.to_json
+        end
+
+        it "returns 422 with custom field validation error" do
+          expect(last_response)
+            .to have_http_status(422)
+
+          expect(last_response.body)
+            .to be_json_eql("Release Notes can't be blank.".to_json)
+            .at_path("message")
+        end
+
+        it "does not alter the version" do
+          version.reload
+          expect(version.name).not_to eq("Updated version")
+
+          # Custom field value should remain unchanged
+          custom_value = version.custom_field_values.find { |cv| cv.custom_field == required_custom_field }
+          expect(custom_value.value).to eq("Initial release notes")
+        end
+      end
+    end
+
     context "if attempting to switch the project" do
       let(:other_project) do
         create(:project).tap do |p|
@@ -294,63 +368,164 @@ RSpec.describe "API v3 Version resource", content_type: :json do
 
     before do
       login_as current_user
-
-      post path, body
     end
 
+    subject(:response) { post path, body }
+
     it "responds with 201" do
-      expect(last_response).to have_http_status(:created)
+      expect(response).to have_http_status(:created)
     end
 
     it "creates the version" do
+      response
       expect(Version.find_by(name: "New version"))
         .to be_present
     end
 
     it "returns the newly created version" do
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql("Version".to_json)
         .at_path("_type")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql("New version".to_json)
         .at_path("name")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql("<p>A new description</p>".to_json)
         .at_path("description/html")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql("2018-01-01".to_json)
         .at_path("startDate")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql("2018-01-09".to_json)
         .at_path("endDate")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql("closed".to_json)
         .at_path("status")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql("descendants".to_json)
         .at_path("sharing")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql(project.name.to_json)
         .at_path("_links/definingProject/title")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql(api_v3_paths.custom_option(list_cf.custom_options.first.id).to_json)
         .at_path("_links/customField#{list_cf.id}/href")
 
-      expect(last_response.body)
+      expect(response.body)
         .to be_json_eql(5.to_json)
         .at_path("customField#{int_cf.id}")
     end
 
+    context "when input has invalid custom field" do
+      let!(:required_custom_field) do
+        create(:version_custom_field, :string,
+               name: "Release Notes",
+               is_required: true)
+      end
+
+      context "when no custom field value is provided" do
+        let(:body) do
+          {
+            name: "New version with CF",
+            _links: {
+              definingProject: {
+                href: api_v3_paths.project(project.id)
+              }
+            }
+          }.to_json
+        end
+
+        it "responds with 422 and explains the custom field error" do
+          expect(response).to have_http_status(:unprocessable_entity)
+
+          expect(response.body)
+            .to be_json_eql("Release Notes can't be blank.".to_json)
+            .at_path("message")
+        end
+      end
+
+      context "when the custom field is provided but empty" do
+        let(:body) do
+          {
+            name: "New version with CF",
+            "customField#{required_custom_field.id}" => "",
+            _links: {
+              definingProject: {
+                href: api_v3_paths.project(project.id)
+              }
+            }
+          }.to_json
+        end
+
+        it "responds with 422 and explains the custom field error" do
+          expect(response).to have_http_status(:unprocessable_entity)
+
+          expect(response.body)
+            .to be_json_eql("Release Notes can't be blank.".to_json)
+            .at_path("message")
+        end
+      end
+    end
+
+    context "when the required custom field is valid" do
+      let!(:required_custom_field) do
+        create(:version_custom_field, :string,
+               name: "Release Notes",
+               is_required: true)
+      end
+
+      let(:body) do
+        {
+          name: "New version with valid CF",
+          "customField#{required_custom_field.id}" => "Bug fixes and improvements",
+          _links: {
+            definingProject: {
+              href: api_v3_paths.project(project.id)
+            }
+          }
+        }.to_json
+      end
+
+      it "responds with 201" do
+        expect(response).to have_http_status(:created)
+      end
+
+      it "creates the version with custom field value" do
+        response
+        version = Version.find_by(name: "New version with valid CF")
+        expect(version).to be_present
+
+        custom_value = version.custom_field_values.find { |cv| cv.custom_field == required_custom_field }
+        expect(custom_value.value).to eq("Bug fixes and improvements")
+      end
+
+      it "returns the newly created version" do
+        expect(response.body)
+          .to be_json_eql("Version".to_json)
+          .at_path("_type")
+
+        expect(response.body)
+          .to be_json_eql("New version with valid CF".to_json)
+          .at_path("name")
+
+        expect(response.body)
+          .to be_json_eql("Bug fixes and improvements".to_json)
+          .at_path("customField#{required_custom_field.id}")
+      end
+    end
+
     context "if lacking the manage permissions" do
       let(:permissions) { [] }
+
+      before { response }
 
       it_behaves_like "unauthorized access"
     end
@@ -369,6 +544,8 @@ RSpec.describe "API v3 Version resource", content_type: :json do
         [:view_work_packages]
       end
 
+      before { response }
+
       it_behaves_like "unauthorized access"
     end
   end
@@ -386,8 +563,8 @@ RSpec.describe "API v3 Version resource", content_type: :json do
     end
 
     it "succeeds" do
-      expect(last_response.status)
-        .to be(200)
+      expect(last_response)
+        .to have_http_status(200)
     end
 
     it_behaves_like "API V3 collection response", 1, 1, "Version"
@@ -443,7 +620,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
       end
 
       it "deletes the version" do
-        expect(Version.exists?(version.id)).to be_falsey
+        expect(Version).not_to exist(version.id)
       end
 
       context "for a non-existent version" do
@@ -469,7 +646,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
       end
 
       it "does not delete the version" do
-        expect(Version.exists?(version.id)).to be_truthy
+        expect(Version).to exist(version.id)
       end
     end
 
@@ -485,7 +662,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
       it_behaves_like "unauthorized access"
 
       it "does not delete the version" do
-        expect(Version.exists?(version.id)).to be_truthy
+        expect(Version).to exist(version.id)
       end
     end
   end
