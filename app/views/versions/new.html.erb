@@ -40,7 +40,7 @@ See COPYRIGHT and LICENSE files for more details.
   end
 %>
 
-<%= labelled_tabular_form_for [@project, @version] do |f| %>
+<%= labelled_tabular_form_for [@project, @version], { data: { turbo: false } } do |f| %>
 
   <%= render partial: "versions/form", locals: { f: f,
                                                  project: @project } %>
