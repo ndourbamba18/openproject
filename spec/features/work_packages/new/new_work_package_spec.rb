@@ -162,56 +162,56 @@ RSpec.describe "new work package", :js do
         wp_page.expect_attributes(subject:)
         wp_page.expect_attributes type: type_bug.name.upcase
       end
+    end
 
-      context "custom fields" do
-        let(:custom_field1) do
-          create(
-            :work_package_custom_field,
-            field_format: "string",
-            is_required: true,
-            is_for_all: true
-          )
-        end
-        let(:custom_field2) do
-          create(
-            :work_package_custom_field,
-            field_format: "list",
-            possible_values: %w(foo bar xyz),
-            is_required: false,
-            is_for_all: true
-          )
-        end
-        let(:custom_fields) do
-          [custom_field1, custom_field2]
-        end
-        let(:type_task) { create(:type_task, custom_fields:) }
-        let(:project) do
-          create(:project,
-                 types:,
-                 work_package_custom_fields: custom_fields)
-        end
+    describe "custom fields" do
+      let(:custom_field1) do
+        create(
+          :work_package_custom_field,
+          field_format: "string",
+          is_required: true,
+          is_for_all: true
+        )
+      end
+      let(:custom_field2) do
+        create(
+          :work_package_custom_field,
+          field_format: "list",
+          possible_values: %w(foo bar xyz),
+          is_required: false,
+          is_for_all: true
+        )
+      end
+      let(:custom_fields) do
+        [custom_field1, custom_field2]
+      end
+      let(:type_task) { create(:type_task, custom_fields:) }
+      let(:project) do
+        create(:project,
+               types:,
+               work_package_custom_fields: custom_fields)
+      end
 
-        it do
-          custom_fields.map(&:id)
-          cf1 = find(".#{custom_fields.first.attribute_name(:camel_case)} input")
-          expect(cf1).not_to be_nil
+      it "saves and validates the custom field values" do
+        custom_fields.map(&:id)
+        cf1 = find(".#{custom_fields.first.attribute_name(:camel_case)} input")
+        expect(cf1).not_to be_nil
 
-          expect(page).to have_css(".#{custom_fields.last.attribute_name(:camel_case)} ng-select")
+        expect(page).to have_css(".#{custom_fields.last.attribute_name(:camel_case)} ng-select")
 
-          cf = wp_page.edit_field custom_fields.last.attribute_name(:camel_case)
-          cf.field_type = "create-autocompleter"
-          cf.openSelectField
-          cf.set_value "foo"
-          save_work_package!(false)
+        cf = wp_page.edit_field custom_fields.last.attribute_name(:camel_case)
+        cf.field_type = "create-autocompleter"
+        cf.openSelectField
+        cf.set_value "foo"
+        save_work_package!(false)
 
-          toaster.expect_error("#{custom_field1.name} can't be blank.")
+        toaster.expect_error("#{custom_field1.name} can't be blank.")
 
-          cf1.set "Custom field content"
-          save_work_package!(true)
+        cf1.set "Custom field content"
+        save_work_package!(true)
 
-          wp_page.expect_attributes "customField#{custom_field1.id}" => "Custom field content",
-                                    "customField#{custom_field2.id}" => "foo"
-        end
+        wp_page.expect_attributes "customField#{custom_field1.id}" => "Custom field content",
+                                  "customField#{custom_field2.id}" => "foo"
       end
     end
   end
