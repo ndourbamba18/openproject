@@ -293,8 +293,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
           expect(version.name).not_to eq("Updated version")
 
           # Custom field value should remain unchanged
-          custom_value = version.custom_field_values.find { |cv| cv.custom_field == required_custom_field }
-          expect(custom_value.value).to eq("Initial release notes")
+          expect(version.typed_custom_value_for(required_custom_field)).to eq("Initial release notes")
         end
       end
 
@@ -332,8 +331,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
           version = Version.find_by(name: "New version with valid CF")
           expect(version).to be_present
 
-          custom_value = version.custom_field_values.find { |cv| cv.custom_field == required_custom_field }
-          expect(custom_value.value).to eq("Bug fixes and improvements")
+          expect(version.typed_custom_value_for(required_custom_field)).to eq("Bug fixes and improvements")
         end
 
         it "returns the newly created version" do
@@ -579,8 +577,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
         version = Version.find_by(name: "New version with valid CF")
         expect(version).to be_present
 
-        custom_value = version.custom_field_values.find { |cv| cv.custom_field == required_custom_field }
-        expect(custom_value.value).to eq("Bug fixes and improvements")
+        expect(version.typed_custom_value_for(required_custom_field)).to eq("Bug fixes and improvements")
       end
 
       it "returns the newly created version" do

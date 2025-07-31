@@ -478,8 +478,8 @@ RSpec.describe "API v3 Group resource", content_type: :json do
             .to eql group_updated_at_with_cf
 
           # Custom field value should remain unchanged
-          expect(group.custom_field_values.find { |cv| cv.custom_field == required_custom_field }.value)
-            .to eq("Initial Department")
+          expect(group.typed_custom_value_for(required_custom_field))
+              .to eq("Initial Department")
         end
       end
     end

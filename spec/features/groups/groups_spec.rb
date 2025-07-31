@@ -83,7 +83,7 @@ RSpec.describe "group memberships through groups page", :js do
         # Verify the custom field value was saved
         created_group = Group.find_by(lastname: "Development Team")
         expect(created_group).not_to be_nil
-        expect(created_group.custom_field_values.find { it.custom_field == custom_field }.value).to eq("Engineering")
+        expect(created_group.typed_custom_value_for(custom_field)).to eq("Engineering")
       end
 
       it "I can update a group with a custom field value including validation" do
@@ -116,7 +116,7 @@ RSpec.describe "group memberships through groups page", :js do
         # Verify the custom field value was updated
         updated_group = Group.find_by(lastname: "Updated Marketing Team")
         expect(updated_group).not_to be_nil
-        expect(updated_group.custom_field_values.find { it.custom_field == custom_field }.value).to eq("Marketing & Sales")
+        expect(updated_group.typed_custom_value_for(custom_field)).to eq("Marketing & Sales")
       end
     end
   end

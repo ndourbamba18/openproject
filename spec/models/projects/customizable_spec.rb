@@ -140,19 +140,11 @@ RSpec.describe Project, "customizable" do
         end
 
         it "#custom_field_values returns a hash of mapped custom fields with nil values" do
-          text_custom_field_custom_field_value = project.custom_field_values.find do |custom_value|
-            custom_value.custom_field_id == text_custom_field.id
-          end
+          expect(project.custom_value_for(text_custom_field)).to be_present
+          expect(project.custom_value_for(text_custom_field).value).to be_nil
 
-          expect(text_custom_field_custom_field_value).to be_present
-          expect(text_custom_field_custom_field_value.value).to be_nil
-
-          bool_custom_field_custom_field_value = project.custom_field_values.find do |custom_value|
-            custom_value.custom_field_id == bool_custom_field.id
-          end
-
-          expect(bool_custom_field_custom_field_value).to be_present
-          expect(bool_custom_field_custom_field_value.value).to be_nil
+          expect(project.custom_value_for(bool_custom_field)).to be_present
+          expect(project.custom_value_for(bool_custom_field).value).to be_nil
         end
 
         context "when values are set for mapped custom fields" do
@@ -173,14 +165,10 @@ RSpec.describe Project, "customizable" do
           end
 
           it "#custom_field_values returns a hash of mapped custom fields with their set values" do
-            expect(project.custom_field_values.find do |custom_value|
-                     custom_value.custom_field_id == text_custom_field.id
-                   end.typed_value)
+            expect(project.typed_custom_value_for(text_custom_field))
               .to eq("foo")
 
-            expect(project.custom_field_values.find do |custom_value|
-                     custom_value.custom_field_id == bool_custom_field.id
-                   end.typed_value)
+            expect(project.typed_custom_value_for(bool_custom_field))
               .to be_truthy
           end
         end
@@ -243,8 +231,8 @@ RSpec.describe Project, "customizable" do
         # after a project is created, a new required custom field is added
         # which gets automatically activated for all projects
         new_custom_field = create(:text_project_custom_field,
-               is_required: true,
-               project_custom_field_section: another_section)
+                                  is_required: true,
+                                  project_custom_field_section: another_section)
 
         # thus, the project is invalid in total
         expect(project.reload).not_to be_valid(:saving_custom_fields)

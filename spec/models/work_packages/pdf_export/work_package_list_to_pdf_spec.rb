@@ -168,7 +168,7 @@ RSpec.describe WorkPackage::PDFExport::WorkPackageListToPdf do
   end
 
   def work_package_details_long_text(field, work_package)
-    [field.name, work_package.custom_field_values.find { |cf| cf.custom_field == field }.value]
+    [field.name, work_package.typed_custom_value_for(field)]
   end
 
   def cover_page_content
