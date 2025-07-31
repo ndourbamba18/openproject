@@ -385,6 +385,18 @@ RSpec.describe "API v3 Group resource", content_type: :json do
                is_required: true)
       end
 
+      context "when no custom field value is provided" do
+        it "responds with 200" do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "keeps the custom field value to be empty" do
+          response
+          expect(group.send(:"custom_field_#{required_custom_field.id}"))
+            .to be_nil
+        end
+      end
+
       context "when required custom field is provided but empty" do
         let(:body) do
           {
@@ -469,6 +481,33 @@ RSpec.describe "API v3 Group resource", content_type: :json do
           expect(group.custom_field_values.find { |cv| cv.custom_field == required_custom_field }.value)
             .to eq("Initial Department")
         end
+      end
+    end
+
+    context "when the required custom field is valid" do
+      current_user { admin }
+
+      let!(:required_custom_field) do
+        create(:group_custom_field, :string,
+               name: "Department",
+               is_required: true)
+      end
+
+      let(:body) do
+        {
+          name: "The new group with CF",
+          "customField#{required_custom_field.id}" => "Engineering"
+        }.to_json
+      end
+
+      it "responds with 200" do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "keeps the custom field value to be empty" do
+        response
+        expect(group.send(:"custom_field_#{required_custom_field.id}"))
+          .to eq("Engineering")
       end
     end
 
