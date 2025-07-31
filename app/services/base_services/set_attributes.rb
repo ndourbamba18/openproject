@@ -67,10 +67,17 @@ module BaseServices
     end
 
     def set_custom_values_to_validate(params)
-      return unless params.key?(:custom_field_values)
-
       # Filter custom values to only validate those that are being updated
-      custom_field_ids = params[:custom_field_values].stringify_keys.keys.map(&:to_i)
+
+      # Retrieve custom fields set via the accessor `version.custom_field_1 = 1`
+      custom_field_ids = params.keys.filter_map { |k| k[/^custom_field_(\d+)$/, 1]&.to_i }
+
+      # Retrieve custom fields set via the `version.custom_field_values = { 1 => 1}` hash.
+      if params[:custom_field_values]
+        custom_field_ids += params[:custom_field_values].stringify_keys.keys.map(&:to_i)
+        custom_field_ids.uniq!
+      end
+
       model.custom_values_to_validate = model.custom_values.filter do |cv|
         custom_field_ids.include?(cv.custom_field_id)
       end
