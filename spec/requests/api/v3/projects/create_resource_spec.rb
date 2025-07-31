@@ -118,64 +118,154 @@ RSpec.describe "API v3 Project resource create", content_type: :json do
     end
   end
 
-  context "with a visible custom field" do
-    let(:body) do
-      {
-        identifier: "new_project_identifier",
-        name: "Project name",
-        custom_field.attribute_name(:camel_case) => {
-          raw: "CF text"
-        }
-      }.to_json
+  describe "custom fields" do
+    context "and custom field is invalid" do
+      shared_let(:required_custom_field) do
+        create(:text_project_custom_field,
+               name: "Department",
+               is_required: true)
+      end
+
+      context "when no custom field value is provided" do
+        let(:body) do
+          {
+            identifier: "new_project_identifier",
+            name: "Project name"
+          }.to_json
+        end
+
+        it "responds with 422 and explains the custom field error" do
+          expect(last_response).to have_http_status(:unprocessable_entity)
+
+          expect(last_response.body)
+            .to be_json_eql("Department can't be blank.".to_json)
+            .at_path("message")
+        end
+      end
+
+      context "when the custom field is provided but empty" do
+        let(:body) do
+          {
+            identifier: "new_project_identifier",
+            name: "Project name",
+            required_custom_field.attribute_name(:camel_case) => {
+              raw: ""
+            }
+          }.to_json
+        end
+
+        it "responds with 422 and explains the custom field error" do
+          expect(last_response).to have_http_status(:unprocessable_entity)
+
+          expect(last_response.body)
+            .to be_json_eql("Department can't be blank.".to_json)
+            .at_path("message")
+        end
+      end
     end
 
-    it "sets the cf value" do
-      expect(last_response.body)
-        .to be_json_eql("CF text".to_json)
-        .at_path("customField#{custom_field.id}/raw")
-    end
+    context "and the required custom field is valid" do
+      let!(:required_custom_field) do
+        create(:text_project_custom_field,
+               name: "Department",
+               is_required: true)
+      end
 
-    it "automatically activates the cf for project if the value was provided" do
-      expect(Project.last.project_custom_fields)
-        .to contain_exactly(custom_field)
-    end
-  end
+      let(:body) do
+        {
+          identifier: "new_project_identifier",
+          name: "Project name",
+          required_custom_field.attribute_name(:camel_case) => {
+            raw: "Engineering"
+          }
+        }.to_json
+      end
 
-  context "with an invisible custom field" do
-    let(:body) do
-      {
-        identifier: "new_project_identifier",
-        name: "Project name",
-        invisible_custom_field.attribute_name(:camel_case) => {
-          raw: "CF text"
-        }
-      }.to_json
-    end
+      it "responds with 201" do
+        expect(last_response).to have_http_status(:created)
+      end
 
-    context "with admin permissions" do
-      current_user { create(:admin) }
-
-      it "sets the cf value" do
+      it "returns the newly created project" do
         expect(last_response.body)
-          .to be_json_eql("CF text".to_json)
-          .at_path("customField#{invisible_custom_field.id}/raw")
+          .to be_json_eql("Project".to_json)
+          .at_path("_type")
+
+        expect(last_response.body)
+          .to be_json_eql("Project name".to_json)
+          .at_path("name")
+      end
+
+      it "creates a project with the custom field value" do
+        project = Project.last
+        expect(project.typed_custom_value_for(required_custom_field))
+          .to eq("Engineering")
       end
 
       it "automatically activates the cf for project if the value was provided" do
         expect(Project.last.project_custom_fields)
-          .to contain_exactly(invisible_custom_field)
+          .to contain_exactly(required_custom_field)
       end
     end
 
-    context "with non-admin permissions" do
-      it "does not set the cf value" do
-        expect(last_response.body)
-          .not_to have_json_path("customField#{invisible_custom_field.id}/raw")
+    context "with a visible custom field" do
+      let(:body) do
+        {
+          identifier: "new_project_identifier",
+          name: "Project name",
+          custom_field.attribute_name(:camel_case) => {
+            raw: "CF text"
+          }
+        }.to_json
       end
 
-      it "does not activate the cf for project" do
+      it "sets the cf value" do
+        expect(last_response.body)
+          .to be_json_eql("CF text".to_json)
+          .at_path("customField#{custom_field.id}/raw")
+      end
+
+      it "automatically activates the cf for project if the value was provided" do
         expect(Project.last.project_custom_fields)
-          .to be_empty
+          .to contain_exactly(custom_field)
+      end
+    end
+
+    context "with an invisible custom field" do
+      let(:body) do
+        {
+          identifier: "new_project_identifier",
+          name: "Project name",
+          invisible_custom_field.attribute_name(:camel_case) => {
+            raw: "CF text"
+          }
+        }.to_json
+      end
+
+      context "with admin permissions" do
+        current_user { create(:admin) }
+
+        it "sets the cf value" do
+          expect(last_response.body)
+            .to be_json_eql("CF text".to_json)
+            .at_path("customField#{invisible_custom_field.id}/raw")
+        end
+
+        it "automatically activates the cf for project if the value was provided" do
+          expect(Project.last.project_custom_fields)
+            .to contain_exactly(invisible_custom_field)
+        end
+      end
+
+      context "with non-admin permissions" do
+        it "does not set the cf value" do
+          expect(last_response.body)
+            .not_to have_json_path("customField#{invisible_custom_field.id}/raw")
+        end
+
+        it "does not activate the cf for project" do
+          expect(Project.last.project_custom_fields)
+            .to be_empty
+        end
       end
     end
   end

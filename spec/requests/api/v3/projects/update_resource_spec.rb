@@ -89,84 +89,169 @@ RSpec.describe "API v3 Project resource update", content_type: :json do
             .at_path("name")
   end
 
-  context "with a visible custom field" do
-    let(:body) do
-      {
-        custom_field.attribute_name(:camel_case) => {
-          raw: "CF text"
+  describe "custom fields" do
+    shared_let(:required_custom_field) do
+      create(:text_project_custom_field,
+             name: "Department",
+             is_required: true)
+    end
+
+    context "when the required custom field is provided with an invalid value" do
+      context "when no custom field value is provided" do
+        let(:body) do
+          {
+            name: "Updated project name"
+          }
+        end
+
+        it "responds with 200" do
+          expect(last_response).to have_http_status(:ok)
+
+          expect(last_response.body)
+            .to be_json_eql("Updated project name".to_json)
+            .at_path("name")
+        end
+
+        it "keeps the custom field value empty" do
+          expect(project.reload.typed_custom_value_for(required_custom_field))
+            .to be_nil
+        end
+      end
+
+      context "when the custom field is provided but empty" do
+        let(:body) do
+          {
+            name: "Updated project name",
+            required_custom_field.attribute_name(:camel_case) => {
+              raw: ""
+            }
+          }
+        end
+
+        it "responds with 422 and explains the custom field error" do
+          expect(last_response).to have_http_status(:unprocessable_entity)
+
+          expect(last_response.body)
+            .to be_json_eql("Department can't be blank.".to_json)
+            .at_path("message")
+        end
+      end
+    end
+
+    context "when the required custom field is provided with a valid value" do
+      let(:body) do
+        {
+          name: "Updated project name",
+          required_custom_field.attribute_name(:camel_case) => {
+            raw: "Engineering"
+          }
         }
-      }
+      end
+
+      it "responds with 200" do
+        expect(last_response).to have_http_status(:ok)
+      end
+
+      it "returns the updated project" do
+        expect(last_response.body)
+          .to be_json_eql("Project".to_json)
+          .at_path("_type")
+
+        expect(last_response.body)
+          .to be_json_eql("Updated project name".to_json)
+          .at_path("name")
+      end
+
+      it "updates the project with the custom field value" do
+        expect(project.reload.typed_custom_value_for(required_custom_field))
+          .to eq("Engineering")
+      end
+
+      it "keeps the cf activated for the project" do
+        expect(project.reload.project_custom_fields)
+          .to include(required_custom_field)
+      end
     end
 
-    it "responds with 200 OK" do
-      expect(last_response).to have_http_status(:ok)
-    end
-
-    it "sets the cf value" do
-      expect(project.reload.send(custom_field.attribute_getter))
-        .to eql("CF text")
-    end
-
-    it "automatically activates the cf for project if the value was provided" do
-      expect(project.project_custom_fields)
-        .to contain_exactly(custom_field)
-    end
-  end
-
-  context "with an admin only custom field" do
-    let(:body) do
-      {
-        admin_only_custom_field.attribute_name(:camel_case) => {
-          raw: "CF text"
+    context "with a visible custom field" do
+      let(:body) do
+        {
+          custom_field.attribute_name(:camel_case) => {
+            raw: "CF text"
+          }
         }
-      }
-    end
-
-    context "with admin permissions" do
-      let(:current_user) { create(:admin) }
+      end
 
       it "responds with 200 OK" do
         expect(last_response).to have_http_status(:ok)
       end
 
       it "sets the cf value" do
-        expect(project.reload.send(admin_only_custom_field.attribute_getter))
+        expect(project.reload.send(custom_field.attribute_getter))
           .to eql("CF text")
       end
 
       it "automatically activates the cf for project if the value was provided" do
-        expect(project.reload.project_custom_fields)
-          .to contain_exactly(admin_only_custom_field)
+        expect(project.project_custom_fields)
+          .to contain_exactly(custom_field)
       end
     end
 
-    context "with non-admin permissions" do
-      it "responds with 200 OK" do
-        # TBD: trying to set a not accessible custom field is silently ignored
-        expect(last_response).to have_http_status(:ok)
+    context "with an admin only custom field" do
+      let(:body) do
+        {
+          admin_only_custom_field.attribute_name(:camel_case) => {
+            raw: "CF text"
+          }
+        }
       end
 
-      it "does not set the cf value" do
-        expect(project.reload.custom_values.find_by(custom_field: admin_only_custom_field))
-          .to have_attributes(value: nil)
-      end
+      context "with admin permissions" do
+        let(:current_user) { create(:admin) }
 
-      context "when the hidden field has a value already" do
-        before do
-          project.update!(custom_field_values: { admin_only_custom_field.id => "1234" })
-
-          patch path, body.to_json
+        it "responds with 200 OK" do
+          expect(last_response).to have_http_status(:ok)
         end
 
-        it "does not change the cf value" do
+        it "sets the cf value" do
+          expect(project.reload.send(admin_only_custom_field.attribute_getter))
+            .to eql("CF text")
+        end
+
+        it "automatically activates the cf for project if the value was provided" do
+          expect(project.reload.project_custom_fields)
+            .to contain_exactly(admin_only_custom_field)
+        end
+      end
+
+      context "with non-admin permissions" do
+        it "responds with 200 OK" do
+          # TBD: trying to set a not accessible custom field is silently ignored
+          expect(last_response).to have_http_status(:ok)
+        end
+
+        it "does not set the cf value" do
           expect(project.reload.custom_values.find_by(custom_field: admin_only_custom_field))
-            .to have_attributes(value: "1234")
+            .to have_attributes(value: nil)
         end
-      end
 
-      it "does not activate the cf for project" do
-        expect(project.reload.project_custom_fields)
-          .to be_empty
+        context "when the hidden field has a value already" do
+          before do
+            project.update!(custom_field_values: { admin_only_custom_field.id => "1234" })
+
+            patch path, body.to_json
+          end
+
+          it "does not change the cf value" do
+            expect(project.reload.custom_values.find_by(custom_field: admin_only_custom_field))
+              .to have_attributes(value: "1234")
+          end
+        end
+
+        it "does not activate the cf for project" do
+          expect(project.reload.project_custom_fields)
+            .to be_empty
+        end
       end
     end
   end
