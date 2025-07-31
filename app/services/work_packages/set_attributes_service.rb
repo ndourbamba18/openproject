@@ -45,6 +45,8 @@ class WorkPackages::SetAttributesService < BaseServices::SetAttributes
     end
 
     set_custom_attributes(attributes)
+    set_custom_values_to_validate(params)
+
     mark_templated_subject
   end
 
