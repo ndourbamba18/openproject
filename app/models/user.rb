@@ -255,6 +255,8 @@ class User < Principal
       invited_id = token&.user&.id
 
       if user.id == invited_id
+        # Explicityly set all custom fields to be validated
+        user.custom_values_to_validate = user.custom_field_values
         user.activate!
         token.destroy
         session.delete :invitation_token
