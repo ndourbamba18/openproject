@@ -119,7 +119,7 @@ RSpec.describe "API v3 Project resource create", content_type: :json do
   end
 
   describe "custom fields" do
-    context "and custom field is invalid" do
+    context "with a required custom field" do
       shared_let(:required_custom_field) do
         create(:text_project_custom_field,
                name: "Department",
@@ -162,48 +162,42 @@ RSpec.describe "API v3 Project resource create", content_type: :json do
             .at_path("message")
         end
       end
-    end
 
-    context "and the required custom field is valid" do
-      let!(:required_custom_field) do
-        create(:text_project_custom_field,
-               name: "Department",
-               is_required: true)
-      end
+      context "when the custom field value is provided and valid" do
+        let(:body) do
+          {
+            identifier: "new_project_identifier",
+            name: "Project name",
+            required_custom_field.attribute_name(:camel_case) => {
+              raw: "Engineering"
+            }
+          }.to_json
+        end
 
-      let(:body) do
-        {
-          identifier: "new_project_identifier",
-          name: "Project name",
-          required_custom_field.attribute_name(:camel_case) => {
-            raw: "Engineering"
-          }
-        }.to_json
-      end
+        it "responds with 201" do
+          expect(last_response).to have_http_status(:created)
+        end
 
-      it "responds with 201" do
-        expect(last_response).to have_http_status(:created)
-      end
+        it "returns the newly created project" do
+          expect(last_response.body)
+            .to be_json_eql("Project".to_json)
+            .at_path("_type")
 
-      it "returns the newly created project" do
-        expect(last_response.body)
-          .to be_json_eql("Project".to_json)
-          .at_path("_type")
+          expect(last_response.body)
+            .to be_json_eql("Project name".to_json)
+            .at_path("name")
+        end
 
-        expect(last_response.body)
-          .to be_json_eql("Project name".to_json)
-          .at_path("name")
-      end
+        it "creates a project with the custom field value" do
+          project = Project.last
+          expect(project.typed_custom_value_for(required_custom_field))
+            .to eq("Engineering")
+        end
 
-      it "creates a project with the custom field value" do
-        project = Project.last
-        expect(project.typed_custom_value_for(required_custom_field))
-          .to eq("Engineering")
-      end
-
-      it "automatically activates the cf for project if the value was provided" do
-        expect(Project.last.project_custom_fields)
-          .to contain_exactly(required_custom_field)
+        it "automatically activates the cf for project if the value was provided" do
+          expect(Project.last.project_custom_fields)
+            .to contain_exactly(required_custom_field)
+        end
       end
     end
 

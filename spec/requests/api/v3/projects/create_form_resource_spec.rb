@@ -216,7 +216,7 @@ RSpec.describe API::V3::Projects::CreateFormAPI, content_type: :json do
     end
 
     describe "custom fields" do
-      context "and custom field is invalid" do
+      context "when the custom field is required" do
         shared_let(:required_custom_field) do
           create(:text_project_custom_field,
                  name: "Department",
@@ -265,39 +265,33 @@ RSpec.describe API::V3::Projects::CreateFormAPI, content_type: :json do
               .at_path("_embedded/validationErrors/customField#{required_custom_field.id}/message")
           end
         end
-      end
 
-      context "and the required custom field is valid" do
-        let!(:required_custom_field) do
-          create(:text_project_custom_field,
-                 name: "Department",
-                 is_required: true)
-        end
-
-        let(:params) do
-          {
-            identifier: "new_project_identifier",
-            name: "Project name",
-            required_custom_field.attribute_name(:camel_case) => {
-              raw: "Engineering"
+        context "when the custom field value is provided and valid" do
+          let(:params) do
+            {
+              identifier: "new_project_identifier",
+              name: "Project name",
+              required_custom_field.attribute_name(:camel_case) => {
+                raw: "Engineering"
+              }
             }
-          }
-        end
+          end
 
-        it "has no validation errors" do
-          expect(subject.body).to have_json_size(0).at_path("_embedded/validationErrors")
-        end
+          it "has no validation errors" do
+            expect(subject.body).to have_json_size(0).at_path("_embedded/validationErrors")
+          end
 
-        it "has a commit link" do
-          expect(subject.body)
-            .to be_json_eql(api_v3_paths.projects.to_json)
-            .at_path("_links/commit/href")
-        end
+          it "has a commit link" do
+            expect(subject.body)
+              .to be_json_eql(api_v3_paths.projects.to_json)
+              .at_path("_links/commit/href")
+          end
 
-        it "has the custom field value in the payload" do
-          expect(subject.body)
-            .to be_json_eql("Engineering".to_json)
-            .at_path("_embedded/payload/customField#{required_custom_field.id}/raw")
+          it "has the custom field value in the payload" do
+            expect(subject.body)
+              .to be_json_eql("Engineering".to_json)
+              .at_path("_embedded/payload/customField#{required_custom_field.id}/raw")
+          end
         end
       end
 

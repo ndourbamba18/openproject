@@ -90,13 +90,13 @@ RSpec.describe "API v3 Project resource update", content_type: :json do
   end
 
   describe "custom fields" do
-    shared_let(:required_custom_field) do
-      create(:text_project_custom_field,
-             name: "Department",
-             is_required: true)
-    end
+    context "with a required custom field" do
+      let!(:required_custom_field) do
+        create(:text_project_custom_field,
+               name: "Department",
+               is_required: true)
+      end
 
-    context "when the required custom field is provided with an invalid value" do
       context "when no custom field value is provided" do
         let(:body) do
           {
@@ -114,7 +114,7 @@ RSpec.describe "API v3 Project resource update", content_type: :json do
 
         it "keeps the custom field value empty" do
           expect(project.reload.typed_custom_value_for(required_custom_field))
-            .to be_nil
+            .to be_empty
         end
       end
 
@@ -136,40 +136,40 @@ RSpec.describe "API v3 Project resource update", content_type: :json do
             .at_path("message")
         end
       end
-    end
 
-    context "when the required custom field is provided with a valid value" do
-      let(:body) do
-        {
-          name: "Updated project name",
-          required_custom_field.attribute_name(:camel_case) => {
-            raw: "Engineering"
+      context "when the custom field value is provided and valid" do
+        let(:body) do
+          {
+            name: "Updated project name",
+            required_custom_field.attribute_name(:camel_case) => {
+              raw: "Engineering"
+            }
           }
-        }
-      end
+        end
 
-      it "responds with 200" do
-        expect(last_response).to have_http_status(:ok)
-      end
+        it "responds with 200" do
+          expect(last_response).to have_http_status(:ok)
+        end
 
-      it "returns the updated project" do
-        expect(last_response.body)
-          .to be_json_eql("Project".to_json)
-          .at_path("_type")
+        it "returns the updated project" do
+          expect(last_response.body)
+            .to be_json_eql("Project".to_json)
+            .at_path("_type")
 
-        expect(last_response.body)
-          .to be_json_eql("Updated project name".to_json)
-          .at_path("name")
-      end
+          expect(last_response.body)
+            .to be_json_eql("Updated project name".to_json)
+            .at_path("name")
+        end
 
-      it "updates the project with the custom field value" do
-        expect(project.reload.typed_custom_value_for(required_custom_field))
-          .to eq("Engineering")
-      end
+        it "updates the project with the custom field value" do
+          expect(project.reload.typed_custom_value_for(required_custom_field))
+            .to eq("Engineering")
+        end
 
-      it "keeps the cf activated for the project" do
-        expect(project.reload.project_custom_fields)
-          .to include(required_custom_field)
+        it "keeps the cf activated for the project" do
+          expect(project.reload.project_custom_fields)
+            .to include(required_custom_field)
+        end
       end
     end
 
