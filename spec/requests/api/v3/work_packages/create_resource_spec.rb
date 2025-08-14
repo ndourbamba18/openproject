@@ -299,11 +299,11 @@ RSpec.describe "API v3 Work package resource",
       context "when the custom field is required" do
         shared_let(:required_custom_field) do
           create(:work_package_custom_field,
-                field_format: "string",
-                name: "Department",
-                is_required: true,
-                projects: [project],
-                types: [type])
+                 field_format: "string",
+                 name: "Department",
+                 is_required: true,
+                 projects: [project],
+                 types: [type])
         end
 
         context "when no custom field value is provided" do

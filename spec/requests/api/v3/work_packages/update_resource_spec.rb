@@ -893,7 +893,7 @@ RSpec.describe "API v3 Work package resource",
             end
           end
 
-          context "when required custom field is provided but empty" do
+          context "when the custom field value is provided but empty" do
             let(:params) do
               valid_params.merge("customField#{required_custom_field.id}" => "")
             end
@@ -919,7 +919,7 @@ RSpec.describe "API v3 Work package resource",
             end
           end
 
-          context "when required custom field is being cleared" do
+          context "when custom field value is being cleared" do
             let(:params) do
               valid_params.merge("customField#{required_custom_field.id}" => "")
             end
