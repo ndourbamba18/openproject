@@ -38,7 +38,7 @@ RSpec.describe "API v3 Project resource create", content_type: :json do
   let(:custom_field) do
     create(:text_project_custom_field)
   end
-  let(:invisible_custom_field) do
+  let(:admin_only_custom_field) do
     create(:text_project_custom_field, admin_only: true)
   end
   let(:custom_value) do
@@ -224,12 +224,12 @@ RSpec.describe "API v3 Project resource create", content_type: :json do
       end
     end
 
-    context "with an invisible custom field" do
+    context "with an admin only custom field" do
       let(:body) do
         {
           identifier: "new_project_identifier",
           name: "Project name",
-          invisible_custom_field.attribute_name(:camel_case) => {
+          admin_only_custom_field.attribute_name(:camel_case) => {
             raw: "CF text"
           }
         }.to_json
@@ -241,19 +241,19 @@ RSpec.describe "API v3 Project resource create", content_type: :json do
         it "sets the cf value" do
           expect(last_response.body)
             .to be_json_eql("CF text".to_json)
-            .at_path("customField#{invisible_custom_field.id}/raw")
+            .at_path("customField#{admin_only_custom_field.id}/raw")
         end
 
         it "automatically activates the cf for project if the value was provided" do
           expect(Project.last.project_custom_fields)
-            .to contain_exactly(invisible_custom_field)
+            .to contain_exactly(admin_only_custom_field)
         end
       end
 
       context "with non-admin permissions" do
         it "does not set the cf value" do
           expect(last_response.body)
-            .not_to have_json_path("customField#{invisible_custom_field.id}/raw")
+            .not_to have_json_path("customField#{admin_only_custom_field.id}/raw")
         end
 
         it "does not activate the cf for project" do

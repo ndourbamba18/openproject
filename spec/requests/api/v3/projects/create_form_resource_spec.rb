@@ -327,8 +327,8 @@ RSpec.describe API::V3::Projects::CreateFormAPI, content_type: :json do
         end
       end
 
-      context "with an invisible custom field" do
-        let(:invisible_custom_field) do
+      context "with an admin only custom field" do
+        let(:admin_only_custom_field) do
           create(:text_project_custom_field, admin_only: true)
         end
 
@@ -336,7 +336,7 @@ RSpec.describe API::V3::Projects::CreateFormAPI, content_type: :json do
           {
             identifier: "new_project_identifier",
             name: "Project name",
-            invisible_custom_field.attribute_name(:camel_case) => {
+            admin_only_custom_field.attribute_name(:camel_case) => {
               raw: "CF text"
             }
           }
@@ -352,7 +352,7 @@ RSpec.describe API::V3::Projects::CreateFormAPI, content_type: :json do
           it "includes the cf value in the payload" do
             expect(subject.body)
               .to be_json_eql("CF text".to_json)
-              .at_path("_embedded/payload/customField#{invisible_custom_field.id}/raw")
+              .at_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
           end
 
           it "has a commit link" do
@@ -365,7 +365,7 @@ RSpec.describe API::V3::Projects::CreateFormAPI, content_type: :json do
         context "with non-admin permissions" do
           it "ignores the invisible custom field" do
             expect(subject.body)
-              .not_to have_json_path("_embedded/payload/customField#{invisible_custom_field.id}/raw")
+              .not_to have_json_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
           end
 
           it "has no validation errors for visible fields" do

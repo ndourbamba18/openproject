@@ -378,19 +378,13 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
     end
 
     describe "custom fields" do
-      let!(:required_custom_field) do
-        create(:text_project_custom_field,
-               name: "Department",
-               is_required: true)
-      end
+      context "when the custom field is required" do
+        shared_let(:required_custom_field) do
+          create(:text_project_custom_field,
+                 name: "Department",
+                 is_required: true)
+        end
 
-      let!(:invisible_custom_field) do
-        create(:text_project_custom_field,
-               admin_only: true,
-               projects: [project])
-      end
-
-      context "when the required custom field is provided with an invalid value" do
         context "when no custom field value is provided" do
           let(:params) do
             {
@@ -430,32 +424,32 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
               .not_to have_json_path("_links/commit")
           end
         end
-      end
 
-      context "when the required custom field is provided with a valid value" do
-        let(:params) do
-          {
-            name: "Updated project name",
-            required_custom_field.attribute_name(:camel_case) => {
-              raw: "Engineering"
+        context "when the custom field value is provided and valid" do
+          let(:params) do
+            {
+              name: "Updated project name",
+              required_custom_field.attribute_name(:camel_case) => {
+                raw: "Engineering"
+              }
             }
-          }
-        end
+          end
 
-        it "has no validation errors" do
-          expect(subject.body).to have_json_size(0).at_path("_embedded/validationErrors")
-        end
+          it "has no validation errors" do
+            expect(subject.body).to have_json_size(0).at_path("_embedded/validationErrors")
+          end
 
-        it "has a commit link" do
-          expect(subject.body)
-            .to be_json_eql(api_v3_paths.project(project.id).to_json)
-            .at_path("_links/commit/href")
-        end
+          it "has a commit link" do
+            expect(subject.body)
+              .to be_json_eql(api_v3_paths.project(project.id).to_json)
+              .at_path("_links/commit/href")
+          end
 
-        it "has the custom field value in the payload" do
-          expect(subject.body)
-            .to be_json_eql("Engineering".to_json)
-            .at_path("_embedded/payload/customField#{required_custom_field.id}/raw")
+          it "has the custom field value in the payload" do
+            expect(subject.body)
+              .to be_json_eql("Engineering".to_json)
+              .at_path("_embedded/payload/customField#{required_custom_field.id}/raw")
+          end
         end
       end
 
@@ -485,10 +479,16 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
         end
       end
 
-      context "with an invisible custom field" do
+      context "with an admin only custom field" do
+        let!(:admin_only_custom_field) do
+          create(:text_project_custom_field,
+                 admin_only: true,
+                 projects: [project])
+        end
+
         let(:params) do
           {
-            invisible_custom_field.attribute_name(:camel_case) => {
+            admin_only_custom_field.attribute_name(:camel_case) => {
               raw: "CF text"
             }
           }
@@ -503,7 +503,7 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
 
           it "includes the invisible custom field in form payload" do
             expect(subject.body)
-              .to have_json_path("_embedded/payload/customField#{invisible_custom_field.id}/raw")
+              .to have_json_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
           end
 
           it "has a commit link" do
@@ -516,7 +516,7 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
         context "with non-admin permissions" do
           it "ignores the invisible custom field" do
             expect(subject.body)
-              .not_to have_json_path("_embedded/payload/customField#{invisible_custom_field.id}/raw")
+              .not_to have_json_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
           end
 
           it "has no validation errors for visible fields" do
@@ -531,7 +531,7 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
 
           context "when the hidden field has a value already" do
             before do
-              project.custom_field_values = { invisible_custom_field.id => "1234" }
+              project.custom_field_values = { admin_only_custom_field.id => "1234" }
               project.save!
               login_as(current_user)
               post path, params.to_json
@@ -540,7 +540,7 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
             it "does not change the existing cf value in payload" do
               # The form should not expose invisible custom field values to non-admin users
               expect(subject.body)
-                .not_to have_json_path("_embedded/payload/customField#{invisible_custom_field.id}/raw")
+                .not_to have_json_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
             end
           end
         end
