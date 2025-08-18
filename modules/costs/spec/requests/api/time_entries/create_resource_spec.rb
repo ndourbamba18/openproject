@@ -154,12 +154,6 @@ RSpec.describe "API v3 Time Entries resource",
     end
 
     describe "custom fields" do
-      let!(:required_custom_field) do
-        create(:time_entry_custom_field, :string,
-               name: "Department",
-               is_required: true)
-      end
-
       let(:base_parameters) do
         {
           _links: {
@@ -172,7 +166,13 @@ RSpec.describe "API v3 Time Entries resource",
         }
       end
 
-      context "and custom field is invalid" do
+      context "with a required custom field" do
+        let!(:required_custom_field) do
+          create(:time_entry_custom_field, :string,
+                 name: "Department",
+                 is_required: true)
+        end
+
         context "when no custom field value is provided" do
           let(:parameters) { base_parameters }
 
@@ -204,35 +204,35 @@ RSpec.describe "API v3 Time Entries resource",
               .at_path("message")
           end
         end
-      end
 
-      context "and the required custom field is valid" do
-        let(:parameters) do
-          base_parameters.merge(
-            "customField#{required_custom_field.id}" => "Engineering"
-          )
-        end
+        context "when the custom field value is provided and valid" do
+          let(:parameters) do
+            base_parameters.merge(
+              "customField#{required_custom_field.id}" => "Engineering"
+            )
+          end
 
-        it "responds with 201" do
-          post path, parameters.to_json
+          it "responds with 201" do
+            post path, parameters.to_json
 
-          expect(response).to have_http_status(:created)
-        end
+            expect(response).to have_http_status(:created)
+          end
 
-        it "returns the newly created time entry" do
-          post path, parameters.to_json
+          it "returns the newly created time entry" do
+            post path, parameters.to_json
 
-          expect(response.body)
-            .to be_json_eql("TimeEntry".to_json)
-            .at_path("_type")
-        end
+            expect(response.body)
+              .to be_json_eql("TimeEntry".to_json)
+              .at_path("_type")
+          end
 
-        it "creates a time entry with the custom field value" do
-          post path, parameters.to_json
+          it "creates a time entry with the custom field value" do
+            post path, parameters.to_json
 
-          time_entry = TimeEntry.last
-          expect(time_entry.typed_custom_value_for(required_custom_field))
-            .to eq("Engineering")
+            time_entry = TimeEntry.last
+            expect(time_entry.typed_custom_value_for(required_custom_field))
+              .to eq("Engineering")
+          end
         end
       end
     end
