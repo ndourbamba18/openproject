@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -29,7 +31,7 @@
 module API
   module Errors
     class EnterpriseTokenMissing < ErrorBase
-      identifier "MissingEnterpriseToken".freeze
+      identifier "MissingEnterpriseToken"
       code 500
 
       def initialize

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -32,7 +34,7 @@ module API
       module Hal
         extend ActiveSupport::Concern
 
-        TO_BE_REMOVED = "_to_be_removed_".freeze
+        TO_BE_REMOVED = "_to_be_removed_"
 
         included do
           extend ::API::V3::Utilities::PathHelper

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -49,9 +51,9 @@ module OpenProject::CustomStyles
     # Path to favicon
     def favicon_asset_path
       if OpenProject::Configuration.development_highlight_enabled?
-        "development/favicon.ico".freeze
+        "development/favicon.ico"
       else
-        "favicon.ico".freeze
+        "favicon.ico"
       end
     end
 
@@ -59,9 +61,9 @@ module OpenProject::CustomStyles
     # Path to apple touch icon
     def apple_touch_icon_asset_path
       if OpenProject::Configuration.development_highlight_enabled?
-        "development/apple-touch-icon-120x120.png".freeze
+        "development/apple-touch-icon-120x120.png"
       else
-        "apple-touch-icon-120x120.png".freeze
+        "apple-touch-icon-120x120.png"
       end
     end
 

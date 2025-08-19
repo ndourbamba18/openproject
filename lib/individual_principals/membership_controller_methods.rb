@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module IndividualPrincipals
   module MembershipControllerMethods
     extend ActiveSupport::Concern

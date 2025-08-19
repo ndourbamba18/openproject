@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copied from https://gitlab.com/gitlab-org/ruby/gems/gitlab-chronic-duration
 # version 0.12.0
 #

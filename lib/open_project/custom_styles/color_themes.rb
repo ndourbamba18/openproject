@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -30,16 +32,16 @@ module OpenProject::CustomStyles
   module ColorThemes
     module_function
 
-    OpenProject::CustomStyles::ColorThemes::DEFAULT_THEME_NAME = "OpenProject (default)".freeze
+    OpenProject::CustomStyles::ColorThemes::DEFAULT_THEME_NAME = "OpenProject (default)"
 
-    DEPRECATED_ALTERNATIVE_COLOR = "#35C53F".freeze
-    DEPRECATED_PRIMARY_COLOR = "#1A67A3".freeze
-    DEPRECATED_BIM_ALTERNATIVE_COLOR = "#349939".freeze
-    DEPRECATED_PRIMARY_DARK_COLOR = "#175A8E".freeze
-    DEPRECATED_LINK_COLOR = "#155282".freeze
-    DEPRECATED_MAIN_MENU_COLOR = "#333739".freeze
-    PRIMER_PRIMARY_BUTTON_COLOR = "#1F883D".freeze
-    ACCENT_COLOR = "#1A67A3".freeze
+    DEPRECATED_ALTERNATIVE_COLOR = "#35C53F"
+    DEPRECATED_PRIMARY_COLOR = "#1A67A3"
+    DEPRECATED_BIM_ALTERNATIVE_COLOR = "#349939"
+    DEPRECATED_PRIMARY_DARK_COLOR = "#175A8E"
+    DEPRECATED_LINK_COLOR = "#155282"
+    DEPRECATED_MAIN_MENU_COLOR = "#333739"
+    PRIMER_PRIMARY_BUTTON_COLOR = "#1F883D"
+    ACCENT_COLOR = "#1A67A3"
 
     THEMES = [
       {

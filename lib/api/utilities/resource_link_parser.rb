@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -31,7 +33,7 @@ module API
     class ResourceLinkParser
       # N.B. valid characters for URL path segments as of
       # http://tools.ietf.org/html/rfc3986#section-3.3
-      SEGMENT_CHARACTER = '(\w|[-~!$&\'\(\)*+\.,:;=@]|%[0-9A-Fa-f]{2})'.freeze
+      SEGMENT_CHARACTER = '(\w|[-~!$&\'\(\)*+\.,:;=@]|%[0-9A-Fa-f]{2})'
       RESOURCE_REGEX =
         "/api/v(?<version>\\d)/(?<namespace>[\\w/]+)/(?<id>#{SEGMENT_CHARACTER}+)\\z".freeze
 

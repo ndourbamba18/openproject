@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OpenProject
   module RateLimiting
     class APIV3 < Base

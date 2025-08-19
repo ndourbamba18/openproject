@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OpenProject::RateLimiting
   class ThrottledApiError < ::API::Errors::ErrorBase
     identifier "Throttled"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ##
 # This is a fix for a new SMTP bug introduced with Ruby 3.
 # This can be removed once the official fix from the `mail` gem maintainers

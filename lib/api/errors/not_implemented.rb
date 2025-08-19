@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -29,10 +31,10 @@
 module API
   module Errors
     class NotImplemented < ErrorBase
-      identifier "NotImplemented".freeze
+      identifier "NotImplemented"
       code 501
 
-      def initialize(error_message = "Not yet implemented".freeze, **)
+      def initialize(error_message = "Not yet implemented", **)
         super(error_message)
       end
     end

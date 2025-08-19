@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OpenProject
   module GlobalSearch
     def self.tab_name(tab)

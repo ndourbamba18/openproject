@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 module API
   module Caching
     module Helpers
       def with_etag!(key)
         etag = %(W/"#{::Digest::SHA1.hexdigest(key.to_s)}")
-        error!("Not Modified".freeze, 304) if headers["If-None-Match".freeze] == etag
+        error!("Not Modified", 304) if headers["If-None-Match"] == etag
 
-        header "ETag".freeze, etag
+        header "ETag", etag
       end
 
       ##
