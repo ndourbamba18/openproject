@@ -31,6 +31,11 @@
 class Document < ApplicationRecord
   belongs_to :project
   belongs_to :category, class_name: "DocumentCategory"
+
+  delegated_type :documentable,
+                 types: %w[CollaborativeDocument],
+                 dependent: :destroy
+
   acts_as_attachable delete_permission: :manage_documents,
                      add_permission: :manage_documents
 
@@ -46,8 +51,8 @@ class Document < ApplicationRecord
                      references: :projects,
                      date_column: "#{table_name}.created_at"
 
-  validates_presence_of :project, :title, :category
-  validates_length_of :title, maximum: 60
+  validates :project, :title, :category, presence: true
+  validates :title, length: { maximum: 60 }
 
   scope :visible, ->(user = User.current) {
     includes(:project)
