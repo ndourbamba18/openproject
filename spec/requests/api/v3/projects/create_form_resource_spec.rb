@@ -377,6 +377,33 @@ RSpec.describe API::V3::Projects::CreateFormAPI, content_type: :json do
               .to be_json_eql(api_v3_paths.projects.to_json)
               .at_path("_links/commit/href")
           end
+
+          context "and when the custom field is required" do
+            let(:admin_only_custom_field) do
+              create(:text_project_custom_field, admin_only: true, is_required: true)
+            end
+            let(:params) do
+              {
+                identifier: "new_project_identifier",
+                name: "Project name"
+              }
+            end
+
+            it "ignores the invisible custom field" do
+              expect(subject.body)
+                .not_to have_json_path("_embedded/payload/customField#{admin_only_custom_field.id}/raw")
+            end
+
+            it "has no validation errors for visible fields" do
+              expect(subject.body).to have_json_size(0).at_path("_embedded/validationErrors")
+            end
+
+            it "has a commit link" do
+              expect(subject.body)
+                .to be_json_eql(api_v3_paths.projects.to_json)
+                .at_path("_links/commit/href")
+            end
+          end
         end
       end
     end

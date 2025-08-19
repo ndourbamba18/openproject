@@ -252,6 +252,31 @@ RSpec.describe "API v3 Project resource update", content_type: :json do
           expect(project.reload.project_custom_fields)
             .to be_empty
         end
+
+        context "and when the custom field is required" do
+          let(:admin_only_custom_field) do
+            create(:text_project_custom_field, admin_only: true, is_required: true)
+          end
+          let(:body) do
+            {
+              name: "Updated project name"
+            }
+          end
+
+          it "responds with 200 OK" do
+            expect(last_response).to have_http_status(:ok)
+          end
+
+          it "does not set the cf value" do
+            expect(project.reload.typed_custom_value_for(admin_only_custom_field))
+              .to be_nil
+          end
+
+          it "does not activate the cf for project" do
+            expect(project.reload.project_custom_fields)
+              .to be_empty
+          end
+        end
       end
     end
   end

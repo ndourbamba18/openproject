@@ -260,6 +260,32 @@ RSpec.describe "API v3 Project resource create", content_type: :json do
           expect(Project.last.project_custom_fields)
             .to be_empty
         end
+
+        context "and when the custom field is required" do
+          let(:admin_only_custom_field) do
+            create(:text_project_custom_field, admin_only: true, is_required: true)
+          end
+          let(:body) do
+            {
+              identifier: "new_project_identifier",
+              name: "Project name"
+            }.to_json
+          end
+
+          it "responds with 201" do
+            expect(last_response).to have_http_status(:created)
+          end
+
+          it "does not set the cf value" do
+            expect(last_response.body)
+              .not_to have_json_path("customField#{admin_only_custom_field.id}/raw")
+          end
+
+          it "does not activate the cf for project" do
+            expect(Project.last.project_custom_fields)
+              .to be_empty
+          end
+        end
       end
     end
   end
