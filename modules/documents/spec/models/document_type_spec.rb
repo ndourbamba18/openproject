@@ -28,18 +28,16 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-class CreateCollaborativeDocuments < ActiveRecord::Migration[8.0]
-  def change
-    create_table :collaborative_documents do |t|
-      t.text :content
-      t.references :author, foreign_key: { to_table: :users }, null: false
-      t.references :type, foreign_key: { to_table: :types }, null: false
-      t.references :assigned_to, foreign_key: { to_table: :users }
-      t.references :responsible, foreign_key: { to_table: :users }
-      t.references :status, foreign_key: true
-      t.date :due_date
+require "spec_helper"
+require_module_spec_helper
 
-      t.timestamps
-    end
+RSpec.describe DocumentType do
+  describe "Associations" do
+    it { is_expected.to have_many(:collaborative_documents).dependent(:restrict_with_exception).with_foreign_key(:type_id) }
+  end
+
+  describe "Validations" do
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_uniqueness_of(:name) }
   end
 end

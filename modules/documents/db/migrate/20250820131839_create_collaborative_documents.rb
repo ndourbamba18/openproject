@@ -28,12 +28,18 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-class CollaborativeDocument < ApplicationRecord
-  include Documentable
+class CreateCollaborativeDocuments < ActiveRecord::Migration[8.0]
+  def change
+    create_table :collaborative_documents do |t|
+      t.text :content
+      t.references :author, foreign_key: { to_table: :users }, null: false
+      t.references :type, foreign_key: { to_table: :document_types }, null: false
+      t.references :assigned_to, foreign_key: { to_table: :users }
+      t.references :responsible, foreign_key: { to_table: :users }
+      t.references :status, foreign_key: { to_table: :document_statuses }
+      t.date :due_date
 
-  belongs_to :type, class_name: "DocumentType"
-  belongs_to :status, class_name: "DocumentStatus", optional: true
-  belongs_to :author, class_name: "User"
-  belongs_to :assigned_to, class_name: "Principal", optional: true
-  belongs_to :responsible, class_name: "Principal", optional: true
+      t.timestamps
+    end
+  end
 end

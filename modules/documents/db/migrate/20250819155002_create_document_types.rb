@@ -28,12 +28,14 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-class CollaborativeDocument < ApplicationRecord
-  include Documentable
+class CreateDocumentTypes < ActiveRecord::Migration[8.0]
+  def change
+    create_table :document_types do |t|
+      t.string :name
 
-  belongs_to :type, class_name: "DocumentType"
-  belongs_to :status, class_name: "DocumentStatus", optional: true
-  belongs_to :author, class_name: "User"
-  belongs_to :assigned_to, class_name: "Principal", optional: true
-  belongs_to :responsible, class_name: "Principal", optional: true
+      t.timestamps
+    end
+
+    add_index :document_types, :name, unique: true
+  end
 end

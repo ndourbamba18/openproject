@@ -33,8 +33,8 @@ FactoryBot.define do
     content { "My Content" }
     author factory: :user
     assigned_to factory: :user
-    type factory: :type
-    status factory: :status
+    type factory: :document_type
+    status factory: :document_status
 
     document factory: :document
   end

@@ -28,12 +28,17 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-class CollaborativeDocument < ApplicationRecord
-  include Documentable
+require "spec_helper"
+require_module_spec_helper
 
-  belongs_to :type, class_name: "DocumentType"
-  belongs_to :status, class_name: "DocumentStatus", optional: true
-  belongs_to :author, class_name: "User"
-  belongs_to :assigned_to, class_name: "Principal", optional: true
-  belongs_to :responsible, class_name: "Principal", optional: true
+RSpec.describe DocumentStatus do
+  describe "Associations" do
+    it { is_expected.to belong_to(:color).optional }
+    it { is_expected.to have_many(:collaborative_documents).dependent(:nullify).with_foreign_key(:status_id) }
+  end
+
+  describe "Validations" do
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_uniqueness_of(:name) }
+  end
 end

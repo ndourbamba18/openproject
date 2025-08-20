@@ -28,12 +28,10 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-class CollaborativeDocument < ApplicationRecord
-  include Documentable
+class DocumentStatus < ApplicationRecord
+  belongs_to :color, optional: true
 
-  belongs_to :type, class_name: "DocumentType"
-  belongs_to :status, class_name: "DocumentStatus", optional: true
-  belongs_to :author, class_name: "User"
-  belongs_to :assigned_to, class_name: "Principal", optional: true
-  belongs_to :responsible, class_name: "Principal", optional: true
+  has_many :collaborative_documents, foreign_key: :status_id, dependent: :nullify, inverse_of: :status
+
+  validates :name, presence: true, uniqueness: true
 end
