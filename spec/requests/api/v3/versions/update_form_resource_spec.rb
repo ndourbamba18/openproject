@@ -215,7 +215,7 @@ RSpec.describe API::V3::Versions::UpdateFormAPI, content_type: :json do
 
     describe "custom fields" do
       context "with a required custom field" do
-        shared_let(:required_custom_field) do
+        let!(:required_custom_field) do
           create(:version_custom_field, :string,
                  name: "Release Notes",
                  is_required: true)
