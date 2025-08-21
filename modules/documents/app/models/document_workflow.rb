@@ -28,21 +28,9 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-require "spec_helper"
-require_module_spec_helper
-
-RSpec.describe DocumentType do
-  describe "Associations" do
-    it do
-      expect(subject).to have_many(:documents)
-        .class_name("CollaborativeDocument")
-        .dependent(:restrict_with_exception)
-        .with_foreign_key(:type_id)
-    end
-  end
-
-  describe "Validations" do
-    it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name) }
-  end
+class DocumentWorkflow < ApplicationRecord
+  belongs_to :type, class_name: "DocumentType"
+  belongs_to :old_status, class_name: "DocumentStatus"
+  belongs_to :new_status, class_name: "DocumentStatus"
+  belongs_to :role
 end

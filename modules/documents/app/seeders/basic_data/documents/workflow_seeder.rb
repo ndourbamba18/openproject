@@ -37,7 +37,9 @@ module BasicData
         BasicData::Documents::StatusSeeder,
         BasicData::Documents::TypeSeeder
       ]
+      self.model_class = DocumentWorkflow
       self.seed_data_model_key = "document_workflows"
+      self.attribute_names_for_required_references = %w[document_statuses document_types]
     end
   end
 end

@@ -32,6 +32,12 @@ en:
     description: "An OpenProject plugin to allow creation of documents in projects."
 
   activerecord:
+    attributes:
+      document_workflow:
+        type: "Document type"
+        old_status: "Old status"
+        new_status: "New status"
+        role: "Role"
     models:
       document: "Document"
 

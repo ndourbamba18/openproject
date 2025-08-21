@@ -31,7 +31,14 @@
 class DocumentStatus < ApplicationRecord
   belongs_to :color, optional: true
 
-  has_many :collaborative_documents, foreign_key: :status_id, dependent: :nullify, inverse_of: :status
+  has_many :documents, class_name: "CollaborativeDocument",
+                       foreign_key: :status_id,
+                       dependent: :nullify,
+                       inverse_of: :status
+  has_many :workflows, class_name: "DocumentWorkflow",
+                       foreign_key: :old_status_id,
+                       dependent: :destroy,
+                       inverse_of: :old_status
 
   validates :name, presence: true, uniqueness: true
 end

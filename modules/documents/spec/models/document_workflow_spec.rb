@@ -31,18 +31,11 @@
 require "spec_helper"
 require_module_spec_helper
 
-RSpec.describe DocumentType do
+RSpec.describe DocumentWorkflow do
   describe "Associations" do
-    it do
-      expect(subject).to have_many(:documents)
-        .class_name("CollaborativeDocument")
-        .dependent(:restrict_with_exception)
-        .with_foreign_key(:type_id)
-    end
-  end
-
-  describe "Validations" do
-    it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name) }
+    it { is_expected.to belong_to(:type).class_name("DocumentType") }
+    it { is_expected.to belong_to(:old_status).class_name("DocumentStatus") }
+    it { is_expected.to belong_to(:new_status).class_name("DocumentStatus") }
+    it { is_expected.to belong_to(:role) }
   end
 end

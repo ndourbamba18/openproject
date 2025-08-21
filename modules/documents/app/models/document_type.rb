@@ -29,7 +29,14 @@
 #++
 
 class DocumentType < ApplicationRecord
-  has_many :collaborative_documents, foreign_key: :type_id, dependent: :restrict_with_exception, inverse_of: :type
+  has_many :documents, class_name: "CollaborativeDocument",
+                       foreign_key: :type_id,
+                       dependent: :restrict_with_exception,
+                       inverse_of: :type
+  has_many :workflows, class_name: "DocumentWorkflow",
+                       foreign_key: :type_id,
+                       dependent: :destroy,
+                       inverse_of: :type
 
   validates :name, presence: true, uniqueness: true
 end

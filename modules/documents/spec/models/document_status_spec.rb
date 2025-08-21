@@ -34,7 +34,20 @@ require_module_spec_helper
 RSpec.describe DocumentStatus do
   describe "Associations" do
     it { is_expected.to belong_to(:color).optional }
-    it { is_expected.to have_many(:collaborative_documents).dependent(:nullify).with_foreign_key(:status_id) }
+
+    it do
+      expect(subject).to have_many(:documents)
+        .class_name("CollaborativeDocument")
+        .dependent(:nullify)
+        .with_foreign_key(:status_id)
+    end
+
+    it do
+      expect(subject).to have_many(:workflows)
+        .class_name("DocumentWorkflow")
+        .dependent(:destroy)
+        .with_foreign_key(:old_status_id)
+    end
   end
 
   describe "Validations" do

@@ -28,21 +28,11 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-require "spec_helper"
-require_module_spec_helper
-
-RSpec.describe DocumentType do
-  describe "Associations" do
-    it do
-      expect(subject).to have_many(:documents)
-        .class_name("CollaborativeDocument")
-        .dependent(:restrict_with_exception)
-        .with_foreign_key(:type_id)
-    end
-  end
-
-  describe "Validations" do
-    it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name) }
+FactoryBot.define do
+  factory :document_workflow do
+    type factory: :document_type
+    old_status factory: :document_status
+    new_status factory: :document_status
+    role
   end
 end

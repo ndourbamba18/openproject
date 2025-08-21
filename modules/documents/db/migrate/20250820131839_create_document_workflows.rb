@@ -28,21 +28,15 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-require "spec_helper"
-require_module_spec_helper
+class CreateDocumentWorkflows < ActiveRecord::Migration[8.0]
+  def change
+    create_table :document_workflows do |t|
+      t.references :type, foreign_key: { to_table: :document_types }, null: false
+      t.references :old_status, foreign_key: { to_table: :document_statuses }, null: false
+      t.references :new_status, foreign_key: { to_table: :document_statuses }, null: false
+      t.references :role, foreign_key: true, null: false
 
-RSpec.describe DocumentType do
-  describe "Associations" do
-    it do
-      expect(subject).to have_many(:documents)
-        .class_name("CollaborativeDocument")
-        .dependent(:restrict_with_exception)
-        .with_foreign_key(:type_id)
+      t.timestamps
     end
-  end
-
-  describe "Validations" do
-    it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name) }
   end
 end
