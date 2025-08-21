@@ -84,14 +84,6 @@ project_phase_colors:
     t_name: PM2 Green Yellow
     hexcode: "#B1D13A"
 
-document_categories:
-  - t_name: Documentation
-    position: 1
-  - t_name: Specification
-    position: 2
-  - t_name: Other
-    position: 3
-
 # Palette by open-color
 # https://yeun.github.io/open-color/
 # TODO: should the color name be translated?
