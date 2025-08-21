@@ -28,8 +28,18 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-class DocumentType < ApplicationRecord
-  has_many :collaborative_documents, foreign_key: :type_id, dependent: :restrict_with_exception, inverse_of: :type
+module BasicData
+  module Documents
+    class TypeSeeder < ModelSeeder
+      self.model_class = DocumentType
+      self.seed_data_model_key = "document_types"
+      self.attribute_names_for_lookups = %i[name]
 
-  validates :name, presence: true, uniqueness: true
+      def model_attributes(type_data)
+        {
+          name: type_data["name"]
+        }
+      end
+    end
+  end
 end

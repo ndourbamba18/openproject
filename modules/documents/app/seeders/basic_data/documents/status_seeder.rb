@@ -27,9 +27,21 @@
 #
 # See COPYRIGHT and LICENSE files for more details.
 #++
+module BasicData
+  module Documents
+    class StatusSeeder < ModelSeeder
+      self.model_class = DocumentStatus
+      self.seed_data_model_key = "document_statuses"
+      self.attribute_names_for_lookups = %i[name]
+      self.needs = [
+        BasicData::ColorSeeder,
+        BasicData::ColorSchemeSeeder
+      ]
 
-class DocumentType < ApplicationRecord
-  has_many :collaborative_documents, foreign_key: :type_id, dependent: :restrict_with_exception, inverse_of: :type
-
-  validates :name, presence: true, uniqueness: true
+      def model_attributes(status_data)
+        { name: status_data["name"],
+          color_id: color_id(status_data["color_name"]) }
+      end
+    end
+  end
 end

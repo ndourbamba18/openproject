@@ -43,3 +43,72 @@ document_categories:
     position: 2
   - t_name: Other
     position: 3
+
+document_types:
+  - reference: :document_default_type_standard
+    t_name: Standard
+  - reference: :document_default_type_specification
+    t_name: Specification
+  - reference: :document_default_type_contract
+    t_name: Contract
+  - reference: :document_default_type_report
+    t_name: Report
+
+document_statuses:
+  - reference: :document_default_status_new
+    t_name: New
+    color_name: cyan-7
+  - reference: :document_default_status_in_progress
+    t_name: In progress
+    color_name: grape-5
+  - reference: :document_default_status_ready_for_review
+    t_name: Ready for review
+    color_name: blue-2
+  - reference: :document_default_status_in_review
+    t_name: In review
+    color_name: blue-2
+  - reference: :document_default_status_approved
+    t_name: Approved
+    color_name: green-3
+  - reference: :document_default_status_rejected
+    t_name: Rejected
+    color_name: red-3
+  - reference: :document_default_status_signed_by_company
+    t_name: Signed by company
+    color_name: violet-2
+  - reference: :document_default_status_signed_by_all_parties
+    t_name: Signed by all parties
+    color_name: violet-2
+  - reference: :document_default_status_finalised
+    t_name: Finalised
+    color_name: gray-3
+
+document_workflows:
+  - type: :document_default_type_standard
+    statuses:
+      - :document_default_status_new
+      - :document_default_status_in_progress
+      - :document_default_status_finalised
+  - type: :document_default_type_specification
+    statuses:
+      - :document_default_status_new
+      - :document_default_status_ready_for_review
+      - :document_default_status_in_review
+      - :document_default_status_approved
+      - :document_default_status_finalised
+      - :document_default_status_rejected
+  - type: :document_default_type_contract
+    statuses:
+      - :document_default_status_new
+      - :document_default_status_ready_for_review
+      - :document_default_status_in_review
+      - :document_default_status_approved
+      - :document_default_status_signed_by_company
+      - :document_default_status_signed_by_all_parties
+      - :document_default_status_rejected
+  - type: :document_default_type_report
+    statuses:
+      - :document_default_status_new
+      - :document_default_status_ready_for_review
+      - :document_default_status_in_review
+      - :document_default_status_finalised
