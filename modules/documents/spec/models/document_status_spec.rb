@@ -32,9 +32,27 @@ require "spec_helper"
 require_module_spec_helper
 
 RSpec.describe DocumentStatus do
-  describe "Associations" do
-    it { is_expected.to belong_to(:color).optional }
+  describe "Enums" do
+    it do
+      expect(subject).to define_enum_for(:color_variant)
+        .with_values(
+          default: "default",
+          primary: "primary",
+          secondary: "secondary",
+          accent: "accent",
+          success: "success",
+          attention: "attention",
+          severe: "severe",
+          danger: "danger",
+          done: "done",
+          sponsors: "sponsors"
+        )
+        .with_suffix
+        .backed_by_column_of_type(:string)
+    end
+  end
 
+  describe "Associations" do
     it do
       expect(subject).to have_many(:documents)
         .class_name("CollaborativeDocument")
@@ -50,8 +68,18 @@ RSpec.describe DocumentStatus do
     end
   end
 
+  describe "Normalizations" do
+    it { is_expected.to normalize(:name).from("  testing you  ").to("Testing you") }
+  end
+
   describe "Validations" do
+    subject { build(:document_status) }
+
     it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name) }
+    it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
+  end
+
+  describe "Database constraints" do
+    it { is_expected.to have_db_index(:name).unique(true) }
   end
 end

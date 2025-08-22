@@ -57,31 +57,31 @@ document_types:
 document_statuses:
   - reference: :document_default_status_new
     t_name: New
-    color_name: cyan-7
+    color_variant: default
   - reference: :document_default_status_in_progress
     t_name: In progress
-    color_name: grape-5
+    color_variant: attention
   - reference: :document_default_status_ready_for_review
     t_name: Ready for review
-    color_name: blue-2
+    color_variant: default
   - reference: :document_default_status_in_review
     t_name: In review
-    color_name: blue-2
+    color_variant: accent
   - reference: :document_default_status_approved
     t_name: Approved
-    color_name: green-3
+    color_variant: success
   - reference: :document_default_status_rejected
     t_name: Rejected
-    color_name: red-3
+    color_variant: danger
   - reference: :document_default_status_signed_by_company
     t_name: Signed by company
-    color_name: violet-2
+    color_variant: sponsors
   - reference: :document_default_status_signed_by_all_parties
     t_name: Signed by all parties
-    color_name: violet-2
+    color_variant: sponsors
   - reference: :document_default_status_finalised
     t_name: Finalised
-    color_name: gray-3
+    color_variant: done
 
 document_workflows:
   - type: :document_default_type_standard

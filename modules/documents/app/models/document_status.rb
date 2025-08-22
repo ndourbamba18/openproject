@@ -29,7 +29,19 @@
 #++
 
 class DocumentStatus < ApplicationRecord
-  belongs_to :color, optional: true
+  # https://primer.style/product/components/label/#Label
+  enum :color_variant, {
+    default: "default",
+    primary: "primary",
+    secondary: "secondary",
+    accent: "accent",
+    success: "success",
+    attention: "attention",
+    severe: "severe",
+    danger: "danger",
+    done: "done",
+    sponsors: "sponsors"
+  }, suffix: true
 
   has_many :documents, class_name: "CollaborativeDocument",
                        foreign_key: :status_id,
@@ -40,5 +52,7 @@ class DocumentStatus < ApplicationRecord
                        dependent: :destroy,
                        inverse_of: :old_status
 
-  validates :name, presence: true, uniqueness: true
+  normalizes :name, with: ->(name) { name.strip.capitalize }
+
+  validates :name, presence: true, uniqueness: { case_sensitive: false }
 end

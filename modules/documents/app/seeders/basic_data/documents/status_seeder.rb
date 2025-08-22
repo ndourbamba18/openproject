@@ -33,14 +33,16 @@ module BasicData
       self.model_class = DocumentStatus
       self.seed_data_model_key = "document_statuses"
       self.attribute_names_for_lookups = %i[name]
-      self.needs = [
-        BasicData::ColorSeeder,
-        BasicData::ColorSchemeSeeder
-      ]
 
       def model_attributes(status_data)
         { name: status_data["name"],
-          color_id: color_id(status_data["color_name"]) }
+          color_variant: color_variant(status_data["color_variant"]) }
+      end
+
+      private
+
+      def color_variant(color_name)
+        DocumentStatus.color_variants[color_name.to_sym]
       end
     end
   end

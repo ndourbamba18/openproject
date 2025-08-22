@@ -31,6 +31,6 @@
 FactoryBot.define do
   factory :document_status do
     sequence(:name) { |n| "Status #{n}" }
-    color factory: :color
+    color_variant { DocumentStatus.color_variants.keys.sample }
   end
 end

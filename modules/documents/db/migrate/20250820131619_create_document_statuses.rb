@@ -31,8 +31,8 @@
 class CreateDocumentStatuses < ActiveRecord::Migration[8.0]
   def change
     create_table :document_statuses do |t|
-      t.string :name
-      t.references :color, foreign_key: true
+      t.string :name, null: false
+      t.string :color_variant, default: "default"
 
       t.timestamps
     end

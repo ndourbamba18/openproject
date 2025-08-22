@@ -37,8 +37,6 @@ class Color < ApplicationRecord
            class_name: "Type",
            dependent: :nullify
 
-  has_many :document_statuses, dependent: :nullify
-
   validates :name, :hexcode, presence: true
   validates :name, length: { maximum: 255 }
   validates :hexcode, format: { with: RGB_HEX_FORMAT, message: :hexcode_invalid, allow_blank: true }
