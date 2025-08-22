@@ -1,0 +1,42 @@
+<%=
+  grid_layout("op-documents-list--row", tag: :div, align_items: :center) do |grid|
+    grid.with_area(:name, tag: :div, mr: 3, classes: "ellipsis") do
+      render(
+        Primer::Beta::Link.new(
+          href: url_helpers.url_for({ controller: "/documents", action: "show", id: document }),
+          font_weight: :bold,
+          mr: 1,
+          data: { test_selector: "document-name" }
+        )
+      ) do
+        document.title
+      end
+    end
+
+    if collaborative_document?
+      grid.with_area(:type, tag: :div, color: :subtle, mr: 3, hide: :sm, data: { test_selector: "document-type" }) do
+        render(Primer::Beta::Truncate.new(font_weight: :light)) { collaborative_document.type.name }
+      end
+
+      grid.with_area(:status, tag: :div, color: :subtle, mr: 3, hide: :sm, data: { test_selector: "document-status" }) do
+        render(Primer::Beta::Truncate.new(font_weight: :light)) { collaborative_document.status.name }
+      end
+
+      if collaborative_document.assigned_to.present?
+        grid.with_area(:assignee, tag: :div, color: :subtle, mr: 3, font_weight: :light, data: { test_selector: "document-assignee" }, classes: "ellipsis") do
+          render(
+            Users::AvatarComponent.new(
+              user: collaborative_document.assigned_to,
+              size: :mini, link: false, show_name: true,
+              name_classes: "hidden-for-tablet-and-small-laptops"
+            )
+          )
+        end
+      end
+    end
+
+    grid.with_area(:updated_at, tag: :div, color: :subtle) do
+      render(Primer::Beta::Text.new(font_weight: :light)) { updated_at_time(document) }
+    end
+  end
+%>

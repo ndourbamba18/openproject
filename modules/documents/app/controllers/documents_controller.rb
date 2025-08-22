@@ -32,27 +32,14 @@ class DocumentsController < ApplicationController
   include AttachableServiceCall
   default_search_scope :documents
   model_object Document
+
   before_action :find_project_by_project_id, only: %i[index new create]
   before_action :find_model_object, except: %i[index new create]
   before_action :find_project_from_association, except: %i[index new create]
   before_action :authorize
 
   def index
-    @group_by = %w(category date title author).include?(params[:group_by]) ? params[:group_by] : "category"
-    documents = @project.documents
-    @grouped =
-      case @group_by
-      when "date"
-        documents.group_by { |d| d.updated_at.to_date }
-      when "title"
-        documents.group_by { |d| d.title.first.upcase }
-      when "author"
-        documents.with_attachments.group_by { |d| d.attachments.last.author }
-      else
-        documents.includes(:category).group_by(&:category)
-      end
-
-    render layout: false if request.xhr?
+    @documents = @project.documents.includes(documentable: %i[type status]).order(updated_at: :desc)
   end
 
   def show

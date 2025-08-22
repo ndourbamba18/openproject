@@ -51,6 +51,20 @@ en:
   enumeration_doc_categories: "Document categories"
 
   documents:
+    page_header:
+      heading: "All documents"
+
+    documents_list_blank_slate:
+      heading: "There are no documents yet"
+      description: "There are no documents in this view. You can click the button below to add one."
+
+    index_page:
+      name: "Name"
+      type: "Type"
+      status: "Status"
+      assignee: "Assignee"
+      updated_at: "Last edited"
+
     label_attachment_author: "Attachment author"
     label_categories: "Categories"
     new_category: "New category"

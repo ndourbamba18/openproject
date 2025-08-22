@@ -1,0 +1,50 @@
+<%=
+  if documents.present?
+    render(border_box_container) do |component|
+      component.with_header(color: :muted) do
+        grid_layout("op-documents-list--header", tag: :div, align_items: :center) do |grid|
+          grid.with_area(:name, tag: :div, mr: 3) do
+            render(Primer::Beta::Text.new(font_weight: :semibold)) { I18n.t("documents.index_page.name") }
+          end
+
+          grid.with_area(:type, tag: :div, color: :muted, mr: 3, hide: :sm) do
+            render(Primer::Beta::Text.new(font_weight: :semibold)) { I18n.t("documents.index_page.type") }
+          end
+
+          grid.with_area(:status, tag: :div, color: :muted, mr: 3, hide: :sm) do
+            render(Primer::Beta::Text.new(font_weight: :semibold)) { I18n.t("documents.index_page.status") }
+          end
+
+          grid.with_area(:assignee, tag: :div, color: :muted, mr: 3, hide: :sm) do
+            render(Primer::Beta::Text.new(font_weight: :semibold)) { I18n.t("documents.index_page.assignee") }
+          end
+
+          grid.with_area(:updated_at, tag: :div, color: :muted, hide: :sm) do
+            render(Primer::Beta::Text.new(font_weight: :semibold)) { I18n.t("documents.index_page.updated_at") }
+          end
+        end
+      end
+
+      documents.map do |document|
+        component.with_row(scheme: :default, id: document_row_css_id(document)) do
+          render(Documents::RowComponent.new(document))
+        end
+      end
+    end
+  else
+    render Primer::Beta::Blankslate.new(border: true) do |component|
+      component.with_visual_icon(icon: :briefcase)
+      component.with_heading(tag: :h2).with_content(I18n.t("documents.documents_list_blank_slate.heading", project_name: project.name))
+      component.with_description { I18n.t("documents.documents_list_blank_slate.description") }
+      component.with_primary_action(
+        scheme: :primary,
+        label: I18n.t(:label_document_new),
+        tag: :a,
+        href: url_helpers.url_for({ controller: "/documents", action: "new", project_id: project })
+      ) do |button|
+        button.with_leading_visual_icon(icon: :plus)
+        I18n.t("activerecord.models.document")
+      end
+    end
+  end
+%>

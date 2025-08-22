@@ -29,7 +29,7 @@ See COPYRIGHT and LICENSE files for more details.
 
 <%=
   render(Primer::OpenProject::PageHeader.new) do |header|
-    header.with_title { t(:label_document_plural) }
+    header.with_title { t("documents.page_header.heading") }
     header.with_breadcrumbs(
       [{ href: project_overview_path(@project.id), text: @project.name },
        t(:label_document_plural)]
@@ -53,52 +53,6 @@ See COPYRIGHT and LICENSE files for more details.
   %>
 <% end %>
 
-<% if @grouped.empty? %>
-  <%= no_results_box %>
-<% end %>
-
-<% @grouped.keys.sort.each do |group| %>
-  <%= augmented_collapsible_section(title: group.to_s) do %>
-    <div class="document-category--inner-section">
-      <div class="form--field document-category-elements">
-        <%= render partial: "documents/document", collection: @grouped[group] %>
-      </div>
-    </div>
-  <% end %>
-<% end %>
-
-<% content_for :sidebar do %>
-  <%= form_tag({}, method: :get, class: "sidebar--document-sort") do %>
-    <fieldset class="form--fieldset">
-      <legend class="form--fieldset-legend"><%= t(:label_group_by) %></legend>
-      <p>
-        <%= radio_button_tag "group_by", "category", (@group_by == "category"), class: "submit-this-form" %>
-      <label for="group_by_category">
-        <%= Document.human_attribute_name(:category) %>
-      </label><br>
-        <%= radio_button_tag "group_by", "date", (@group_by == "date"), class: "submit-this-form" %>
-      <label for="group_by_date">
-        <%= t(:label_date) %>
-      </label><br>
-        <%= radio_button_tag "group_by", "title", (@group_by == "title"), class: "submit-this-form" %>
-      <label for="group_by_title">
-        <%= Document.human_attribute_name(:title) %>
-      </label><br>
-        <%= radio_button_tag "group_by", "author", (@group_by == "author"), class: "submit-this-form" %>
-      <label for="group_by_author">
-        <%= t "documents.label_attachment_author" %>
-      </label>
-      </p>
-    </fieldset>
-  <% end %>
-<% end %>
-
-<%= nonced_javascript_tag do %>
-  jQuery(function($) {
-    $('.submit-this-form').click(function() {
-      $(this).closest('form').submit();
-    });
-  });
-<% end %>
+<%= render(Documents::ListComponent.new(@documents, project: @project)) %>
 
 <% html_title(t(:label_document_plural)) -%>
