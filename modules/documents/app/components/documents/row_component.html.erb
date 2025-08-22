@@ -15,11 +15,11 @@
 
     if collaborative_document?
       grid.with_area(:type, tag: :div, color: :subtle, mr: 3, hide: :sm, data: { test_selector: "document-type" }) do
-        render(Primer::Beta::Truncate.new(font_weight: :light)) { collaborative_document.type.name }
+        render(Primer::Beta::Truncate.new(font_weight: :normal)) { collaborative_document.type.name }
       end
 
       grid.with_area(:status, tag: :div, color: :subtle, mr: 3, hide: :sm, data: { test_selector: "document-status" }) do
-        render(Primer::Beta::Truncate.new(font_weight: :light)) { collaborative_document.status.name }
+        document_status_label
       end
 
       if collaborative_document.assigned_to.present?

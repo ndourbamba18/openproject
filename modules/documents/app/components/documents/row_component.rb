@@ -39,6 +39,16 @@ module Documents
 
     delegate :collaborative_document, :collaborative_document?, to: :document
 
+    def document_status_label
+      return unless collaborative_document?
+
+      status = collaborative_document.status
+      render(
+        Primer::Beta::Label.new(scheme: status.color_variant.to_sym,
+                                test_selector: "label-#{status.name.parameterize}")
+      ) { status.name }
+    end
+
     def updated_at_time(document)
       OpPrimer::RelativeTimeComponent.new(
         datetime: in_user_zone(document.updated_at),
