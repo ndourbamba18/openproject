@@ -41,8 +41,16 @@ RSpec.describe DocumentType do
     end
   end
 
+  describe "Normalizations" do
+    it { is_expected.to normalize(:name).from("  reImburseMEnt RequeSt  ").to("Reimbursement request") }
+  end
+
   describe "Validations" do
     it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name) }
+    it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
+  end
+
+  describe "Database constraints" do
+    it { is_expected.to have_db_index(:name).unique(true) }
   end
 end

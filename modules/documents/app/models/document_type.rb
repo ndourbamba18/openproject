@@ -38,5 +38,7 @@ class DocumentType < ApplicationRecord
                        dependent: :destroy,
                        inverse_of: :type
 
-  validates :name, presence: true, uniqueness: true
+  normalizes :name, with: ->(name) { name.strip.capitalize }
+
+  validates :name, presence: true, uniqueness: { case_sensitive: false }
 end
