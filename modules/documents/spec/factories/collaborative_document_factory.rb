@@ -31,7 +31,6 @@
 FactoryBot.define do
   factory :collaborative_document do
     content { "My Content" }
-    author factory: :user
     assigned_to factory: :user
     status factory: :document_status
 

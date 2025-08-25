@@ -35,12 +35,12 @@ RSpec.describe CollaborativeDocument do
   describe "Associations" do
     it { is_expected.to have_one(:document).dependent(:destroy) }
     it { is_expected.to belong_to(:status).class_name("DocumentStatus").optional }
-    it { is_expected.to belong_to(:author).class_name("User") }
     it { is_expected.to belong_to(:assigned_to).class_name("Principal").optional }
     it { is_expected.to belong_to(:responsible).class_name("Principal").optional }
   end
 
   describe "Delegations" do
+    it { is_expected.to delegate_method(:author).to(:document).allow_nil }
     it { is_expected.to delegate_method(:type).to(:document) }
   end
 end

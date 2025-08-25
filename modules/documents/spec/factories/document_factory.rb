@@ -31,6 +31,7 @@
 FactoryBot.define do
   factory :document do
     project
+    author factory: :user
     category factory: :document_category
     type factory: :document_type
     sequence(:description) { |n| "I am a document's description  No. #{n}" }

@@ -29,8 +29,9 @@
 #++
 
 class Document < ApplicationRecord
-  belongs_to :project
+  belongs_to :author, class_name: "User", optional: true
   belongs_to :category, class_name: "DocumentCategory"
+  belongs_to :project
   belongs_to :type, class_name: "DocumentType"
 
   delegated_type :documentable,

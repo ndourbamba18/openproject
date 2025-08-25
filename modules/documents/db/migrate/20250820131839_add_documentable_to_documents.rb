@@ -32,6 +32,7 @@ class AddDocumentableToDocuments < ActiveRecord::Migration[8.0]
   def change
     add_reference :documents, :documentable, polymorphic: true, index: true
     add_reference :documents, :type, foreign_key: { to_table: :document_types }
+    add_reference :documents, :author, foreign_key: { to_table: :users }
 
     reversible do |dir|
       dir.up do
