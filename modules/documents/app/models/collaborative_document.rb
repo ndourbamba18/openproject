@@ -31,7 +31,6 @@
 class CollaborativeDocument < ApplicationRecord
   include Documentable
 
-  belongs_to :type, class_name: "DocumentType"
   belongs_to :status, class_name: "DocumentStatus", optional: true
   belongs_to :author, class_name: "User"
   belongs_to :assigned_to, class_name: "Principal", optional: true

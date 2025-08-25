@@ -33,5 +33,7 @@ module Documentable
 
   included do
     has_one :document, as: :documentable, touch: true, dependent: :destroy
+
+    delegate :type, to: :document
   end
 end

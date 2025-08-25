@@ -35,8 +35,7 @@ RSpec.describe DocumentType do
   describe "Associations" do
     it do
       expect(subject).to have_many(:documents)
-        .class_name("CollaborativeDocument")
-        .dependent(:restrict_with_exception)
+        .dependent(:nullify)
         .with_foreign_key(:type_id)
     end
   end

@@ -33,7 +33,6 @@ class CreateCollaborativeDocuments < ActiveRecord::Migration[8.0]
     create_table :collaborative_documents do |t|
       t.text :content
       t.references :author, foreign_key: { to_table: :users }, null: false
-      t.references :type, foreign_key: { to_table: :document_types }, null: false
       t.references :assigned_to, foreign_key: { to_table: :users }
       t.references :responsible, foreign_key: { to_table: :users }
       t.references :status, foreign_key: { to_table: :document_statuses }

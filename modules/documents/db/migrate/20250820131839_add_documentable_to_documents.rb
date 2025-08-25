@@ -31,5 +31,19 @@
 class AddDocumentableToDocuments < ActiveRecord::Migration[8.0]
   def change
     add_reference :documents, :documentable, polymorphic: true, index: true
+    add_reference :documents, :type, foreign_key: { to_table: :document_types }
+
+    reversible do |dir|
+      dir.up do
+        # Set existing (legacy) documents type to 'Standard'
+        execute <<-SQL.squish
+          UPDATE documents
+          SET type_id = (SELECT id FROM document_types WHERE name = 'Standard')
+          WHERE type_id IS NULL
+        SQL
+      end
+
+      # No-op for down migration
+    end
   end
 end

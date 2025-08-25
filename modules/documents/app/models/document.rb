@@ -31,6 +31,7 @@
 class Document < ApplicationRecord
   belongs_to :project
   belongs_to :category, class_name: "DocumentCategory"
+  belongs_to :type, class_name: "DocumentType"
 
   delegated_type :documentable,
                  types: %w[CollaborativeDocument],
