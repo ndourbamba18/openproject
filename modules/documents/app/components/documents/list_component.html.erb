@@ -30,6 +30,10 @@
           render(Documents::RowComponent.new(document))
         end
       end
+
+      component.with_row do
+        helpers.pagination_links_full(documents)
+      end
     end
   else
     render Primer::Beta::Blankslate.new(border: true) do |component|

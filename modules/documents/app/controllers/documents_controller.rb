@@ -30,6 +30,8 @@
 
 class DocumentsController < ApplicationController
   include AttachableServiceCall
+  include PaginationHelper
+
   default_search_scope :documents
   model_object Document
 
@@ -39,7 +41,10 @@ class DocumentsController < ApplicationController
   before_action :authorize
 
   def index
-    @documents = @project.documents.includes(documentable: %i[type status]).order(updated_at: :desc)
+    @documents = @project.documents
+      .includes(documentable: %i[type status])
+      .order(updated_at: :desc)
+      .paginate(page: page_param, per_page: per_page_param)
   end
 
   def show
