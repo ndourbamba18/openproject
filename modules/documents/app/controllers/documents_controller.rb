@@ -56,6 +56,10 @@ class DocumentsController < ApplicationController
     @document.attributes = document_params
   end
 
+  def edit
+    @categories = DocumentCategory.all
+  end
+
   def create
     call = attachable_create_call ::Documents::CreateService,
                                   args: document_params.merge(project: @project)
@@ -67,10 +71,6 @@ class DocumentsController < ApplicationController
       @document = call.result
       render action: :new, status: :unprocessable_entity
     end
-  end
-
-  def edit
-    @categories = DocumentCategory.all
   end
 
   def update

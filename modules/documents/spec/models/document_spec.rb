@@ -74,7 +74,7 @@ RSpec.describe Document do
     let(:valid_document) { build(:document, title: "Test", project:, category: documentation_category) }
 
     it "adds a document" do
-      expect  do
+      expect do
         valid_document.save
       end.to change(described_class, :count).by 1
     end
