@@ -42,7 +42,7 @@ class DocumentsController < ApplicationController
 
   def index
     @documents = @project.documents
-      .includes(documentable: %i[type status])
+      .includes(:type, :category, documentable: :status)
       .order(updated_at: :desc)
       .paginate(page: page_param, per_page: per_page_param)
   end
