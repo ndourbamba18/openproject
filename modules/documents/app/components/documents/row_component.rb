@@ -39,6 +39,15 @@ module Documents
 
     delegate :collaborative_document, :collaborative_document?, to: :document
 
+    def type_or_category
+      if collaborative_document?
+        document.type&.name
+      else
+        # Legacy document category
+        document.category&.name
+      end
+    end
+
     def document_status_label
       return unless collaborative_document?
 

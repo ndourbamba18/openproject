@@ -13,11 +13,11 @@
       end
     end
 
-    if collaborative_document?
-      grid.with_area(:type, tag: :div, color: :subtle, mr: 3, hide: :sm, data: { test_selector: "document-type" }) do
-        render(Primer::Beta::Truncate.new(font_weight: :normal)) { collaborative_document.type.name }
-      end
+    grid.with_area(:type, tag: :div, color: :subtle, mr: 3, hide: :sm, data: { test_selector: "document-type" }) do
+      render(Primer::Beta::Truncate.new(font_weight: :normal)) { type_or_category }
+    end
 
+    if collaborative_document?
       grid.with_area(:status, tag: :div, color: :subtle, mr: 3, hide: :sm, data: { test_selector: "document-status" }) do
         document_status_label
       end
