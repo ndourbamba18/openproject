@@ -28,24 +28,25 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-Rails.application.routes.draw do
-  resources :projects, only: [] do
-    resources :documents, only: %i[create new index] do
-      collection do
-        get :menu, to: "documents/menus#show"
-      end
+require "spec_helper"
+
+RSpec.describe Queries::Documents::Filters::TypeFilter do
+  it_behaves_like "basic query filter" do
+    let(:class_key) { :type_id }
+    let(:type) { :list }
+    let(:model) { Document }
+    let(:attribute) { :type_id }
+    let(:values) { ["3"] }
+    let(:admin) { build_stubbed(:admin) }
+    let(:user) { build_stubbed(:user) }
+
+    before do
+      allow(DocumentType).to receive(:pluck).with(:name, :id).and_return([["Foo", "1234"]])
     end
-  end
 
-  resources :documents, except: %i[create new index]
-
-  namespace :admin do
-    namespace :settings do
-      resources :document_categories, except: [:show] do
-        member do
-          put :move
-          get :reassign
-        end
+    describe "#allowed_values" do
+      it "is a list of the possible values" do
+        expect(instance.allowed_values).to contain_exactly(["Foo", "1234"])
       end
     end
   end

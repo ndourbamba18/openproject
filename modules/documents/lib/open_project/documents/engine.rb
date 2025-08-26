@@ -44,9 +44,17 @@ module OpenProject::Documents
            before: :members,
            icon: "note"
 
+      menu :project_menu,
+           :documents_sub_menu,
+           { controller: "/documents", action: "index" },
+           parent: :documents,
+           partial: "documents/menus/menu",
+           caption: :label_document_plural
+
       project_module :documents do |_map|
         permission :view_documents,
-                   { documents: %i[index show download] },
+                   { documents: %i[index show download],
+                     "documents/menus": %i[show] },
                    permissible_on: :project
         permission :manage_documents,
                    { documents: %i[new create edit update destroy] },

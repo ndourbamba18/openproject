@@ -65,6 +65,10 @@ en:
       assignee: "Assignee"
       updated_at: "Last edited"
 
+    menu:
+      all: "All"
+      types: "Types"
+
     label_attachment_author: "Attachment author"
     label_categories: "Categories"
     new_category: "New category"

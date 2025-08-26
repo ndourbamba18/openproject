@@ -27,26 +27,38 @@
 #
 # See COPYRIGHT and LICENSE files for more details.
 #++
+module Documents
+  class Menu < Submenu
+    attr_reader :project, :params
 
-Rails.application.routes.draw do
-  resources :projects, only: [] do
-    resources :documents, only: %i[create new index] do
-      collection do
-        get :menu, to: "documents/menus#show"
+    def initialize(project: nil, params: nil)
+      super(view_type: nil, project:, params:)
+    end
+
+    def menu_items
+      [
+        OpenProject::Menu::MenuGroup.new(header: nil, children: document_status_options),
+        OpenProject::Menu::MenuGroup.new(header: I18n.t("documents.menu.types"), children: document_type_options)
+      ]
+    end
+
+    def document_status_options
+      [
+        OpenProject::Menu::MenuItem.new(title: I18n.t("documents.menu.all"),
+                                        href: project_documents_path(project),
+                                        selected: params[:filters].blank?)
+      ]
+    end
+
+    def document_type_options
+      DocumentType.pluck(:id, :name).map do |id, title|
+        filters = [{ type_id: { operator: "=", values: [id.to_s] } }].to_json
+        menu_item(title:, query_params: { filters: })
       end
     end
-  end
 
-  resources :documents, except: %i[create new index]
-
-  namespace :admin do
-    namespace :settings do
-      resources :document_categories, except: [:show] do
-        member do
-          put :move
-          get :reassign
-        end
-      end
+    def query_path(query_params)
+      project_documents_path(project, query_params)
     end
   end
 end

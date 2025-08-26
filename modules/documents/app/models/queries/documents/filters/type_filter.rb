@@ -28,25 +28,20 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-Rails.application.routes.draw do
-  resources :projects, only: [] do
-    resources :documents, only: %i[create new index] do
-      collection do
-        get :menu, to: "documents/menus#show"
-      end
-    end
+class Queries::Documents::Filters::TypeFilter < Queries::Documents::Filters::DocumentFilter
+  def allowed_values
+    @allowed_values ||= DocumentType.pluck(:name, :id)
   end
 
-  resources :documents, except: %i[create new index]
+  def available?
+    allowed_values.any?
+  end
 
-  namespace :admin do
-    namespace :settings do
-      resources :document_categories, except: [:show] do
-        member do
-          put :move
-          get :reassign
-        end
-      end
-    end
+  def type
+    :list
+  end
+
+  def self.key
+    :type_id
   end
 end

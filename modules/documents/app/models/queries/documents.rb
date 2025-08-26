@@ -31,6 +31,7 @@
 module Queries::Documents
   ::Queries::Register.register(DocumentQuery) do
     filter Filters::ProjectFilter
+    filter Filters::TypeFilter
 
     order Orders::DefaultOrder
   end

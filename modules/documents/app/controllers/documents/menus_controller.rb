@@ -27,26 +27,14 @@
 #
 # See COPYRIGHT and LICENSE files for more details.
 #++
+module Documents
+  class MenusController < ApplicationController
+    before_action :find_project_by_project_id,
+                  :authorize
 
-Rails.application.routes.draw do
-  resources :projects, only: [] do
-    resources :documents, only: %i[create new index] do
-      collection do
-        get :menu, to: "documents/menus#show"
-      end
-    end
-  end
-
-  resources :documents, except: %i[create new index]
-
-  namespace :admin do
-    namespace :settings do
-      resources :document_categories, except: [:show] do
-        member do
-          put :move
-          get :reassign
-        end
-      end
+    def show
+      @sidebar_menu_items = Documents::Menu.new(project: @project, params:).menu_items
+      render layout: nil
     end
   end
 end

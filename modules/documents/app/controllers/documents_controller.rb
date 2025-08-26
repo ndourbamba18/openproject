@@ -41,9 +41,9 @@ class DocumentsController < ApplicationController
   before_action :authorize
 
   def index
-    @documents = @project.documents
-      .includes(:type, :category, documentable: :status)
-      .order(updated_at: :desc)
+    @documents = list_documents_query
+      .includes(:type, :category)
+      .preload(documentable: :status)
       .paginate(page: page_param, per_page: per_page_param)
   end
 
@@ -93,6 +93,14 @@ class DocumentsController < ApplicationController
   end
 
   private
+
+  def list_documents_query
+    query = ParamsToQueryService.new(Document, current_user).call(params)
+    query.where(:project_id, "=", [@project.id])
+    query.order(updated_at: :desc) unless params[:sortBy]
+
+    query.results
+  end
 
   def document_params
     params.fetch(:document, {}).permit("category_id", "title", "description")
