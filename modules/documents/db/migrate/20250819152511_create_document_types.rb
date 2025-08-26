@@ -37,15 +37,5 @@ class CreateDocumentTypes < ActiveRecord::Migration[8.0]
     end
 
     add_index :document_types, :name, unique: true
-
-    reversible do |dir|
-      dir.up do
-        # Pre-seed 'Standard' document type for existing (legacy) documents
-        execute <<-SQL.squish
-          INSERT INTO document_types (name, created_at, updated_at)
-          VALUES ('Standard', NOW(), NOW())
-        SQL
-      end
-    end
   end
 end

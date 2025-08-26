@@ -31,34 +31,14 @@
 module BasicData
   module Documents
     class TypeSeeder < ModelSeeder
-      STANDARD_TYPE = "Standard"
-
       self.model_class = DocumentType
       self.seed_data_model_key = "document_types"
       self.attribute_names_for_lookups = %i[name]
-
-      def applicable?
-        missing_document_types.any?
-      end
-
-      def create_model!(model_data)
-        return super unless model_data["name"] == STANDARD_TYPE
-
-        model_class
-          .find_or_create_by!(name: model_data["name"])
-          .tap { |model| seed_data.store_reference(model_data["reference"], model) }
-      end
 
       def model_attributes(type_data)
         {
           name: type_data["name"]
         }
-      end
-
-      private
-
-      def missing_document_types
-        models_data.pluck("name") - model_class.pluck(:name)
       end
     end
   end
