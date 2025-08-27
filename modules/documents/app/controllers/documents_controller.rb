@@ -41,10 +41,15 @@ class DocumentsController < ApplicationController
   before_action :authorize
 
   def index
-    @documents = list_documents_query
-      .includes(:type, :category)
-      .preload(documentable: :status)
-      .paginate(page: page_param, per_page: per_page_param)
+    if OpenProject::FeatureDecisions.collaborative_documents_active?
+      @documents = list_documents_query
+        .includes(:type, :category)
+        .preload(documentable: :status)
+        .paginate(page: page_param, per_page: per_page_param)
+    else
+      legacy_index
+      render layout: false if request.xhr?
+    end
   end
 
   def show
@@ -93,6 +98,22 @@ class DocumentsController < ApplicationController
   end
 
   private
+
+  def legacy_index # rubocop:disable Metrics/AbcSize
+    @group_by = %w(category date title author).include?(params[:group_by]) ? params[:group_by] : "category"
+    documents = @project.documents
+    @grouped =
+      case @group_by
+      when "date"
+        documents.group_by { it.updated_at.to_date }
+      when "title"
+        documents.group_by { it.title.first.upcase }
+      when "author"
+        documents.with_attachments.group_by { it.attachments.last.author }
+      else
+        documents.includes(:category).group_by(&:category)
+      end
+  end
 
   def list_documents_query
     query = ParamsToQueryService.new(Document, current_user).call(params)

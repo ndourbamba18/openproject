@@ -34,22 +34,28 @@ module OpenProject::Documents
 
     include OpenProject::Plugins::ActsAsOpEngine
 
+    initializer "openproject_documents.feature_decisions" do
+      OpenProject::FeatureDecisions.add :collaborative_documents
+    end
+
     register "openproject-documents",
              author_url: "http://www.openproject.org",
              bundled: true do
-      menu :project_menu,
-           :documents,
-           { controller: "/documents", action: "index" },
-           caption: :label_document_plural,
-           before: :members,
-           icon: "note"
+      ::Redmine::MenuManager.map(:project_menu) do |menu|
+        menu.push :documents,
+                  { controller: "/documents", action: "index" },
+                  caption: :label_document_plural,
+                  before: :members,
+                  icon: "note"
 
-      menu :project_menu,
-           :documents_sub_menu,
-           { controller: "/documents", action: "index" },
-           parent: :documents,
-           partial: "documents/menus/menu",
-           caption: :label_document_plural
+        if OpenProject::FeatureDecisions.collaborative_documents_active?
+          menu.push :documents_sub_menu,
+                    { controller: "/documents", action: "index" },
+                    parent: :documents,
+                    partial: "documents/menus/menu",
+                    caption: :label_document_plural
+        end
+      end
 
       project_module :documents do |_map|
         permission :view_documents,
