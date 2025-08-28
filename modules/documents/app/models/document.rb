@@ -32,7 +32,7 @@ class Document < ApplicationRecord
   belongs_to :author, class_name: "User", optional: true
   belongs_to :category, class_name: "DocumentCategory"
   belongs_to :project
-  belongs_to :type, class_name: "DocumentType"
+  belongs_to :type, class_name: "DocumentType", optional: true
 
   delegated_type :documentable,
                  types: %w[CollaborativeDocument],

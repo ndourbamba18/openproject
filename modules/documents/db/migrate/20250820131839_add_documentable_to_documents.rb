@@ -33,5 +33,7 @@ class AddDocumentableToDocuments < ActiveRecord::Migration[8.0]
     add_reference :documents, :documentable, polymorphic: true, index: true
     add_reference :documents, :type, foreign_key: { to_table: :document_types }
     add_reference :documents, :author, foreign_key: { to_table: :users }
+
+    change_column_null :documents, :category_id, true
   end
 end
