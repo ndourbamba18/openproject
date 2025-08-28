@@ -37,17 +37,13 @@ module Documents
 
     def menu_items
       [
-        OpenProject::Menu::MenuGroup.new(header: nil, children: document_status_options),
-        OpenProject::Menu::MenuGroup.new(header: I18n.t("documents.menu.types"), children: document_type_options)
+        menu_group(header: nil, children: document_status_options),
+        menu_group(header: I18n.t("documents.menu.types"), children: document_type_options)
       ]
     end
 
     def document_status_options
-      [
-        OpenProject::Menu::MenuItem.new(title: I18n.t("documents.menu.all"),
-                                        href: project_documents_path(project),
-                                        selected: params[:filters].blank?)
-      ]
+      [menu_item(title: I18n.t("documents.menu.all"), selected: params[:filters].blank?)]
     end
 
     def document_type_options
