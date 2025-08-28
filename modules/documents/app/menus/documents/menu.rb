@@ -39,7 +39,12 @@ module Documents
       [
         menu_group(header: nil, children: document_status_options),
         menu_group(header: I18n.t("documents.menu.types"), children: document_type_options)
-      ]
+      ].tap do |items|
+        if legacy_document_category_options.any?
+          items << menu_group(header: I18n.t("documents.menu.categories"),
+                              children: legacy_document_category_options)
+        end
+      end
     end
 
     def document_status_options
@@ -47,14 +52,24 @@ module Documents
     end
 
     def document_type_options
-      DocumentType.pluck(:id, :name).map do |id, title|
-        filters = [{ type_id: { operator: "=", values: [id.to_s] } }].to_json
-        menu_item(title:, query_params: { filters: })
-      end
+      @document_type_options ||= menu_item_filter_for(DocumentType, :type_id)
+    end
+
+    def legacy_document_category_options
+      @legacy_document_category_options ||= menu_item_filter_for(DocumentCategory, :category_id)
     end
 
     def query_path(query_params)
       project_documents_path(project, query_params)
+    end
+
+    private
+
+    def menu_item_filter_for(model_class, filter_id)
+      model_class.pluck(:id, :name).map do |id, title|
+        filters = [{ filter_id => { operator: "=", values: [id.to_s] } }].to_json
+        menu_item(title:, query_params: { filters: })
+      end
     end
   end
 end

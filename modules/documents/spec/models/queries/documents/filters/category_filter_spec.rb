@@ -28,12 +28,26 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-module Queries::Documents
-  ::Queries::Register.register(DocumentQuery) do
-    filter Filters::ProjectFilter
-    filter Filters::TypeFilter
-    filter Filters::CategoryFilter
+require "spec_helper"
 
-    order Orders::DefaultOrder
+RSpec.describe Queries::Documents::Filters::CategoryFilter do
+  it_behaves_like "basic query filter" do
+    let(:class_key) { :category_id }
+    let(:type) { :list }
+    let(:model) { Document }
+    let(:attribute) { :category_id }
+    let(:values) { ["3"] }
+    let(:admin) { build_stubbed(:admin) }
+    let(:user) { build_stubbed(:user) }
+
+    before do
+      allow(DocumentCategory).to receive(:pluck).with(:name, :id).and_return([["Foo", "1234"]])
+    end
+
+    describe "#allowed_values" do
+      it "is a list of the possible values" do
+        expect(instance.allowed_values).to contain_exactly(["Foo", "1234"])
+      end
+    end
   end
 end

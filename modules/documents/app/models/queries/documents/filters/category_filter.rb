@@ -28,12 +28,20 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-module Queries::Documents
-  ::Queries::Register.register(DocumentQuery) do
-    filter Filters::ProjectFilter
-    filter Filters::TypeFilter
-    filter Filters::CategoryFilter
+class Queries::Documents::Filters::CategoryFilter < Queries::Documents::Filters::DocumentFilter
+  def allowed_values
+    @allowed_values ||= DocumentCategory.pluck(:name, :id)
+  end
 
-    order Orders::DefaultOrder
+  def available?
+    allowed_values.any?
+  end
+
+  def type
+    :list
+  end
+
+  def self.key
+    :category_id
   end
 end
