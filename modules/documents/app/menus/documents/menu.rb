@@ -36,15 +36,8 @@ module Documents
     end
 
     def menu_items
-      [
-        menu_group(header: nil, children: document_status_options),
-        menu_group(header: I18n.t("documents.menu.types"), children: document_type_options)
-      ].tap do |items|
-        if legacy_document_category_options.any?
-          items << menu_group(header: I18n.t("documents.menu.categories"),
-                              children: legacy_document_category_options)
-        end
-      end
+      [menu_group(header: nil, children: document_status_options),
+       menu_group(header: I18n.t("documents.menu.types"), children: document_type_options)]
     end
 
     def document_status_options
@@ -53,10 +46,6 @@ module Documents
 
     def document_type_options
       @document_type_options ||= menu_item_filter_for(DocumentType, :type_id)
-    end
-
-    def legacy_document_category_options
-      @legacy_document_category_options ||= menu_item_filter_for(DocumentCategory, :category_id)
     end
 
     def query_path(query_params)

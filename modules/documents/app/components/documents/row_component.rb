@@ -37,21 +37,12 @@ module Documents
 
     private
 
-    delegate :collaborative_document, :collaborative_document?, to: :document
-
-    def type_or_category
-      if collaborative_document?
-        document.type&.name
-      else
-        # Legacy document category
-        document.category&.name
-      end
-    end
+    delegate :collaborative?, to: :document
 
     def document_status_label
-      return unless collaborative_document?
+      return unless collaborative?
 
-      status = collaborative_document.status
+      status = document.status
       render(
         Primer::Beta::Label.new(scheme: status.color_variant.to_sym,
                                 test_selector: "label-#{status.name.parameterize}")
