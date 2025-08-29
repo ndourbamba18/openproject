@@ -28,16 +28,37 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-class CreateCollaborativeDocuments < ActiveRecord::Migration[8.0]
+class AddCollaborationToDocuments < ActiveRecord::Migration[8.0]
   def change
-    create_table :collaborative_documents do |t|
-      t.text :content
-      t.references :assigned_to, foreign_key: { to_table: :users }
-      t.references :responsible, foreign_key: { to_table: :users }
-      t.references :status, foreign_key: { to_table: :document_statuses }
-      t.date :due_date
+    add_column :documents, :content, :text
+    add_column :documents, :due_date, :date
+    add_column :documents, :kind, :string
 
-      t.timestamps
+    add_reference :documents, :author, foreign_key: { to_table: :users }
+    add_reference :documents, :assigned_to, foreign_key: { to_table: :users }
+    add_reference :documents, :responsible, foreign_key: { to_table: :users }
+    add_reference :documents, :status, foreign_key: { to_table: :document_statuses }
+
+    reversible do |dir|
+      dir.up do
+        set_existing_documents_to_legacy_kind
+        change_title_string_size limit: 255
+      end
     end
+  end
+
+  private
+
+  def set_existing_documents_to_legacy_kind
+    say_with_time "setting existing documents to 'legacy' kind" do
+      execute <<~SQL.squish
+        UPDATE documents SET kind = 'legacy'
+      SQL
+    end
+  end
+
+  def change_title_string_size(limit:)
+    change_column(:documents, :title, :string, limit:)
+    change_column(:document_journals, :title, :string, limit:)
   end
 end

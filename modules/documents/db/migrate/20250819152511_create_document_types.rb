@@ -37,5 +37,64 @@ class CreateDocumentTypes < ActiveRecord::Migration[8.0]
     end
 
     add_index :document_types, :name, unique: true
+    add_reference :documents, :type, foreign_key: { to_table: :document_types }
+
+    reversible do |dir|
+      dir.up do
+        seed_default_types
+        migrate_existing_categories_to_types
+        migrate_existing_documents_categories_references_to_types
+
+        change_column_null :documents, :category_id, true
+        change_column_null :document_journals, :category_id, true
+      end
+
+      # No-op for down migration
+    end
+  end
+
+  private
+
+  def seed_default_types
+    say "seeding default document types"
+    execute <<~SQL.squish
+      INSERT INTO document_types (name, created_at, updated_at)
+      VALUES
+        ('Standard', NOW(), NOW()),
+        ('Specification', NOW(), NOW()),
+        ('Contract', NOW(), NOW()),
+        ('Report', NOW(), NOW())
+    SQL
+  end
+
+  def migrate_existing_categories_to_types
+    say_with_time "migrating document categories to types" do
+      execute <<~SQL.squish
+        WITH existing_document_categories AS (
+          SELECT name
+          FROM enumerations
+          WHERE type = 'DocumentCategory'
+          AND name NOT IN ('Standard', 'Specification', 'Contract', 'Report')
+          ORDER BY position ASC
+        )
+        INSERT INTO document_types (name, created_at, updated_at)
+          SELECT name, NOW(), NOW()
+          FROM existing_document_categories
+          ON CONFLICT (name) DO NOTHING
+      SQL
+    end
+  end
+
+  def migrate_existing_documents_categories_references_to_types
+    say_with_time "migrating existing documents categories references to types" do
+      execute <<~SQL.squish
+        UPDATE documents
+        SET type_id = document_types.id
+        FROM enumerations
+        JOIN document_types ON document_types.name = enumerations.name
+        WHERE documents.category_id = enumerations.id
+        AND enumerations.type = 'DocumentCategory'
+      SQL
+    end
   end
 end

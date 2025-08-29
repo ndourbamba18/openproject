@@ -43,8 +43,7 @@ class DocumentStatus < ApplicationRecord
     sponsors: "sponsors"
   }, suffix: true
 
-  has_many :documents, class_name: "CollaborativeDocument",
-                       foreign_key: :status_id,
+  has_many :documents, foreign_key: :status_id,
                        dependent: :nullify,
                        inverse_of: :status
   has_many :workflows, class_name: "DocumentWorkflow",

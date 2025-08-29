@@ -36,5 +36,17 @@ FactoryBot.define do
     type factory: :document_type
     sequence(:description) { |n| "I am a document's description  No. #{n}" }
     sequence(:title) { |n| "I am the document No. #{n}" }
+
+    content { "My Content" }
+    assigned_to factory: :user
+    status factory: :document_status
+
+    trait :collaborative do
+      kind { "collaborative" }
+    end
+
+    trait :legacy do
+      kind { "legacy" }
+    end
   end
 end

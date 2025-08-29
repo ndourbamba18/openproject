@@ -29,14 +29,18 @@
 #++
 
 class Document < ApplicationRecord
-  belongs_to :author, class_name: "User", optional: true
-  belongs_to :category, class_name: "DocumentCategory"
-  belongs_to :project
-  belongs_to :type, class_name: "DocumentType", optional: true
+  enum :kind, {
+    legacy: "legacy",
+    collaborative: "collaborative"
+  }
 
-  delegated_type :documentable,
-                 types: %w[CollaborativeDocument],
-                 dependent: :destroy
+  belongs_to :assigned_to, class_name: "Principal", optional: true
+  belongs_to :author, class_name: "User", optional: true
+  belongs_to :category, class_name: "DocumentCategory", optional: true
+  belongs_to :project
+  belongs_to :responsible, class_name: "Principal", optional: true
+  belongs_to :status, class_name: "DocumentStatus", optional: true
+  belongs_to :type, class_name: "DocumentType", optional: true
 
   acts_as_attachable delete_permission: :manage_documents,
                      add_permission: :manage_documents
@@ -53,8 +57,7 @@ class Document < ApplicationRecord
                      references: :projects,
                      date_column: "#{table_name}.created_at"
 
-  validates :project, :title, :category, presence: true
-  validates :title, length: { maximum: 60 }
+  validates :title, presence: true, length: { maximum: 255 }
 
   scope :visible, ->(user = User.current) {
     includes(:project)

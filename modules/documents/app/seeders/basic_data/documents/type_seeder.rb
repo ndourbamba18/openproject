@@ -35,6 +35,12 @@ module BasicData
       self.seed_data_model_key = "document_types"
       self.attribute_names_for_lookups = %i[name]
 
+      def create_model!(model_data)
+        model_class
+          .find_or_create_by!(name: model_data["name"])
+          .tap { |model| seed_data.store_reference(model_data["reference"], model) }
+      end
+
       def model_attributes(type_data)
         {
           name: type_data["name"]

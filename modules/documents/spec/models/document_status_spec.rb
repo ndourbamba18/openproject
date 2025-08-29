@@ -55,7 +55,6 @@ RSpec.describe DocumentStatus do
   describe "Associations" do
     it do
       expect(subject).to have_many(:documents)
-        .class_name("CollaborativeDocument")
         .dependent(:nullify)
         .with_foreign_key(:status_id)
     end
