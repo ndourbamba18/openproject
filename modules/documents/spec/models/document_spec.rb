@@ -79,13 +79,21 @@ RSpec.describe Document do
       end.to change(described_class, :count).by 1
     end
 
-    it "sets a default-category, if none is given" do
-      default_category = create(:document_category, name: "Technical documentation", is_default: true)
-      document = described_class.new(project:, title: "New Document")
-      expect(document.category).to eql default_category
-      expect do
-        document.save
-      end.to change(described_class, :count).by 1
+    context "having a default category" do
+      let!(:default_category) { create(:document_category, name: "Technical documentation", is_default: true) }
+
+      it "sets a default-category, if none is given" do
+        document = described_class.new(project:, title: "New Document")
+        expect(document.category).to eql default_category
+        expect { document.save }.to change(described_class, :count).by(1)
+      end
+
+      context "when collaborative documents are active", with_flag: { collaborative_documents: true } do
+        it "does not set a default category" do
+          document = described_class.new(project:, title: "New Document")
+          expect(document.category).to be_nil
+        end
+      end
     end
 
     it "with attachments should change the updated_at-date on the document to the attachment's date" do

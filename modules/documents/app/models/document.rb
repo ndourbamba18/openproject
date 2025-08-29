@@ -34,6 +34,8 @@ class Document < ApplicationRecord
     collaborative: "collaborative"
   }
 
+  after_initialize :set_default_category, unless: -> { OpenProject::FeatureDecisions.collaborative_documents_active? }
+
   belongs_to :assigned_to, class_name: "Principal", optional: true
   belongs_to :author, class_name: "User", optional: true
   belongs_to :category, class_name: "DocumentCategory", optional: true
@@ -70,8 +72,6 @@ class Document < ApplicationRecord
       .where.not(attachments: { container_id: nil })
       .references(:attachments)
   }
-
-  after_initialize :set_default_category
 
   def visible?(user = User.current)
     !user.nil? && user.allowed_in_project?(:view_documents, project)
