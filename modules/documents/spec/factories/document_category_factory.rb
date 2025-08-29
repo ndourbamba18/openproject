@@ -32,5 +32,16 @@ FactoryBot.define do
   factory :document_category do
     project
     sequence(:name) { |n| "I am Category No. #{n}" }
+    content { "My Content" }
+    assigned_to factory: :user
+    status factory: :document_status
+
+    trait :collaborative do
+      kind { "collaborative" }
+    end
+
+    trait :legacy do
+      kind { "legacy" }
+    end
   end
 end
