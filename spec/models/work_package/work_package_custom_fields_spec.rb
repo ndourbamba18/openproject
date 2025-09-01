@@ -63,6 +63,7 @@ RSpec.describe WorkPackage do
         val = custom_field.custom_options.find { |co| co.value == value }.try(:id)
 
         work_package.custom_field_values = { custom_field.id => val || value }
+        work_package.custom_values_to_validate = work_package.custom_field_values
         work_package.save(context: :saving_custom_fields) if save
       end
     end
@@ -392,6 +393,7 @@ RSpec.describe WorkPackage do
 
       it "works for the max length validation" do
         work_package.custom_field_values.first.value = "12345"
+        work_package.custom_values_to_validate = work_package.custom_field_values
 
         # don't want to see I18n::MissingInterpolationArgument specifically
         expect { work_package.valid?(:saving_custom_fields) }.not_to raise_error

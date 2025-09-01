@@ -173,7 +173,8 @@ RSpec.describe WorkPackage, "acts_as_customizable" do
 
       # now give the work_package another required custom field, but don't assign a value
       setup_custom_field(cf2)
-      work_package.custom_field_values # #custom_field_values needs to be touched
+      # custom_field_values needs to be touched
+      work_package.custom_values_to_validate = work_package.custom_field_values
 
       # that should not be valid
       expect(work_package).not_to be_valid(:saving_custom_fields)
