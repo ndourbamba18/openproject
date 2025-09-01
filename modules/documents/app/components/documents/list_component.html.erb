@@ -36,7 +36,7 @@
       end
     end
   else
-    render Primer::Beta::Blankslate.new(border: true) do |component|
+    render Primer::Beta::Blankslate.new(border: true, test_selector: "documents-list-blank-slate") do |component|
       component.with_visual_icon(icon: :briefcase)
       component.with_heading(tag: :h2).with_content(I18n.t("documents.documents_list_blank_slate.heading", project_name: project.name))
       component.with_description { I18n.t("documents.documents_list_blank_slate.description") }
