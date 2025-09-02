@@ -493,6 +493,11 @@ RSpec.describe Project do
         model_instance.custom_field_values = { custom_field.id => "test" }
         model_instance.save
         model_instance.custom_field_values = { custom_field.id => nil }
+        # Ensure the custom values are validated.
+        # Note: Since the default behavior is to not validate custom values unless they are
+        # received from the user input, the :saving_custom_fields validation context might
+        # not be required anymore.
+        model_instance.custom_values_to_validate = model_instance.custom_field_values
       end
 
       context "without a validation context" do
