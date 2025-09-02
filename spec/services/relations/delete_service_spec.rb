@@ -140,6 +140,7 @@ RSpec.describe Relations::DeleteService do
       context "when the successor is invalid (missing required custom field for instance)" do
         before do
           work_package.update_attribute(:type, type_with_mandatory_cf)
+          work_package.custom_values_to_validate = work_package.custom_field_values
         end
 
         it "still updates correctly" do
