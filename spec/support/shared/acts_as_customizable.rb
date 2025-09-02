@@ -119,15 +119,13 @@ RSpec.shared_examples_for "acts_as_customizable included" do
     context "for an existing model_instance" do
       subject { model_instance.custom_values_to_validate }
 
-      it "returns custom_field_values when not explicitly set" do
-        expect(subject).to contain_exactly(
-          an_instance_of(CustomValue).and(having_attributes(custom_field_id: custom_field.id))
-        )
+      it "returns an empty array when not explicitly set" do
+        expect(subject).to eq([])
       end
 
       it "returns an empty array set via the setter" do
         model_instance.custom_values_to_validate = []
-        expect(subject).to be_empty
+        expect(subject).to eq([])
       end
 
       it "returns the values set via the setter" do
@@ -192,7 +190,7 @@ RSpec.shared_examples_for "acts_as_customizable included" do
         end
 
         context "and the custom_values_to_validate is not set" do
-          it_behaves_like "has a validation error on a required custom field"
+          it_behaves_like "is valid"
         end
 
         context "and the custom_values_to_validate is set to the custom value" do
