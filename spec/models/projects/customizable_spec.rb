@@ -199,7 +199,7 @@ RSpec.describe Project, "customizable" do
         .to contain_exactly(text_custom_field, bool_custom_field)
     end
 
-    context "with correct validation" do
+    describe "#valid?" do
       let(:another_section) { create(:project_custom_field_section) }
 
       let!(:required_text_custom_field) do
@@ -208,54 +208,15 @@ RSpec.describe Project, "customizable" do
                project_custom_field_section: another_section)
       end
 
-      it "validates all custom values if not scoped to a section" do
+      it "validates all custom values regardless of the custom field values provided" do
         project = build(:project, custom_field_values: {
                           text_custom_field.id => "foo",
                           bool_custom_field.id => true
                         })
 
         expect(project).not_to be_valid(:saving_custom_fields)
-
-        expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
-      end
-
-      it "validates only custom values of a section if section scope is provided while updating" do
-        project = create(:project, custom_field_values: {
-                           text_custom_field.id => "foo",
-                           bool_custom_field.id => true,
-                           required_text_custom_field.id => "bar"
-                         })
-
-        expect(project).to be_valid(:saving_custom_fields)
-
-        # after a project is created, a new required custom field is added
-        # which gets automatically activated for all projects
-        new_custom_field = create(:text_project_custom_field,
-                                  is_required: true,
-                                  project_custom_field_section: another_section)
-
-        # thus, the project is invalid in total
-        expect(project.reload).not_to be_valid(:saving_custom_fields)
-        expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
-
-        # Passing the new required custom field to the custom_values_to_validate
-        # also should make the record invalid
-        project.custom_values_to_validate = project.custom_values
-
-        expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
-
-        # but we still want to allow updating forms without the invalid required custom field values.
-        # This is possible to do by setting a list of custom fields to be validated.
-        project.custom_values_to_validate =
-          project.custom_values.reject { |v| v.custom_field == new_custom_field }
-
-        expect(project).to be_valid(:saving_custom_fields)
-
-        expect { project.save!(context: :saving_custom_fields) }.not_to raise_error
-
-        # Removing the custom values to be validates should validate all the custom fields again
-        project.remove_instance_variable(:@custom_values_to_validate)
-
+        expect(project.errors.details)
+          .to eq({ required_text_custom_field.attribute_getter => [{ error: :blank }] })
         expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
@@ -392,6 +353,53 @@ RSpec.describe Project, "customizable" do
 
       expect(project.custom_value_for(text_custom_field).typed_value)
         .to eq("bar")
+    end
+
+    describe "#valid?" do
+      let(:another_section) { create(:project_custom_field_section) }
+
+      let(:required_text_custom_field) do
+        create(:text_project_custom_field,
+               is_required: true,
+               project_custom_field_section: another_section)
+      end
+
+      let!(:project) do
+        create(:project, custom_field_values: {
+                 text_custom_field.id => "foo",
+                 bool_custom_field.id => true
+               })
+      end
+
+      it "validates only the user provided custom values" do
+        # The required custom field is created after the project
+        required_text_custom_field
+
+        # By default no custom fields are validated during the update.
+        expect(project).to be_valid(:saving_custom_fields)
+
+        # Passing the new required custom field to the custom_values_to_validate
+        # is also required for the validations to kick in
+        project.custom_values_to_validate = project.custom_field_values
+
+        # thus, the project becomes invalid
+        expect(project.reload).not_to be_valid(:saving_custom_fields)
+        expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
+
+        # but we still want to allow updating forms without the invalid required custom field values.
+        # This is possible to do by omitting the required custom field from the list to be validated.
+        project.custom_values_to_validate =
+          project.custom_values.reject { |v| v.custom_field == required_text_custom_field }
+
+        expect(project).to be_valid(:saving_custom_fields)
+
+        expect { project.save!(context: :saving_custom_fields) }.not_to raise_error
+
+        # Resetting the custom_values_to_validate should validate all the custom fields again
+        project.custom_values_to_validate = project.custom_field_values
+
+        expect { project.save!(context: :saving_custom_fields) }.to raise_error(ActiveRecord::RecordInvalid)
+      end
     end
   end
 
