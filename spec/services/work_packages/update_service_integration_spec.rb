@@ -1838,7 +1838,6 @@ RSpec.describe WorkPackages::UpdateService, "integration", type: :model do
       # Creating the mandatory custom field after the work package is already saved.
       # That turns the work package invalid as the mandatory custom field is not set.
       mandatory_custom_field
-      work_package.custom_values_to_validate = work_package.custom_field_values
     end
 
     it "ignores the mandatory custom field because no value is provided" do

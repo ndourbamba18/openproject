@@ -77,6 +77,10 @@ module BaseServices
         custom_field_ids.uniq!
       end
 
+      # Only update custom_values_to_validate when custom field params are provided.
+      # Otherwise keep them intact, so other services can still set them
+      return if custom_field_ids.empty?
+
       model.custom_values_to_validate = model.custom_values.filter do |cv|
         custom_field_ids.include?(cv.custom_field_id)
       end
