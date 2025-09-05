@@ -910,12 +910,7 @@ RSpec.describe "API v3 Work package resource",
             end
 
             it "does not alter the work package" do
-              original_updated_at = work_package.updated_at
-              response
-              work_package.reload
-
-              expect(work_package.updated_at)
-                .to eql original_updated_at
+              expect { response }.not_to change(work_package.reload, :updated_at)
             end
           end
 
@@ -942,12 +937,10 @@ RSpec.describe "API v3 Work package resource",
             end
 
             it "does not alter the work package" do
-              work_package.updated_at
-              response
-              work_package.reload
+              expect { response }.not_to change(work_package.reload, :updated_at)
 
               # Custom field value should remain unchanged
-              expect(work_package.typed_custom_value_for(required_custom_field))
+              expect(work_package.reload.typed_custom_value_for(required_custom_field))
                 .to eq("Initial Department")
             end
           end
