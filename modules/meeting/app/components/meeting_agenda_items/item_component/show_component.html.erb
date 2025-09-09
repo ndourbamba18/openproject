@@ -97,8 +97,14 @@
 
       grid.with_area(:outcomes, tag: :div) do
         flex_layout do |flex|
+          @meeting_agenda_item.outcomes.each.with_index do |outcome, i|
+            flex.with_row do
+              render(MeetingAgendaItems::Outcomes::BaseComponent.new(meeting: @meeting, meeting_agenda_item: @meeting_agenda_item, index: i, meeting_outcome: outcome, edit: false))
+            end
+          end
+
           flex.with_row do
-            render(MeetingAgendaItems::Outcomes::BaseComponent.new(meeting: @meeting, meeting_agenda_item: @meeting_agenda_item, meeting_outcome: nil, edit: false))
+            render(MeetingAgendaItems::Outcomes::NewButtonComponent.new(meeting: @meeting, meeting_agenda_item: @meeting_agenda_item))
           end
         end
       end

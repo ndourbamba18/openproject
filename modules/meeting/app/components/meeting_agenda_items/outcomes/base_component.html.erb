@@ -10,10 +10,6 @@
           grid.with_area(:notes) do
             render(MeetingAgendaItems::Outcomes::ShowNotesComponent.new(meeting_outcome: @meeting_outcome))
           end
-        else
-          grid.with_area(:button) do
-            render(MeetingAgendaItems::Outcomes::NewButtonComponent.new(meeting: @meeting, meeting_agenda_item: @meeting_agenda_item))
-          end
         end
       end
     end

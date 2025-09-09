@@ -43,7 +43,7 @@ class MeetingOutcomesController < ApplicationController
 
     if @meeting.in_progress? && !@meeting_agenda_item.in_backlog?
       render_base_outcome_component_via_turbo_stream(meeting: @meeting, meeting_agenda_item: @meeting_agenda_item,
-                                                     meeting_outcome: nil, edit: true)
+                                                     meeting_outcome: nil, edit: true, index: @meeting_agenda_item.outcomes.count)
     else
       render_error_flash_message_via_turbo_stream(message: t("text_outcome_cannot_be_added"))
     end
@@ -54,6 +54,19 @@ class MeetingOutcomesController < ApplicationController
   def cancel_new
     render_base_outcome_component_via_turbo_stream(meeting: @meeting, meeting_agenda_item: @meeting_agenda_item,
                                                    meeting_outcome: nil, edit: false)
+
+    respond_with_turbo_streams
+  end
+
+  def edit
+    if @meeting_outcome.editable?
+      @meeting_agenda_item = @meeting_outcome.meeting_agenda_item
+      render_base_outcome_component_via_turbo_stream(meeting: @meeting, meeting_agenda_item: @meeting_agenda_item,
+                                                     meeting_outcome: @meeting_outcome, edit: true)
+    else
+      render_error_flash_message_via_turbo_stream(message: t("text_meeting_not_editable_anymore"))
+      update_all_via_turbo_stream
+    end
 
     respond_with_turbo_streams
   end
@@ -75,19 +88,6 @@ class MeetingOutcomesController < ApplicationController
     end
 
     update_all_via_turbo_stream
-
-    respond_with_turbo_streams
-  end
-
-  def edit
-    if @meeting_outcome.editable?
-      @meeting_agenda_item = @meeting_outcome.meeting_agenda_item
-      render_base_outcome_component_via_turbo_stream(meeting: @meeting, meeting_agenda_item: @meeting_agenda_item,
-                                                     meeting_outcome: @meeting_outcome, edit: true)
-    else
-      render_error_flash_message_via_turbo_stream(message: t("text_meeting_not_editable_anymore"))
-      update_all_via_turbo_stream
-    end
 
     respond_with_turbo_streams
   end

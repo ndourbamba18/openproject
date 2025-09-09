@@ -62,7 +62,6 @@ module MeetingAgendaItems
     def add_outcome_action?
       editable? &&
         @meeting.in_progress? &&
-        !@meeting_agenda_item.outcomes.exists? &&
         !@meeting_agenda_item.in_backlog? &&
         User.current.allowed_in_project?(:manage_outcomes, @meeting.project)
     end
@@ -151,8 +150,8 @@ module MeetingAgendaItems
       menu.with_item(
         label: t(:label_agenda_item_move_to_next),
         href: move_to_next_dialog_meeting_agenda_item_path(@meeting_agenda_item.meeting,
-                                                    @meeting_agenda_item,
-                                                    datetime: next_date.iso8601),
+                                                           @meeting_agenda_item,
+                                                           datetime: next_date.iso8601),
         content_arguments: {
           data: { controller: "async-dialog" }
         }

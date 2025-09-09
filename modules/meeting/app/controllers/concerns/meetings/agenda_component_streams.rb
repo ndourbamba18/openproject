@@ -180,13 +180,14 @@ module Meetings
         end
       end
 
-      def render_base_outcome_component_via_turbo_stream(meeting:, meeting_agenda_item:, meeting_outcome:, edit:)
+      def render_base_outcome_component_via_turbo_stream(meeting:, meeting_agenda_item:, meeting_outcome:, edit:, index:)
         update_via_turbo_stream(
           component: MeetingAgendaItems::Outcomes::BaseComponent.new(
             meeting:,
             meeting_agenda_item:,
             meeting_outcome:,
-            edit:
+            edit:,
+            index:
           )
         )
       end
