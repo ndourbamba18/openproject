@@ -651,6 +651,8 @@ module API
             "#{project(project_id)}/work_packages"
           end
 
+          index :workspace
+
           def self.timestamps_to_param_value(timestamps)
             Array(timestamps).map { |timestamp| Timestamp.parse(timestamp).absolute }.join(",")
           end

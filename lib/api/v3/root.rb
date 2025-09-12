@@ -86,8 +86,9 @@ module API
       mount ::API::V3::Values::ValuesAPI
       mount ::API::V3::Versions::VersionsAPI
       mount ::API::V3::Views::ViewsAPI
-      mount ::API::V3::WorkPackages::WorkPackagesAPI
       mount ::API::V3::WikiPages::WikiPagesAPI
+      mount ::API::V3::Workspaces::WorkspacesAPI
+      mount ::API::V3::WorkPackages::WorkPackagesAPI
 
       get "/" do
         RootRepresenter.new({}, current_user:)

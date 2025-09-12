@@ -232,7 +232,21 @@ module API
                              cache_if: current_user_view_allowed_lambda
 
         def _type
-          "Project"
+          # TODO: check for a different implementation
+          case represented.workspace_type
+          when "project"
+            "Project"
+          when "program"
+            "Program"
+          when "portfolio"
+            "Portfolio"
+          else
+            raise NoMethodError
+          end
+        end
+
+        def self_v3_path(*)
+          api_v3_paths.project(represented.id)
         end
 
         self.to_eager_load = [:enabled_modules]

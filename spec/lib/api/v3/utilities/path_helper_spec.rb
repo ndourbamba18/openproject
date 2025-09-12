@@ -667,6 +667,10 @@ RSpec.describe API::V3::Utilities::PathHelper do
     end
   end
 
+  describe "workspace paths" do
+    it_behaves_like "index", :workspace
+  end
+
   describe ".timestamps_to_param_value" do
     subject { helper.timestamps_to_param_value(timestamps) }
 
