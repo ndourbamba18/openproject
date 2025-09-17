@@ -344,6 +344,9 @@ module API
             alias :issue_priority :priority
           end
 
+          index :program
+          show :program
+
           show :oauth_application
 
           show :oauth_client_credentials

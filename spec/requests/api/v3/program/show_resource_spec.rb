@@ -31,24 +31,24 @@
 require "spec_helper"
 require "rack/test"
 
-# The portfolio endpoint currently is a copy of the project endpoint and reuses most of the functionality of it.
+# The program endpoint currently is a copy of the project endpoint and reuses most of the functionality of it.
 # As such, this spec focuses on all aspects of the show endpoint are supported
 # without going into the same breadth as the specs for the project endpoint does.
-RSpec.describe "API v3 Portfolios resource show", content_type: :json do
+RSpec.describe "API v3 Programs resource show", content_type: :json do
   include Rack::Test::Methods
   include API::V3::Utilities::PathHelper
 
   shared_let(:admin) { create(:admin) }
-  shared_let(:portfolio, reload: true) do
-    create(:portfolio)
+  shared_let(:program, reload: true) do
+    create(:program)
   end
-  let(:other_portfolio) do
-    create(:portfolio)
+  let(:other_program) do
+    create(:program)
   end
   let(:role) { create(:project_role) }
-  let(:get_path) { api_v3_paths.portfolio portfolio.id }
+  let(:get_path) { api_v3_paths.program program.id }
 
-  current_user { create(:user, member_with_roles: { portfolio => role }) }
+  current_user { create(:user, member_with_roles: { program => role }) }
 
   subject(:response) do
     get get_path
@@ -62,12 +62,12 @@ RSpec.describe "API v3 Portfolios resource show", content_type: :json do
     end
 
     it "responds with the correct project" do
-      expect(subject.body).to include_json("Portfolio".to_json).at_path("_type")
-      expect(subject.body).to be_json_eql(portfolio.identifier.to_json).at_path("identifier")
+      expect(subject.body).to include_json("Program".to_json).at_path("_type")
+      expect(subject.body).to be_json_eql(program.identifier.to_json).at_path("identifier")
     end
 
-    context "when requesting nonexistent portfolio" do
-      let(:get_path) { api_v3_paths.portfolio 9999 }
+    context "when requesting nonexistent program" do
+      let(:get_path) { api_v3_paths.program 9999 }
 
       before do
         response
@@ -77,7 +77,7 @@ RSpec.describe "API v3 Portfolios resource show", content_type: :json do
     end
 
     context "when requesting a project" do
-      let(:portfolio) { create(:project, public: true) }
+      let(:program) { create(:project, public: true) }
 
       before do
         response
@@ -88,7 +88,7 @@ RSpec.describe "API v3 Portfolios resource show", content_type: :json do
 
     context "with the project being archived/inactive" do
       before do
-        portfolio.update_attribute(:active, false)
+        program.update_attribute(:active, false)
       end
 
       context "with the user being admin" do
@@ -99,8 +99,8 @@ RSpec.describe "API v3 Portfolios resource show", content_type: :json do
         end
 
         it "responds with the correct project" do
-          expect(subject.body).to include_json("Portfolio".to_json).at_path("_type")
-          expect(subject.body).to be_json_eql(portfolio.identifier.to_json).at_path("identifier")
+          expect(subject.body).to include_json("Program".to_json).at_path("_type")
+          expect(subject.body).to be_json_eql(program.identifier.to_json).at_path("identifier")
         end
       end
 

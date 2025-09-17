@@ -293,6 +293,11 @@ RSpec.describe API::V3::Utilities::PathHelper do
     it_behaves_like "show", :priority
   end
 
+  describe "programs paths" do
+    it_behaves_like "index", :program
+    it_behaves_like "show", :program
+  end
+
   describe "projects paths" do
     it_behaves_like "resource", :project
 
