@@ -31,34 +31,29 @@
 require "spec_helper"
 require "rack/test"
 
-# The workspace endpoint currently is a copy of the projects endpoint and reuses most of the functionality of it.
+# The portfolios endpoint currently is a copy of the projects endpoint and reuses most of the functionality of it.
 # As such, this spec tests that all aspects of the index endpoint (filtering, signaling, offset, pagination) are supported
 # without going into the same breadth as the specs for the projects endpoint does.
-RSpec.describe "API v3 Workspace resource index", content_type: :json do
+RSpec.describe "API v3 Portfolios resource index", content_type: :json do
   include Rack::Test::Methods
   include API::V3::Utilities::PathHelper
 
-  shared_let(:no_membership_project) do
-    create(:project, public: false)
-  end
   shared_let(:permissions, reload: true) { [] }
   shared_let(:role, reload: true) { create(:project_role, permissions:) }
+  # Program and project are here to check that only portfolios are returned.
   shared_let(:project, reload: true) do
-    create(:project, public: false)
-  end
-  shared_let(:invisible_project, reload: true) do
     create(:project, public: false)
   end
   shared_let(:program, reload: true) do
     create(:program, public: false)
   end
-  shared_let(:invisible_program, reload: true) do
-    create(:program, public: false)
-  end
   shared_let(:portfolio, reload: true) do
     create(:portfolio, public: false)
   end
-  shared_let(:invisible_portfolio, reload: true) do
+  shared_let(:public_portfolio) do
+    create(:portfolio, public: true)
+  end
+  shared_let(:no_membership_portfolio) do
     create(:portfolio, public: false)
   end
   shared_let(:user, reload: true) do
@@ -73,7 +68,7 @@ RSpec.describe "API v3 Workspace resource index", content_type: :json do
 
   let(:filters) { [] }
   let(:get_path) do
-    api_v3_paths.path_for :workspaces, filters:
+    api_v3_paths.path_for :portfolios, filters:
   end
   let(:response) { last_response }
 
@@ -83,24 +78,16 @@ RSpec.describe "API v3 Workspace resource index", content_type: :json do
     get get_path
   end
 
-  it_behaves_like "API V3 collection response", 3, 3 do
-    let(:elements) { [portfolio, program, project] }
-
-    it "provides distinct types per workspace type" do
-      aggregate_failures do
-        expect(subject).to be_json_eql("Portfolio".to_json).at_path("_embedded/elements/0/_type")
-        expect(subject).to be_json_eql("Program".to_json).at_path("_embedded/elements/1/_type")
-        expect(subject).to be_json_eql("Project".to_json).at_path("_embedded/elements/2/_type")
-      end
-    end
+  it_behaves_like "API V3 collection response", 2, 2, "Portfolio" do
+    let(:elements) { [public_portfolio, portfolio] }
   end
 
   context "with a pageSize and offset" do
     let(:get_path) do
-      api_v3_paths.path_for :workspaces, sort_by: { id: :asc }, page_size: 2, offset: 2
+      api_v3_paths.path_for :portfolios, sort_by: { id: :asc }, page_size: 1, offset: 1
     end
 
-    it_behaves_like "API V3 collection response", 3, 1, "Portfolio" do
+    it_behaves_like "API V3 collection response", 2, 1, "Portfolio" do
       let(:elements) { [portfolio] }
     end
   end
@@ -108,27 +95,22 @@ RSpec.describe "API v3 Workspace resource index", content_type: :json do
   context "when signaling the properties to include" do
     let(:select) { "elements/id,elements/name,elements/_type,total" }
     let(:get_path) do
-      api_v3_paths.path_for :workspaces, select:
+      api_v3_paths.path_for :portfolios, select:
     end
     let(:expected) do
       {
-        total: 3,
+        total: 2,
         _embedded: {
           elements: [
+            {
+              id: public_portfolio.id,
+              name: public_portfolio.name,
+              _type: "Portfolio"
+            },
             {
               id: portfolio.id,
               name: portfolio.name,
               _type: "Portfolio"
-            },
-            {
-              id: program.id,
-              name: program.name,
-              _type: "Program"
-            },
-            {
-              id: project.id,
-              name: project.name,
-              _type: "Project"
             }
           ]
         }
@@ -146,28 +128,10 @@ RSpec.describe "API v3 Workspace resource index", content_type: :json do
       [{ typeahead: { operator: "**", values: [search_string] } }]
     end
 
-    context "when searching for the project" do
-      let(:search_string) { "Proj" }
+    let(:search_string) { public_portfolio.name }
 
-      it_behaves_like "API V3 collection response", 1, 1, "Project" do
-        let(:elements) { [project] }
-      end
-    end
-
-    context "when searching for the program" do
-      let(:search_string) { "Prog" }
-
-      it_behaves_like "API V3 collection response", 1, 1, "Program" do
-        let(:elements) { [program] }
-      end
-    end
-
-    context "when searching for the portfolio" do
-      let(:search_string) { "Port" }
-
-      it_behaves_like "API V3 collection response", 1, 1, "Portfolio" do
-        let(:elements) { [portfolio] }
-      end
+    it_behaves_like "API V3 collection response", 1, 1, "Portfolio" do
+      let(:elements) { [public_portfolio] }
     end
   end
 

@@ -274,6 +274,11 @@ RSpec.describe API::V3::Utilities::PathHelper do
     it_behaves_like "show", :placeholder_user
   end
 
+  describe "portfolios paths" do
+    it_behaves_like "index", :portfolio
+    # it_behaves_like "show", :post
+  end
+
   describe "posts paths" do
     it_behaves_like "index", :post
     it_behaves_like "show", :post

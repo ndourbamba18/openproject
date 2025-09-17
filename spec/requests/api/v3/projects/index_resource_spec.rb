@@ -524,4 +524,12 @@ RSpec.describe "API v3 Project resource index", content_type: :json do
       end
     end
   end
+
+  context "when not being logged in and login is required" do
+    current_user { create(:anonymous) }
+
+    context "if user is not logged in" do
+      it_behaves_like "unauthenticated access"
+    end
+  end
 end
