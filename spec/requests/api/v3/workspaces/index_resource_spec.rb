@@ -31,7 +31,10 @@
 require "spec_helper"
 require "rack/test"
 
-RSpec.describe "API v3 Project resource index", content_type: :json do
+# The workspace endpoint currently is a copy of the projects endpoint and reuses most of the functionality of it.
+# As such, this spec tests that all aspects of the index endpoint (filtering, signaling, offset, pagination) are supported
+# without going into the same breadth as the specs for the projects endpoint does.
+RSpec.describe "API v3 Workspace resource index", content_type: :json do
   include Rack::Test::Methods
   include API::V3::Utilities::PathHelper
 
@@ -135,6 +138,36 @@ RSpec.describe "API v3 Project resource index", content_type: :json do
     it "is the reduced set of properties of the embedded elements" do
       expect(last_response.body)
         .to be_json_eql(expected.to_json)
+    end
+  end
+
+  context "when filtering by typeahead" do
+    let(:filters) do
+      [{ typeahead: { operator: "**", values: [search_string] } }]
+    end
+
+    context "when searching for the project" do
+      let(:search_string) { "Proj" }
+
+      it_behaves_like "API V3 collection response", 1, 1, "Project" do
+        let(:elements) { [project] }
+      end
+    end
+
+    context "when searching for the program" do
+      let(:search_string) { "Prog" }
+
+      it_behaves_like "API V3 collection response", 1, 1, "Program" do
+        let(:elements) { [program] }
+      end
+    end
+
+    context "when searching for the portfolio" do
+      let(:search_string) { "Port" }
+
+      it_behaves_like "API V3 collection response", 1, 1, "Portfolio" do
+        let(:elements) { [portfolio] }
+      end
     end
   end
 end
