@@ -329,6 +329,7 @@ module API
           show :placeholder_user
 
           index :portfolio
+          show :portfolio
 
           index :post
           show :post

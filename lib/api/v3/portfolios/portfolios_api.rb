@@ -40,6 +40,18 @@ module API
                                                                            .portfolio
                                                                        })
                                                                   .mount
+
+          route_param :id do
+            after_validation do
+              @project = if current_user.admin?
+                           Project.portfolio
+                         else
+                           Project.portfolio.visible(current_user)
+                         end.find(params[:id])
+            end
+
+            get &::API::V3::Utilities::Endpoints::Show.new(model: Project).mount
+          end
         end
       end
     end

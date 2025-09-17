@@ -276,7 +276,7 @@ RSpec.describe API::V3::Utilities::PathHelper do
 
   describe "portfolios paths" do
     it_behaves_like "index", :portfolio
-    # it_behaves_like "show", :post
+    it_behaves_like "show", :portfolio
   end
 
   describe "posts paths" do
