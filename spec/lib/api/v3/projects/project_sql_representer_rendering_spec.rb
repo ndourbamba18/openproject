@@ -44,20 +44,24 @@ RSpec.describe API::V3::Projects::ProjectSqlRepresenter, "rendering" do
     Project
       .where(id: project.id)
   end
+  let(:role) { create(:project_role) }
+  let(:select) { { "*" => {} } }
 
-  let(:project) do
+  shared_let(:portfolio, reload: true) do
+    create(:portfolio)
+  end
+  shared_let(:program, reload: true) do
+    create(:program)
+  end
+  shared_let(:project, reload: true) do
     create(:project)
   end
-
-  let(:role) { create(:project_role) }
-
-  let(:select) { { "*" => {} } }
 
   current_user do
     create(:user, member_with_roles: { project => role })
   end
 
-  context "when rendering all supported properties" do
+  context "when rendering all supported properties of a project" do
     it "renders as expected" do
       expect(json)
         .to be_json_eql(
@@ -73,6 +77,62 @@ RSpec.describe API::V3::Projects::ProjectSqlRepresenter, "rendering" do
               self: {
                 href: api_v3_paths.project(project.id),
                 title: project.name
+              }
+            }
+          }.to_json
+        )
+    end
+  end
+
+  context "when rendering all supported properties of a program" do
+    let(:scope) do
+      Project
+        .where(id: program.id)
+    end
+
+    it "renders as expected" do
+      expect(json)
+        .to be_json_eql(
+          {
+            id: program.id,
+            _type: "Program",
+            name: program.name,
+            identifier: program.identifier,
+            active: true,
+            public: false,
+            _links: {
+              ancestors: [],
+              self: {
+                href: api_v3_paths.project(program.id),
+                title: program.name
+              }
+            }
+          }.to_json
+        )
+    end
+  end
+
+  context "when rendering all supported properties of a portfolio" do
+    let(:scope) do
+      Project
+        .where(id: portfolio.id)
+    end
+
+    it "renders as expected" do
+      expect(json)
+        .to be_json_eql(
+          {
+            id: portfolio.id,
+            _type: "Portfolio",
+            name: portfolio.name,
+            identifier: portfolio.identifier,
+            active: true,
+            public: false,
+            _links: {
+              ancestors: [],
+              self: {
+                href: api_v3_paths.project(portfolio.id),
+                title: portfolio.name
               }
             }
           }.to_json

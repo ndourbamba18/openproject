@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-#-- copyright
+# -- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -26,44 +26,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-#++
+# ++
 
 FactoryBot.define do
-  factory :project, parent: :workspace do
-    workspace_type { "project" }
+  factory :portfolio, parent: :workspace do
+    workspace_type { "portfolio" }
 
-    sequence(:name) { |n| "My Project No. #{n}" }
-    sequence(:identifier) { |n| "myproject_no_#{n}" }
-
-    factory :public_project do
-      public { true } # Remark: public defaults to true
-    end
-
-    factory :template_project do
-      sequence(:name) { |n| "Template project No. #{n}" }
-      sequence(:identifier) { |n| "template_no_#{n}" }
-      templated { true }
-    end
-
-    factory :project_with_types do
-      # using initialize_with types to prevent
-      # the project's initialize function looking for the default type
-      # when we will be setting the type later on anyway
-      initialize_with do
-        types = if instance_variable_get(:@build_strategy).is_a?(FactoryBot::Strategy::Stub)
-                  [build_stubbed(:type)]
-                else
-                  [build(:type)]
-                end
-
-        new(types:)
-      end
-
-      factory :valid_project do
-        callback(:after_build) do |project|
-          project.types << build(:type_with_workflow)
-        end
-      end
-    end
+    sequence(:name) { |n| "My Portfolio No. #{n}" }
+    sequence(:identifier) { |n| "myportfolio_no_#{n}" }
   end
 end

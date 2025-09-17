@@ -112,7 +112,15 @@ module API
              }
 
         property :_type,
-                 representation: ->(*) { "'Project'" }
+                 representation: ->(*) {
+                   <<~SQL.squish
+                     CASE
+                       WHEN workspace_type = 'project' THEN 'Project'
+                       WHEN workspace_type = 'program' THEN 'Program'
+                       WHEN workspace_type = 'portfolio' THEN 'Portfolio'
+                     END
+                   SQL
+                 }
 
         property :id
 
