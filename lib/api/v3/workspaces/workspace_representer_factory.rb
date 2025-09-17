@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-#-- copyright
+# -- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -26,68 +26,21 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-#++
+# ++
 
 module API
   module V3
-    module Principals
-      module PrincipalRepresenterFactory
+    module Workspaces
+      module WorkspaceRepresenterFactory
         module_function
-
-        ##
-        # Create the appropriate subclass representer
-        # for each principal entity
-        def create(model, **args)
-          representer_class(model)
-            .create(model, **args)
-        end
-
-        def representer_class(model)
-          case model
-          when User
-            ::API::V3::Users::UserRepresenter
-          when Group
-            ::API::V3::Groups::GroupRepresenter
-          when PlaceholderUser
-            ::API::V3::PlaceholderUsers::PlaceholderUserRepresenter
-          else
-            raise ArgumentError, "Missing concrete principal representer for #{model}"
-          end
-        end
 
         def create_link_lambda(name, getter: "#{name}_id")
           ->(*) {
-            v3_path = API::V3::Principals::PrincipalType.for(represented.send(name))
-
             instance_exec(&self.class.associated_resource_default_link(name,
-                                                                       v3_path:,
+                                                                       v3_path: represented.project&.workspace_type,
                                                                        skip_link: -> { false },
                                                                        title_attribute: :name,
                                                                        getter:))
-          }
-        end
-
-        def create_setter_lambda(name, property_name: name, namespaces: %i(groups users placeholder_users))
-          ->(fragment:, **) {
-            ::API::Decorators::LinkObject
-              .new(represented,
-                   property_name:,
-                   namespace: namespaces,
-                   getter: :"#{name}_id",
-                   setter: :"#{name}_id=")
-              .from_hash(fragment)
-          }
-        end
-
-        def create_getter_lambda(name)
-          ->(*) {
-            next unless embed_links
-
-            instance = represented.send(name)
-            next if instance.nil?
-
-            ::API::V3::Principals::PrincipalRepresenterFactory
-              .create(represented.send(name), current_user:)
           }
         end
       end

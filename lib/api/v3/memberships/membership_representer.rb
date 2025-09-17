@@ -61,7 +61,9 @@ module API
 
         property :id
 
-        associated_resource :project
+        associated_resource :project,
+                            link: ::API::V3::Workspaces::WorkspaceRepresenterFactory
+                                    .create_link_lambda(:project)
 
         associated_resource :principal,
                             getter: ::API::V3::Principals::PrincipalRepresenterFactory
