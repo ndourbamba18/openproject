@@ -182,6 +182,16 @@ RSpec.describe "API v3 Project resource show", content_type: :json do
       it_behaves_like "not found"
     end
 
+    context "when requesting a portfolio" do
+      let(:project) { create(:portfolio, public: true) }
+
+      before do
+        response
+      end
+
+      it_behaves_like "not found"
+    end
+
     context "when not being allowed to see the parent project" do
       let!(:parent_memberships) do
         # no parent memberships

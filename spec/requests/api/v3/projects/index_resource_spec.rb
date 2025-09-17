@@ -36,6 +36,8 @@ RSpec.describe "API v3 Project resource index", content_type: :json do
   include API::V3::Utilities::PathHelper
 
   shared_let(:admin) { create(:admin) }
+  # This portfolio is here as a check to see if only projects are returned via this endpoint.
+  shared_let(:portfolio) { create(:portfolio, public: true) }
 
   let(:project) do
     create(:project, public: false, active: project_active)

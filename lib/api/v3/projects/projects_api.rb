@@ -37,6 +37,7 @@ module API
                                                                        scope: -> {
                                                                          Project
                                                                            .includes(ProjectRepresenter.to_eager_load)
+                                                                           .project
                                                                        })
                                                                   .mount
 
@@ -58,9 +59,9 @@ module API
           route_param :id do
             after_validation do
               @project = if current_user.admin?
-                           Project.all
+                           Project.project
                          else
-                           Project.visible(current_user)
+                           Project.project.visible(current_user)
                          end.find(params[:id])
             end
 

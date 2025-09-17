@@ -372,9 +372,15 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
     context "with a non existing id" do
       let(:path) { api_v3_paths.project_form(1) }
 
-      it "returns 404 Not found" do
-        expect(response).to have_http_status(:not_found)
+      it_behaves_like "not found"
+    end
+
+    context "with a portfolio id" do
+      let(:project) do
+        create(:portfolio, public: true)
       end
+
+      it_behaves_like "not found"
     end
   end
 end

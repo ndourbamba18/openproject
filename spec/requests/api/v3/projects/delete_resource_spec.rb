@@ -119,6 +119,12 @@ RSpec.describe "API v3 Project resource delete", content_type: :json do
       it_behaves_like "not found"
     end
 
+    context "for a portfolio" do
+      let(:project) { create(:portfolio, public: true) }
+
+      it_behaves_like "not found"
+    end
+
     context "for a project which has a version foreign work packages refer to" do
       let(:version) { create(:version, project:) }
       let(:work_package) { create(:work_package, version:) }
