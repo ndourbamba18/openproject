@@ -110,7 +110,7 @@ module API
                current_user.allowed_in_project?(:view_work_packages, represented) ||
                current_user.allowed_in_project?(:manage_types, represented)
              } do
-          { href: api_v3_paths.types_by_project(represented.id) }
+          { href: api_v3_paths.types_by_workspace(represented.id) }
         end
 
         link :update,

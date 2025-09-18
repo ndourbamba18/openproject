@@ -26,21 +26,18 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-require "api/v3/types/type_collection_representer"
-
 module API
   module V3
     module Types
-      class TypesByProjectAPI < ::API::OpenProjectAPI
+      class TypesByWorkspaceAPI < ::API::OpenProjectAPI
         resources :types do
           after_validation do
             authorize_in_project %i[view_work_packages manage_types], project: @project
           end
 
           get do
-            types = @project.types
-            TypeCollectionRepresenter.new(types,
-                                          self_link: api_v3_paths.types_by_project(@project.id),
+            TypeCollectionRepresenter.new(@project.types,
+                                          self_link: api_v3_paths.types_by_workspace(@project.id),
                                           current_user:)
           end
         end

@@ -486,35 +486,26 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
       context "for a user having the view_work_packages permission" do
         let(:permissions) { [:view_work_packages] }
 
-        it "links to the types active in the project" do
-          expect(subject).to be_json_eql(api_v3_paths.types_by_project(project.id).to_json)
-                               .at_path("_links/types/href")
-        end
-
-        it "links to the work packages in the project" do
-          expect(subject).to be_json_eql(api_v3_paths.work_packages_by_project(project.id).to_json)
-                               .at_path("_links/workPackages/href")
+        it_behaves_like "has an untitled link" do
+          let(:link) { "types" }
+          let(:href) { api_v3_paths.types_by_workspace(project.id) }
         end
       end
 
       context "for a user having the manage_types permission" do
         let(:permissions) { [:manage_types] }
 
-        it "links to the types active in the project" do
-          expect(subject).to be_json_eql(api_v3_paths.types_by_project(project.id).to_json)
-                               .at_path("_links/types/href")
+        it_behaves_like "has an untitled link" do
+          let(:link) { "types" }
+          let(:href) { api_v3_paths.types_by_workspace(project.id) }
         end
       end
 
       context "for a user not having the necessary permissions" do
         let(:permission) { [] }
 
-        it "has no types link" do
-          expect(subject).not_to have_json_path("_links/types/href")
-        end
-
-        it "has no work packages link" do
-          expect(subject).not_to have_json_path("_links/workPackages/href")
+        it_behaves_like "has no link" do
+          let(:link) { "types" }
         end
       end
     end
@@ -662,6 +653,25 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
         it_behaves_like "has no link" do
           let(:link) { "delete" }
+        end
+      end
+    end
+
+    describe "workPackages" do
+      context "for a user having the view_work_packages permission" do
+        let(:permissions) { [:view_work_packages] }
+
+        it_behaves_like "has an untitled link" do
+          let(:link) { "workPackages" }
+          let(:href) { api_v3_paths.work_packages_by_project(project.id) }
+        end
+      end
+
+      context "for a user not having the necessary permissions" do
+        let(:permission) { [] }
+
+        it_behaves_like "has no link" do
+          let(:link) { "workPackages" }
         end
       end
     end

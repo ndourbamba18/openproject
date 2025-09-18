@@ -174,6 +174,10 @@ module API
             "#{project(project_id)}/available_assignees"
           end
 
+          def self.available_assignees_in_workspace(project_id)
+            "#{workspace(project_id)}/available_assignees"
+          end
+
           def self.available_assignees_in_work_package(work_package_id)
             "#{work_package(work_package_id)}/available_assignees"
           end
@@ -542,6 +546,10 @@ module API
             "#{project(project_id)}/types"
           end
 
+          def self.types_by_workspace(project_id)
+            "#{workspace(project_id)}/types"
+          end
+
           resources :user
 
           def self.user_lock(id)
@@ -658,6 +666,7 @@ module API
           end
 
           index :workspace
+          show :workspace
 
           def self.timestamps_to_param_value(timestamps)
             Array(timestamps).map { |timestamp| Timestamp.parse(timestamp).absolute }.join(",")

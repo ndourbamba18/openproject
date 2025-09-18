@@ -73,12 +73,12 @@ module API
 
             mount ::API::V3::Projects::UpdateFormAPI
 
-            mount API::V3::Projects::AvailableAssigneesAPI
+            mount ::API::V3::Workspaces::NestedApis
+
             mount API::V3::Projects::Copy::CopyAPI
             mount API::V3::WorkPackages::WorkPackagesByProjectAPI
             mount API::V3::Categories::CategoriesByProjectAPI
             mount API::V3::Versions::VersionsByProjectAPI
-            mount API::V3::Types::TypesByProjectAPI
             mount API::V3::Queries::QueriesByProjectAPI
             mount API::V3::Favorites::FavoriteActionsAPI, with: { favorite_object_getter: ->(*) { @project } }
           end

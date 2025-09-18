@@ -31,27 +31,9 @@
 module API
   module V3
     module Workspaces
-      class WorkspacesAPI < ::API::OpenProjectAPI
-        resources :workspaces do
-          get &::API::V3::Utilities::Endpoints::SqlFallbackedIndex.new(model: Project,
-                                                                       scope: -> {
-                                                                         Project
-                                                                           .includes(API::V3::Projects::ProjectRepresenter.to_eager_load)
-                                                                       })
-                                                                  .mount
-
-          route_param :id, type: Integer do
-            after_validation do
-              @project = if current_user.admin?
-                           Project
-                         else
-                           Project.visible(current_user)
-                         end.find(params[:id])
-            end
-
-            mount API::V3::Workspaces::NestedApis
-          end
-        end
+      class NestedApis < ::API::OpenProjectAPI
+        mount API::V3::Workspaces::AvailableAssigneesAPI
+        mount API::V3::Types::TypesByWorkspaceAPI
       end
     end
   end

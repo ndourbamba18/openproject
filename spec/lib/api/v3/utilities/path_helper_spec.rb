@@ -486,6 +486,12 @@ RSpec.describe API::V3::Utilities::PathHelper do
 
       it_behaves_like "api v3 path", "/projects/12/types"
     end
+
+    describe "#types_by_workspace" do
+      subject { helper.types_by_workspace 12 }
+
+      it_behaves_like "api v3 path", "/workspaces/12/types"
+    end
   end
 
   describe "users paths" do
@@ -618,6 +624,12 @@ RSpec.describe API::V3::Utilities::PathHelper do
         subject { helper.available_assignees_in_project 42 }
 
         it_behaves_like "api v3 path", "/projects/42/available_assignees"
+      end
+
+      describe "#available_assignees_in_workspace" do
+        subject { helper.available_assignees_in_workspace 42 }
+
+        it_behaves_like "api v3 path", "/workspaces/42/available_assignees"
       end
 
       describe "#available_assignees_in_work_package" do
