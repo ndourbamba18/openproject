@@ -1,0 +1,25 @@
+<%=
+  component_wrapper(
+    data: {
+      controller: "infinite-scroll",
+      infinite_scroll_insert_target_id_value: insert_target_id,
+      infinite_scroll_page_url_value: page_streams_url,
+      infinite_scroll_current_page_value: 1, # initial page
+      infinite_scroll_is_last_page_value: false # initial value
+    }
+  ) do
+    flex_layout(
+      data: { infinite_scroll_target: "skeleton" },
+      class: "work-packages-activities-tab-journals-item-component",
+      bg: :default
+    ) do |skeleton|
+      skeleton.with_row(mb: 2) do
+        render(Primer::Alpha::SkeletonBox.new(width: "25%", height: "40px"))
+      end
+
+      skeleton.with_row(mb: 3) do
+        render(Primer::Alpha::SkeletonBox.new(width: "100%", height: "150px"))
+      end
+    end
+  end
+%>

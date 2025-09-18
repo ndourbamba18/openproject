@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# -- copyright
+#-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -26,65 +26,30 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-# ++
+#++
 
 module WorkPackages
   module ActivitiesTab
     module Journals
-      class IndexComponent < ApplicationComponent
-        include ApplicationHelper
+      class InfiniteScrollComponent < ApplicationComponent
         include OpPrimer::ComponentHelpers
         include OpTurbo::Streamable
-        include WorkPackages::ActivitiesTab::SharedHelpers
 
-        def initialize(work_package:, journals:, filter: :all)
+        def initialize(work_package:)
           super
-
           @work_package = work_package
-          @journals = journals
-          @filter = filter
         end
-
-        def infinite_scroll_component
-          WorkPackages::ActivitiesTab::Journals::InfiniteScrollComponent.new(work_package:)
-        end
-
-        def page_component
-          WorkPackages::ActivitiesTab::Journals::PageComponent.new(journals:, emoji_reactions:, page: 1, filter:)
-        end
-
-        def self.insert_target_modifier_id = "work-package-journal-days"
-        delegate :insert_target_modifier_id, to: :class
 
         private
 
-        attr_reader :work_package, :journals, :filter
+        attr_reader :work_package
 
-        def insert_target_modified?
-          true
+        def insert_target_id
+          WorkPackages::ActivitiesTab::Journals::IndexComponent.insert_target_modifier_id
         end
 
-        def journal_with_notes
-          work_package
-            .journals
-            .where.not(notes: "")
-        end
-
-        def emoji_reactions
-          @emoji_reactions ||=
-            EmojiReactions::GroupedQueries.grouped_work_package_journals_emoji_reactions_by_reactable(work_package)
-        end
-
-        def empty_state?
-          filter == :only_comments && journal_with_notes.empty?
-        end
-
-        def inner_container_margin_bottom
-          if journal_sorting_desc?
-            3
-          else
-            0
-          end
+        def page_streams_url
+          page_streams_work_package_activities_path(work_package, format: :turbo_stream)
         end
       end
     end

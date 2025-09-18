@@ -37,13 +37,13 @@ module WorkPackages
       include WorkPackages::ActivitiesTab::SharedHelpers
       include WorkPackages::ActivitiesTab::StimulusControllers
 
-      def initialize(work_package:, last_server_timestamp:, filter: :all, deferred: false)
+      def initialize(work_package:, journals:, last_server_timestamp:, filter: :all)
         super
 
         @work_package = work_package
+        @journals = journals
         @filter = filter
         @last_server_timestamp = last_server_timestamp
-        @deferred = deferred
       end
 
       def self.wrapper_key = "work-package-activities-tab-content"
@@ -51,9 +51,25 @@ module WorkPackages
       def self.add_comment_wrapper_key = "work-packages-activities-tab-add-comment-component"
       delegate :index_content_wrapper_key, :add_comment_wrapper_key, to: :class
 
+      def filter_and_sorting_component
+        WorkPackages::ActivitiesTab::Journals::FilterAndSortingComponent.new(work_package:, filter:)
+      end
+
+      def list_journals_component
+        WorkPackages::ActivitiesTab::Journals::IndexComponent.new(work_package:, journals:, filter:)
+      end
+
+      def add_journal_component
+        WorkPackages::ActivitiesTab::Journals::NewComponent.new(work_package:, filter:, last_server_timestamp:)
+      end
+
+      def error_stream_component
+        WorkPackages::ActivitiesTab::ErrorStreamComponent.new
+      end
+
       private
 
-      attr_reader :work_package, :filter, :last_server_timestamp, :deferred
+      attr_reader :work_package, :journals, :filter, :last_server_timestamp
 
       def wrapper_data_attributes # rubocop:disable Metrics/AbcSize
         stimulus_controllers = {

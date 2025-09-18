@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# -- copyright
+#-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -26,66 +26,36 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-# ++
+#++
 
 module WorkPackages
   module ActivitiesTab
     module Journals
-      class IndexComponent < ApplicationComponent
-        include ApplicationHelper
+      class PageComponent < ApplicationComponent
         include OpPrimer::ComponentHelpers
         include OpTurbo::Streamable
         include WorkPackages::ActivitiesTab::SharedHelpers
 
-        def initialize(work_package:, journals:, filter: :all)
+        def initialize(journals:, emoji_reactions:, page:, filter: :all)
           super
 
-          @work_package = work_package
           @journals = journals
+          @emoji_reactions = emoji_reactions
           @filter = filter
+          @page = page
         end
 
-        def infinite_scroll_component
-          WorkPackages::ActivitiesTab::Journals::InfiniteScrollComponent.new(work_package:)
+        def render?
+          journals.any?
         end
 
-        def page_component
-          WorkPackages::ActivitiesTab::Journals::PageComponent.new(journals:, emoji_reactions:, page: 1, filter:)
+        def wrapper_uniq_by
+          page
         end
-
-        def self.insert_target_modifier_id = "work-package-journal-days"
-        delegate :insert_target_modifier_id, to: :class
 
         private
 
-        attr_reader :work_package, :journals, :filter
-
-        def insert_target_modified?
-          true
-        end
-
-        def journal_with_notes
-          work_package
-            .journals
-            .where.not(notes: "")
-        end
-
-        def emoji_reactions
-          @emoji_reactions ||=
-            EmojiReactions::GroupedQueries.grouped_work_package_journals_emoji_reactions_by_reactable(work_package)
-        end
-
-        def empty_state?
-          filter == :only_comments && journal_with_notes.empty?
-        end
-
-        def inner_container_margin_bottom
-          if journal_sorting_desc?
-            3
-          else
-            0
-          end
-        end
+        attr_reader :journals, :emoji_reactions, :page, :filter
       end
     end
   end

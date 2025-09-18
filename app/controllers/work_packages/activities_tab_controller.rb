@@ -29,6 +29,7 @@
 # ++
 
 class WorkPackages::ActivitiesTabController < ApplicationController
+  include Pagy::Backend
   include OpTurbo::ComponentStream
   include FlashMessagesOutputSafetyHelper
 
@@ -37,17 +38,42 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   before_action :find_journal, only: %i[edit cancel_edit update toggle_reaction]
   before_action :set_filter
   before_action :authorize
+  before_action :initialize_pagination, only: %i[index page_streams update_filter update_sorting]
 
   def index
     render(
       WorkPackages::ActivitiesTab::IndexComponent.new(
         work_package: @work_package,
+        journals: @paginated_journals,
         filter: @filter,
-        last_server_timestamp: get_current_server_timestamp,
-        deferred: ActiveRecord::Type::Boolean.new.cast(params[:deferred])
+        last_server_timestamp: get_current_server_timestamp
       ),
       layout: false
     )
+  end
+
+  def page_streams
+    insert_via_turbo_stream(
+      target_component: WorkPackages::ActivitiesTab::Journals::IndexComponent.new(
+        work_package: @work_package,
+        journals: Journal.none # we do not need to pass any journals here since we just want the component key
+      ),
+      component: WorkPackages::ActivitiesTab::Journals::PageComponent.new(
+        journals: @paginated_journals,
+        emoji_reactions: wp_journals_emoji_reactions,
+        page: @paginator.page,
+        filter: @filter
+      ),
+      action: journal_sorting.asc? ? :append : :prepend
+    )
+
+    set_dataset_attributes_via_turbo_stream(
+      WorkPackages::ActivitiesTab::Journals::InfiniteScrollComponent.wrapper_key,
+      infinite_scroll_current_page_value: @paginator.page,
+      infinite_scroll_is_last_page_value: @paginator.next.blank?
+    )
+
+    respond_with_turbo_streams
   end
 
   def update_streams
@@ -173,6 +199,48 @@ class WorkPackages::ActivitiesTabController < ApplicationController
 
   private
 
+  def initialize_pagination
+    @paginator, @paginated_journals = pagy_array(base_journals, items: 30)
+    # For UI display: if user wants "oldest first" UI, reverse the array
+    @paginated_journals = @paginated_journals.reverse if journal_sorting.asc?
+  end
+
+  def base_journals
+    combine_and_sort_records(fetch_journals, fetch_revisions)
+  end
+
+  def fetch_journals
+    API::V3::Activities::ActivityEagerLoadingWrapper.wrap(fetch_ar_journals)
+  end
+
+  def fetch_ar_journals
+    @work_package
+      .journals
+      .internal_visible
+      .includes(:user, :customizable_journals, :attachable_journals, :storable_journals, :notifications)
+      .reorder(version: :desc) # Always fetch newest first for pagination
+      .with_sequence_version
+  end
+
+  def fetch_revisions
+    @work_package.changesets.includes(:user, :repository)
+  end
+
+  def combine_and_sort_records(journals, revisions)
+    (journals + revisions).sort_by do |record|
+      timestamp = record_timestamp(record)
+      [-timestamp, -record.id] # Always sort DESC (newest first)
+    end
+  end
+
+  def record_timestamp(record)
+    if record.is_a?(API::V3::Activities::ActivityEagerLoadingWrapper)
+      record.created_at&.to_i
+    elsif record.is_a?(Changeset)
+      record.committed_on.to_i
+    end
+  end
+
   def respond_with_error(error_message)
     respond_to do |format|
       # turbo_frame requests (tab is initially rendered and an error occured) are handled below
@@ -218,7 +286,8 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   end
 
   def journal_sorting
-    User.current.preference&.comments_sorting || OpenProject::Configuration.default_comment_sort_order
+    ActiveSupport::StringInquirer
+      .new(User.current.preference&.comments_sorting || OpenProject::Configuration.default_comment_sort_order)
   end
 
   def sanitized_journal_notes
@@ -287,6 +356,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
     replace_via_turbo_stream(
       component: WorkPackages::ActivitiesTab::IndexComponent.new(
         work_package: @work_package,
+        journals: @paginated_journals,
         filter: @filter,
         last_server_timestamp: get_current_server_timestamp
       )
@@ -297,6 +367,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
     update_via_turbo_stream(
       component: WorkPackages::ActivitiesTab::Journals::IndexComponent.new(
         work_package: @work_package,
+        journals: @paginated_journals,
         filter: @filter
       )
     )
@@ -339,7 +410,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
 
     rerender_updated_journals(journals, last_update_timestamp, grouped_emoji_reactions, editing_journals)
     rerender_journals_with_updated_notification(journals, last_update_timestamp, grouped_emoji_reactions, editing_journals)
-    append_or_prepend_journals(journals, last_update_timestamp, grouped_emoji_reactions)
+    insert_latest_journals_via_turbo_stream(journals, last_update_timestamp, grouped_emoji_reactions)
 
     if journals.present?
       remove_potential_empty_state
@@ -348,13 +419,11 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   end
 
   def generate_work_package_journals_emoji_reactions_update_streams
-    wp_journal_emoji_reactions =
-      EmojiReactions::GroupedQueries.grouped_work_package_journals_emoji_reactions_by_reactable(@work_package)
     @work_package.journals.each do |journal|
       update_via_turbo_stream(
         component: WorkPackages::ActivitiesTab::Journals::ItemComponent::Reactions.new(
           journal:,
-          grouped_emoji_reactions: wp_journal_emoji_reactions[journal.id] || {}
+          grouped_emoji_reactions: wp_journals_emoji_reactions[journal.id] || {}
         )
       )
     end
@@ -404,32 +473,21 @@ class WorkPackages::ActivitiesTabController < ApplicationController
     end
   end
 
-  def append_or_prepend_journals(journals, last_update_timestamp, grouped_emoji_reactions)
-    journals.where("created_at > ?", last_update_timestamp).find_each do |journal|
-      append_or_prepend_latest_journal_via_turbo_stream(journal, grouped_emoji_reactions.fetch(journal.id, {}))
-    end
-  end
-
-  def append_or_prepend_latest_journal_via_turbo_stream(journal, grouped_emoji_reactions)
+  def insert_latest_journals_via_turbo_stream(journals, last_update_timestamp, emoji_reactions)
     target_component = WorkPackages::ActivitiesTab::Journals::IndexComponent.new(
       work_package: @work_package,
+      journals: Journal.none, # we do not need to pass any journals here since we just want the component key
       filter: @filter
     )
 
-    component = WorkPackages::ActivitiesTab::Journals::ItemComponent.new(
-      journal:, filter: @filter, grouped_emoji_reactions:
-    )
-
-    stream_config = {
-      target_component:,
-      component:
-    }
-
-    # Append or prepend the new journal depending on the sorting
-    if journal_sorting == "asc"
-      append_via_turbo_stream(**stream_config)
-    else
-      prepend_via_turbo_stream(**stream_config)
+    journals.where("created_at > ?", last_update_timestamp).find_each do |journal|
+      insert_via_turbo_stream(
+        target_component:,
+        component: WorkPackages::ActivitiesTab::Journals::ItemComponent.new(
+          journal:, filter: @filter, grouped_emoji_reactions: emoji_reactions.fetch(journal.id, {})
+        ),
+        action: journal_sorting.asc? ? :append : :prepend
+      )
     end
   end
 
@@ -465,6 +523,11 @@ class WorkPackages::ActivitiesTabController < ApplicationController
     replace_via_turbo_stream(
       component: WorkPackages::Details::UpdateCounterComponent.new(work_package: @work_package, menu_name: "activity")
     )
+  end
+
+  def wp_journals_emoji_reactions
+    @wp_journals_emoji_reactions ||= EmojiReactions::GroupedQueries
+      .grouped_work_package_journals_emoji_reactions_by_reactable(@work_package)
   end
 
   def grouped_emoji_reactions_for_journal

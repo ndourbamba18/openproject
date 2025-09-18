@@ -71,6 +71,15 @@ module OpTurbo
       )
     end
 
+    def insert_via_turbo_stream(action:, component:, target_component:)
+      case action
+      when :append
+        append_via_turbo_stream(component:, target_component:)
+      when :prepend
+        prepend_via_turbo_stream(component:, target_component:)
+      end
+    end
+
     def append_via_turbo_stream(component:, target_component:)
       turbo_streams << target_component.insert_as_turbo_stream(component:, view_context:, action: :append)
     end
@@ -102,6 +111,14 @@ module OpTurbo
 
       instance = component.new(**).with_content(message)
       turbo_streams << instance.render_as_turbo_stream(view_context:, action: :flash)
+    end
+
+    def set_dataset_attributes_via_turbo_stream(target, **attributes)
+      attributes.each do |attribute, value|
+        turbo_streams << OpTurbo::StreamComponent
+          .new(action: :set_dataset_attribute, target:, attribute:, value:)
+          .render_in(view_context)
+      end
     end
 
     def scroll_into_view_via_turbo_stream(target, behavior: :auto, block: :start)
