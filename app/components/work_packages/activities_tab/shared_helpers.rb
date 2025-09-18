@@ -61,6 +61,14 @@ module WorkPackages
         end
       end
 
+      def journal_sorting_asc?
+        journal_sorting == "asc"
+      end
+
+      def journal_sorting_desc?
+        journal_sorting == "desc"
+      end
+
       def journal_sorting
         User.current.preference&.comments_sorting || OpenProject::Configuration.default_comment_sort_order
       end

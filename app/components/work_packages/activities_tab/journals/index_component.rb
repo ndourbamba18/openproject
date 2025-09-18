@@ -32,24 +32,30 @@ module WorkPackages
   module ActivitiesTab
     module Journals
       class IndexComponent < ApplicationComponent
-        MAX_RECENT_JOURNALS = 30
+        # MAX_RECENT_JOURNALS = 30
 
         include ApplicationHelper
         include OpPrimer::ComponentHelpers
         include OpTurbo::Streamable
         include WorkPackages::ActivitiesTab::SharedHelpers
 
-        def initialize(work_package:, filter: :all, deferred: false)
+        def initialize(work_package:, journals:, paginator:, filter: :all)
           super
 
           @work_package = work_package
+          @journals = journals
+          @paginator = paginator
           @filter = filter
-          @deferred = deferred
+        end
+
+        def infinite_scroll_page_component
+          WorkPackages::ActivitiesTab::Journals::InfiniteScrollPageComponent
+            .new(work_package:, journals:, paginator:, filter:)
         end
 
         private
 
-        attr_reader :work_package, :filter, :deferred
+        attr_reader :work_package, :journals, :paginator, :filter
 
         def insert_target_modified?
           true
@@ -59,24 +65,20 @@ module WorkPackages
           "work-package-journal-days"
         end
 
-        def journal_sorting_desc?
-          journal_sorting == "desc"
-        end
-
         def base_journals
           combine_and_sort_records(fetch_journals, fetch_revisions)
         end
 
-        def fetch_journals
-          API::V3::Activities::ActivityEagerLoadingWrapper.wrap(
-            work_package
-              .journals
-              .internal_visible
-              .includes(:user, :customizable_journals, :attachable_journals, :storable_journals, :notifications)
-              .reorder(version: journal_sorting)
-              .with_sequence_version
-          )
-        end
+        # def fetch_journals
+        #   API::V3::Activities::ActivityEagerLoadingWrapper.wrap(
+        #     work_package
+        #       .journals
+        #       .internal_visible
+        #       .includes(:user, :customizable_journals, :attachable_journals, :storable_journals, :notifications)
+        #       .reorder(version: journal_sorting)
+        #       .with_sequence_version
+        #   )
+        # end
 
         def fetch_revisions
           work_package.changesets.includes(:user, :repository)
@@ -97,25 +99,25 @@ module WorkPackages
           end
         end
 
-        def journals
-          base_journals
-        end
+        # def journals
+        #   base_journals
+        # end
 
-        def recent_journals
-          if journal_sorting_desc?
-            base_journals.first(MAX_RECENT_JOURNALS)
-          else
-            base_journals.last(MAX_RECENT_JOURNALS)
-          end
-        end
+        # def recent_journals
+        #   if journal_sorting_desc?
+        #     base_journals.first(MAX_RECENT_JOURNALS)
+        #   else
+        #     base_journals.last(MAX_RECENT_JOURNALS)
+        #   end
+        # end
 
-        def older_journals
-          if journal_sorting_desc?
-            base_journals.drop(MAX_RECENT_JOURNALS)
-          else
-            base_journals.take(base_journals.size - MAX_RECENT_JOURNALS)
-          end
-        end
+        # def older_journals
+        #   if journal_sorting_desc?
+        #     base_journals.drop(MAX_RECENT_JOURNALS)
+        #   else
+        #     base_journals.take(base_journals.size - MAX_RECENT_JOURNALS)
+        #   end
+        # end
 
         def journal_with_notes
           work_package

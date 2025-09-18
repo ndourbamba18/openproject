@@ -29,6 +29,7 @@
 # ++
 
 class WorkPackages::ActivitiesTabController < ApplicationController
+  include Pagy::Backend
   include OpTurbo::ComponentStream
   include FlashMessagesOutputSafetyHelper
 
@@ -37,17 +38,18 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   before_action :find_journal, only: %i[edit cancel_edit update toggle_reaction]
   before_action :set_filter
   before_action :authorize
+  before_action :initialize_pagination, only: %i[index update_filter update_sorting]
 
   def index
-    render(
-      WorkPackages::ActivitiesTab::IndexComponent.new(
-        work_package: @work_package,
-        filter: @filter,
-        last_server_timestamp: get_current_server_timestamp,
-        deferred: ActiveRecord::Type::Boolean.new.cast(params[:deferred])
-      ),
-      layout: false
-    )
+    infinitely_scrolled_component =
+      if @paginator.page > 1
+        WorkPackages::ActivitiesTab::Journals::InfiniteScrollPageComponent.new(**paginated_component_args)
+      else
+        WorkPackages::ActivitiesTab::IndexComponent
+          .new(**paginated_component_args, last_server_timestamp: get_current_server_timestamp)
+      end
+
+    render infinitely_scrolled_component, layout: false
   end
 
   def update_streams
@@ -173,6 +175,30 @@ class WorkPackages::ActivitiesTabController < ApplicationController
 
   private
 
+  def initialize_pagination
+    @paginator, @paginated_journals = pagy_array(fetch_journals, items: 10)
+  end
+
+  def paginated_component_args
+    { work_package: @work_package,
+      filter: @filter,
+      paginator: @paginator,
+      journals: @paginated_journals }
+  end
+
+  def fetch_journals
+    API::V3::Activities::ActivityEagerLoadingWrapper.wrap(fetch_ar_journals)
+  end
+
+  def fetch_ar_journals
+    @work_package
+      .journals
+      .internal_visible
+      .includes(:user, :customizable_journals, :attachable_journals, :storable_journals, :notifications)
+      .reorder(version: journal_sorting)
+      .with_sequence_version
+  end
+
   def respond_with_error(error_message)
     respond_to do |format|
       # turbo_frame requests (tab is initially rendered and an error occured) are handled below
@@ -286,8 +312,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   def replace_whole_tab
     replace_via_turbo_stream(
       component: WorkPackages::ActivitiesTab::IndexComponent.new(
-        work_package: @work_package,
-        filter: @filter,
+        **paginated_component_args,
         last_server_timestamp: get_current_server_timestamp
       )
     )
