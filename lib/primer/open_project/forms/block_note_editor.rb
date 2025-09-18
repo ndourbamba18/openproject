@@ -43,11 +43,12 @@ module Primer
                     :hocuspocus_url,
                     :hocuspocus_access_token,
                     :open_project_url,
+                    :document_name,
                     :document_id
 
         delegate :name, to: :@input
 
-        def initialize(input:, value:, document_id:)
+        def initialize(input:, value:, document_name:, document_id:) # rubocop:disable Metrics/AbcSize
           super()
           @input = input
           @value = value
@@ -64,8 +65,9 @@ module Primer
             avatarUrl: avatar_url(User.current)
           }
           @document_id = document_id
+          @document_name = document_name
           @hocuspocus_url = Setting.collaborative_editing_hocuspocus_url
-          @hocuspocus_access_token = ::CollaborativeEditing::DocumentAccessTokenGenerator.call(document_id, value)
+          @hocuspocus_access_token = ::CollaborativeEditing::DocumentAccessTokenGenerator.call(document_id, document_name, value)
           @open_project_url = root_url
         end
       end

@@ -40,11 +40,12 @@ module CollaborativeEditing
   module DocumentAccessTokenGenerator
     module_function
 
-    def call(document_id, document_text)
+    def call(document_id, document_name, document_text)
       if Setting.collaborative_editing_hocuspocus_secret.present?
         JWT.encode(
           {
             document_id:,
+            document_name:,
             document_text:,
             exp: 20.minutes.from_now.to_i
           },

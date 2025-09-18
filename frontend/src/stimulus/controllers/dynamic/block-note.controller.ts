@@ -46,6 +46,7 @@ export default class extends Controller {
     activeUser: Object,
     hocuspocusUrl: String,
     hocuspocusAccessToken: String,
+    documentName: String,
     documentId: String,
     openProjectUrl: String,
   };
@@ -57,6 +58,7 @@ export default class extends Controller {
   declare readonly activeUserValue:User;
   declare readonly hocuspocusUrlValue:string;
   declare readonly hocuspocusAccessTokenValue:string;
+  declare readonly documentNameValue:string;
   declare readonly documentIdValue:string;
   declare readonly openProjectUrlValue:string;
 
@@ -73,6 +75,7 @@ export default class extends Controller {
       activeUser: this.activeUserValue,
       hocuspocusUrl: this.hocuspocusUrlValue,
       hocuspocusAccessToken: this.hocuspocusAccessTokenValue,
+      documentName: this.documentNameValue,
       documentId: this.documentIdValue,
       openProjectUrl: this.openProjectUrlValue,
     });

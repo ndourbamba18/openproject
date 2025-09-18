@@ -49,6 +49,7 @@ export interface OpBlockNoteContainerProps {
   hocuspocusAccessToken:string;
   users:User[];
   activeUser:User;
+  documentName:string;
   documentId:string;
   openProjectUrl:string;
 }
@@ -68,22 +69,23 @@ export default function OpBlockNoteContainer({ inputField,
                                                activeUser,
                                                hocuspocusUrl,
                                                hocuspocusAccessToken,
-                                               documentId,
+                                               documentName ,
                                                openProjectUrl }:OpBlockNoteContainerProps) {
-  initOpenProjectApi({ baseUrl: openProjectUrl});
-
   const [isLoading, setIsLoading] = useState(true);
+
+  initOpenProjectApi({ baseUrl: openProjectUrl});
 
   let collaboration:any;
   let comments:any;
-  const collaborationEnabled = Boolean(hocuspocusUrl && documentId && hocuspocusAccessToken && activeUser);
+  const collaborationEnabled = Boolean(hocuspocusUrl && documentName && hocuspocusAccessToken && activeUser);
   let hocuspocusProvider:HocuspocusProvider | null = null;
   let threadStore:any;
+
   if(collaborationEnabled) {
     const doc = new Y.Doc();
     hocuspocusProvider = new HocuspocusProvider({
       url: hocuspocusUrl,
-      name: documentId,
+      name: documentName,
       token: hocuspocusAccessToken,
       document: doc
     });
