@@ -76,7 +76,6 @@ module API
 
             mount ::API::V3::Workspaces::NestedApis
 
-            mount API::V3::Versions::VersionsByProjectAPI
             mount API::V3::Queries::QueriesByProjectAPI
             mount API::V3::Favorites::FavoriteActionsAPI, with: { favorite_object_getter: ->(*) { @project } }
           end

@@ -36,6 +36,7 @@ module API
         mount API::V3::Types::TypesByWorkspaceAPI
         mount API::V3::WorkPackages::WorkPackagesByWorkspaceAPI
         mount API::V3::Categories::CategoriesByWorkspaceAPI
+        mount API::V3::Versions::VersionsByProjectAPI
       end
     end
   end

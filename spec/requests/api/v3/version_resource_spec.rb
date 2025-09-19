@@ -75,7 +75,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
       end
     end
 
-    context "logged in user with permissions" do
+    context "for a logged in user with permissions" do
       before do
         version_in_project.save!
         login_as current_user
@@ -88,7 +88,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
       end
     end
 
-    context "logged in user with permission on project a version is shared with" do
+    context "for a logged in user with permission on project a version is shared with" do
       let(:get_path) { api_v3_paths.version version_in_other_project.id }
 
       before do
@@ -103,7 +103,7 @@ RSpec.describe "API v3 Version resource", content_type: :json do
       end
     end
 
-    context "logged in user without permission" do
+    context "for a logged in user without permission" do
       let(:permissions) { [] }
 
       before do
@@ -236,13 +236,13 @@ RSpec.describe "API v3 Version resource", content_type: :json do
       it_behaves_like "read-only violation", "project", Version
     end
 
-    context "if lacking the manage permissions" do
+    context "if lacking the manage permissions but having view permission" do
       let(:permissions) { [:view_work_packages] }
 
       it_behaves_like "unauthorized access"
     end
 
-    context "if lacking the manage permissions" do
+    context "if lacking manage and view permissions" do
       let(:permissions) { [] }
 
       it_behaves_like "not found"

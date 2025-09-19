@@ -460,7 +460,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
         it_behaves_like "has an untitled link" do
           let(:link) { "versions" }
-          let(:href) { api_v3_paths.versions_by_project(project.id) }
+          let(:href) { api_v3_paths.versions_by_workspace(project.id) }
         end
       end
 
@@ -469,7 +469,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
         it_behaves_like "has an untitled link" do
           let(:link) { "versions" }
-          let(:href) { api_v3_paths.versions_by_project(project.id) }
+          let(:href) { api_v3_paths.versions_by_workspace(project.id) }
         end
       end
 

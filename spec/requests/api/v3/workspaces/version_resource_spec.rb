@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-#-- copyright
+# -- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -26,57 +26,54 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-#++
+# ++
 
 require "spec_helper"
 require "rack/test"
 
-RSpec.describe "API v3 project's versions resource" do
+RSpec.describe "GET workspaces/:id/versions" do
   include Rack::Test::Methods
   include API::V3::Utilities::PathHelper
 
-  let(:current_user) do
-    user = create(:user,
-                  member_with_roles: { project => role })
-
-    allow(User).to receive(:current).and_return user
-
-    user
-  end
-  let(:role) { create(:project_role, permissions: [:view_work_packages]) }
-  let(:project) { create(:project, public: false) }
-  let(:other_project) { create(:project, public: false) }
-  let(:versions) { create_list(:version, 4, project:) }
-  let(:other_versions) { create_list(:version, 2) }
+  shared_let(:project) { create(:project, public: false) }
+  shared_let(:permitted_user) { create(:user, member_with_permissions: { project => [:view_work_packages] }) }
+  shared_let(:unpermitted_user) { create(:user, member_with_permissions: { project => [] }) }
+  shared_let(:versions) { create_list(:version, 4, project:) }
+  shared_let(:other_versions) { create_list(:version, 2) }
 
   subject(:response) { last_response }
 
-  describe "#get (index)" do
-    let(:get_path) { api_v3_paths.versions_by_project project.id }
+  shared_context "with versions by workspace" do
+    context "for a user with permissions to see the versions" do
+      current_user { permitted_user }
 
-    context "logged in user" do
       before do
-        current_user
-
-        versions
-        other_versions
-
         get get_path
       end
 
       it_behaves_like "API V3 collection response", 4, 4, "Version"
     end
 
-    context "logged in user without permission" do
-      let(:role) { create(:project_role, permissions: []) }
+    context "for a user without permissions to see the versions" do
+      current_user { unpermitted_user }
 
       before do
-        current_user
-
         get get_path
       end
 
       it_behaves_like "unauthorized access"
     end
+  end
+
+  context "for workspaces/:id/versions" do
+    let(:get_path) { api_v3_paths.versions_by_workspace project.id }
+
+    include_context "with versions by workspace"
+  end
+
+  context "for projects/:id/versions" do
+    let(:get_path) { api_v3_paths.versions_by_project project.id }
+
+    include_context "with versions by workspace"
   end
 end

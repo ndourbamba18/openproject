@@ -596,6 +596,10 @@ module API
             "#{project(project_id)}/versions"
           end
 
+          def self.versions_by_workspace(workspace_id)
+            "#{workspace(workspace_id)}/versions"
+          end
+
           def self.projects_by_version(version_id)
             "#{version(version_id)}/projects"
           end
