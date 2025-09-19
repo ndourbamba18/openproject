@@ -29,27 +29,20 @@
 module API
   module V3
     module Queries
-      class QueriesByProjectAPI < ::API::OpenProjectAPI
-        namespace :queries do
-          helpers ::API::V3::Queries::Helpers::QueryRepresenterResponse
-
-          after_validation do
-            authorize_in_any_work_package(:view_work_packages, in_project: @project)
-          end
-
-          mount API::V3::Queries::Schemas::QueryProjectFilterInstanceSchemaAPI
-          mount API::V3::Queries::Schemas::QueryProjectSchemaAPI
-
-          namespace :default do
-            params do
-              optional :valid_subset, type: Boolean
+      module Schemas
+        class QueryWorkspaceSchemaAPI < ::API::OpenProjectAPI
+          resource :schema do
+            helpers do
+              def representer
+                ::API::V3::Queries::Schemas::QuerySchemaRepresenter
+              end
             end
 
             get do
-              query = Query.new_default(user: current_user,
-                                        project: @project)
-
-              query_representer_response(query, params, params.delete(:valid_subset))
+              representer.new(Query.new(project: @project),
+                              self_link: api_v3_paths.query_workspace_schema(@project.id),
+                              current_user:,
+                              form_embedded: false)
             end
           end
         end

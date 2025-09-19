@@ -403,6 +403,10 @@ module API
             "#{project(id)}/queries/default"
           end
 
+          def self.query_workspace_default(id)
+            "#{workspace(id)}/queries/default"
+          end
+
           def self.query_star(id)
             "#{query(id)}/star"
           end
@@ -451,12 +455,20 @@ module API
             "#{project(id)}/queries/filter_instance_schemas"
           end
 
+          def self.query_workspace_filter_instance_schemas(id)
+            "#{workspace(id)}/queries/filter_instance_schemas"
+          end
+
           def self.query_operator(name)
             "#{queries}/operators/#{name}"
           end
 
           def self.query_project_schema(id)
             "#{project(id)}/queries/schema"
+          end
+
+          def self.query_workspace_schema(id)
+            "#{workspace(id)}/queries/schema"
           end
 
           def self.query_available_projects

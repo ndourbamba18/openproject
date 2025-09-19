@@ -31,26 +31,38 @@
 require "spec_helper"
 require "rack/test"
 
-RSpec.describe "API v3 Query resource" do
+RSpec.describe "GET workspaces/:id/queries/default" do
   include Rack::Test::Methods
   include API::V3::Utilities::PathHelper
 
-  let(:project) { create(:project, identifier: "test_project", public: false) }
-  let(:current_user) do
-    create(:user, member_with_roles: { project => role })
-  end
+  shared_let(:project) { create(:project) }
+
   let(:role) { create(:project_role, permissions:) }
   let(:permissions) { [:view_work_packages] }
+
+  current_user { create(:user, member_with_roles: { project => role }) }
 
   before do
     allow(User).to receive(:current).and_return current_user
   end
 
-  describe "#get projects/:project_id/queries/default" do
-    let(:base_path) { api_v3_paths.query_project_default(project.id) }
-
+  context "for a project scope" do
     it_behaves_like "GET individual query" do
-      context "lacking permissions" do
+      let(:base_path) { api_v3_paths.query_project_default(project.id) }
+      let(:self_path) { api_v3_paths.query_workspace_default(project.id) }
+
+      context "when lacking permissions" do
+        let(:permissions) { [] }
+
+        it_behaves_like "unauthorized access"
+      end
+    end
+  end
+
+  context "for a workspace scope" do
+    it_behaves_like "GET individual query" do
+      let(:base_path) { api_v3_paths.query_workspace_default(project.id) }
+      context "when lacking permissions" do
         let(:permissions) { [] }
 
         it_behaves_like "unauthorized access"

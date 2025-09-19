@@ -30,19 +30,13 @@ module API
   module V3
     module Queries
       module Schemas
-        class QueryProjectSchemaAPI < ::API::OpenProjectAPI
-          resource :schema do
-            helpers do
-              def representer
-                ::API::V3::Queries::Schemas::QuerySchemaRepresenter
-              end
-            end
-
+        class QueryWorkspaceFilterInstanceSchemaAPI < ::API::OpenProjectAPI
+          resource :filter_instance_schemas do
             get do
-              representer.new(Query.new(project: @project),
-                              self_link: api_v3_paths.query_project_schema(@project.id),
-                              current_user:,
-                              form_embedded: false)
+              ::API::V3::Queries::Schemas::QueryFilterInstanceSchemaCollectionRepresenter
+                  .new(Query.new(project: @project).available_filters,
+                       self_link: api_v3_paths.query_workspace_filter_instance_schemas(@project.id),
+                       current_user:)
             end
           end
         end

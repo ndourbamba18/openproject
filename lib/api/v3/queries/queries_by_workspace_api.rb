@@ -29,21 +29,27 @@
 module API
   module V3
     module Queries
-      module Schemas
-        class QueryProjectFilterInstanceSchemaAPI < ::API::OpenProjectAPI
-          resource :filter_instance_schemas do
-            helpers do
-              def representer
-                ::API::V3::Queries::Schemas::QueryFilterInstanceSchemaCollectionRepresenter
-              end
+      class QueriesByWorkspaceAPI < ::API::OpenProjectAPI
+        namespace :queries do
+          helpers ::API::V3::Queries::Helpers::QueryRepresenterResponse
+
+          after_validation do
+            authorize_in_any_work_package(:view_work_packages, in_project: @project)
+          end
+
+          mount API::V3::Queries::Schemas::QueryWorkspaceFilterInstanceSchemaAPI
+          mount API::V3::Queries::Schemas::QueryWorkspaceSchemaAPI
+
+          namespace :default do
+            params do
+              optional :valid_subset, type: Boolean
             end
 
             get do
-              filters = Query.new(project: @project).available_filters
+              query = Query.new_default(user: current_user,
+                                        project: @project)
 
-              representer.new(filters,
-                              self_link: api_v3_paths.query_project_filter_instance_schemas(@project.id),
-                              current_user:)
+              query_representer_response(query, params, params.delete(:valid_subset))
             end
           end
         end

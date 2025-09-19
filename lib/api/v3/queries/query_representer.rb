@@ -95,7 +95,7 @@ module API
 
         link :schema do
           href = if represented.project
-                   api_v3_paths.query_project_schema(represented.project.identifier)
+                   api_v3_paths.query_workspace_schema(represented.project.identifier)
                  else
                    api_v3_paths.query_schema
                  end
@@ -431,7 +431,7 @@ module API
 
         def default_query_path
           if represented.project
-            api_v3_paths.query_project_default(represented.project.id)
+            api_v3_paths.query_workspace_default(represented.project.id)
           else
             api_v3_paths.query_default
           end

@@ -133,7 +133,7 @@ RSpec.describe API::V3::Queries::QueryRepresenter do
 
     it_behaves_like "has an untitled link" do
       let(:link) { "schema" }
-      let(:href) { api_v3_paths.query_project_schema(project.identifier) }
+      let(:href) { api_v3_paths.query_workspace_schema(project.identifier) }
     end
 
     context "when the query has no project" do

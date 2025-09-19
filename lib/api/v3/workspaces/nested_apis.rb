@@ -37,6 +37,7 @@ module API
         mount API::V3::WorkPackages::WorkPackagesByWorkspaceAPI
         mount API::V3::Categories::CategoriesByWorkspaceAPI
         mount API::V3::Versions::VersionsByProjectAPI
+        mount API::V3::Queries::QueriesByWorkspaceAPI
       end
     end
   end

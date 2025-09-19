@@ -342,6 +342,12 @@ RSpec.describe API::V3::Utilities::PathHelper do
       it_behaves_like "api v3 path", "/projects/42/queries/default"
     end
 
+    describe "#query_workspace_default" do
+      subject { helper.query_workspace_default(42) }
+
+      it_behaves_like "api v3 path", "/workspaces/42/queries/default"
+    end
+
     describe "#query_star" do
       subject { helper.query_star 1 }
 
@@ -402,6 +408,12 @@ RSpec.describe API::V3::Utilities::PathHelper do
       it_behaves_like "api v3 path", "/projects/42/queries/filter_instance_schemas"
     end
 
+    describe "#query_workspace_filter_instance_schemas" do
+      subject { helper.query_workspace_filter_instance_schemas(42) }
+
+      it_behaves_like "api v3 path", "/workspaces/42/queries/filter_instance_schemas"
+    end
+
     describe "#query_operator" do
       subject { helper.query_operator "=" }
 
@@ -412,6 +424,12 @@ RSpec.describe API::V3::Utilities::PathHelper do
       subject { helper.query_project_schema("42") }
 
       it_behaves_like "api v3 path", "/projects/42/queries/schema"
+    end
+
+    describe "#query_workspace_schema" do
+      subject { helper.query_workspace_schema("42") }
+
+      it_behaves_like "api v3 path", "/workspaces/42/queries/schema"
     end
 
     describe "#query_available_projects" do
