@@ -449,7 +449,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
     describe "categories" do
       it "has the correct link to its categories" do
-        expect(subject).to be_json_eql(api_v3_paths.categories_by_project(project.id).to_json)
+        expect(subject).to be_json_eql(api_v3_paths.categories_by_workspace(project.id).to_json)
                              .at_path("_links/categories/href")
       end
     end

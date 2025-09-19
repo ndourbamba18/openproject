@@ -214,6 +214,10 @@ module API
             "#{project(id)}/categories"
           end
 
+          def self.categories_by_workspace(id)
+            "#{workspace(id)}/categories"
+          end
+
           def self.configuration
             "#{root}/configuration"
           end

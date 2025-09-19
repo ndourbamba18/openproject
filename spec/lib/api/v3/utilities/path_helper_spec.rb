@@ -162,6 +162,12 @@ RSpec.describe API::V3::Utilities::PathHelper do
 
       it_behaves_like "api v3 path", "/projects/42/categories"
     end
+
+    describe "#categories_by_workspace" do
+      subject { helper.categories_by_workspace 42 }
+
+      it_behaves_like "api v3 path", "/workspaces/42/categories"
+    end
   end
 
   context "capabilities paths" do

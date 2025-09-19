@@ -35,6 +35,7 @@ module API
         mount API::V3::Workspaces::AvailableAssigneesAPI
         mount API::V3::Types::TypesByWorkspaceAPI
         mount API::V3::WorkPackages::WorkPackagesByWorkspaceAPI
+        mount API::V3::Categories::CategoriesByWorkspaceAPI
       end
     end
   end
