@@ -46,18 +46,7 @@ FactoryBot.define do
     end
 
     factory :project_with_types do
-      # using initialize_with types to prevent
-      # the project's initialize function looking for the default type
-      # when we will be setting the type later on anyway
-      initialize_with do
-        types = if instance_variable_get(:@build_strategy).is_a?(FactoryBot::Strategy::Stub)
-                  [build_stubbed(:type)]
-                else
-                  [build(:type)]
-                end
-
-        new(types:)
-      end
+      with_types
 
       factory :valid_project do
         callback(:after_build) do |project|

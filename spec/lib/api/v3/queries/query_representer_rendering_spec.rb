@@ -127,7 +127,7 @@ RSpec.describe API::V3::Queries::QueryRepresenter do
           pageSize: Setting.per_page_options_array.first,
           filters: []
         }
-        "#{api_v3_paths.work_packages_by_project(project.id)}?#{non_empty_to_query(params)}"
+        "#{api_v3_paths.work_packages_by_workspace(project.id)}?#{non_empty_to_query(params)}"
       end
     end
 
@@ -350,7 +350,7 @@ RSpec.describe API::V3::Queries::QueryRepresenter do
           sortBy: JSON::dump([%w[assignee asc], %w[type desc]])
         }
 
-        api_v3_paths.work_packages_by_project(project.id) + "?#{params.to_query}"
+        api_v3_paths.work_packages_by_workspace(project.id) + "?#{params.to_query}"
       end
 
       it_behaves_like "has an untitled link" do
@@ -376,7 +376,7 @@ RSpec.describe API::V3::Queries::QueryRepresenter do
           filters: []
         }
 
-        api_v3_paths.work_packages_by_project(project.id) + "?#{non_empty_to_query(params)}"
+        api_v3_paths.work_packages_by_workspace(project.id) + "?#{non_empty_to_query(params)}"
       end
 
       it_behaves_like "has an untitled link" do

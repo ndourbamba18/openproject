@@ -30,7 +30,7 @@
 require "spec_helper"
 require "rack/test"
 
-RSpec.describe API::V3::WorkPackages::CreateProjectFormAPI do
+RSpec.describe "POST api/v3/workspaces/:id/work_packages/form" do
   include Rack::Test::Methods
   include API::V3::Utilities::PathHelper
 

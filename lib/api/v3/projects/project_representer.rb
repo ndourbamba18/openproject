@@ -52,7 +52,7 @@ module API
         link :createWorkPackage,
              cache_if: -> { current_user.allowed_in_project?(:add_work_packages, represented) } do
           {
-            href: api_v3_paths.create_project_work_package_form(represented.id),
+            href: api_v3_paths.create_workspace_work_package_form(represented.id),
             method: :post
           }
         end
@@ -60,7 +60,7 @@ module API
         link :createWorkPackageImmediately,
              cache_if: -> { current_user.allowed_in_project?(:add_work_packages, represented) } do
           {
-            href: api_v3_paths.work_packages_by_project(represented.id),
+            href: api_v3_paths.work_packages_by_workspace(represented.id),
             method: :post
           }
         end
@@ -69,7 +69,7 @@ module API
              cache_if: -> {
                current_user.allowed_in_project?(:view_work_packages, represented)
              } do
-          { href: api_v3_paths.work_packages_by_project(represented.id) }
+          { href: api_v3_paths.work_packages_by_workspace(represented.id) }
         end
 
         links :storages,

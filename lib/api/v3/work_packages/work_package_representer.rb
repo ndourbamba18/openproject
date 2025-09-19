@@ -273,7 +273,7 @@ module API
           next if represented.milestone? || represented.new_record?
 
           {
-            href: api_v3_paths.work_packages_by_project(represented.project.identifier),
+            href: api_v3_paths.work_packages_by_workspace(represented.project.identifier),
             method: :post,
             title: "Add child of #{represented.subject}"
           }

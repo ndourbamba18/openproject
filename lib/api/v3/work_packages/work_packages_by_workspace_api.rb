@@ -29,7 +29,7 @@
 module API
   module V3
     module WorkPackages
-      class WorkPackagesByProjectAPI < ::API::OpenProjectAPI
+      class WorkPackagesByWorkspaceAPI < ::API::OpenProjectAPI
         resources :work_packages do
           helpers ::API::V3::WorkPackages::WorkPackagesSharedHelpers
 
@@ -54,7 +54,7 @@ module API
                                                             })
                                                        .mount
 
-          mount ::API::V3::WorkPackages::CreateProjectFormAPI
+          mount ::API::V3::WorkPackages::CreateWorkspaceFormAPI
         end
       end
     end

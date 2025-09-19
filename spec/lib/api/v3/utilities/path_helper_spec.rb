@@ -607,10 +607,22 @@ RSpec.describe API::V3::Utilities::PathHelper do
       it_behaves_like "api v3 path", "/projects/42/work_packages"
     end
 
+    describe "#work_packages_by_workspace" do
+      subject { helper.work_packages_by_workspace 42 }
+
+      it_behaves_like "api v3 path", "/workspaces/42/work_packages"
+    end
+
     describe "#create_project_work_package_form" do
       subject { helper.create_project_work_package_form 42 }
 
       it_behaves_like "api v3 path", "/projects/42/work_packages/form"
+    end
+
+    describe "#create_workspace_work_package_form" do
+      subject { helper.create_workspace_work_package_form 42 }
+
+      it_behaves_like "api v3 path", "/workspaces/42/work_packages/form"
     end
 
     describe "#watcher" do

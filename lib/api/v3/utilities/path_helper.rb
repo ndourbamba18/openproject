@@ -222,6 +222,10 @@ module API
             "#{work_packages_by_project(project_id)}/form"
           end
 
+          def self.create_workspace_work_package_form(project_id)
+            "#{work_packages_by_workspace(project_id)}/form"
+          end
+
           def self.custom_action(id)
             "#{root}/custom_actions/#{id}"
           end
@@ -663,6 +667,10 @@ module API
 
           def self.work_packages_by_project(project_id)
             "#{project(project_id)}/work_packages"
+          end
+
+          def self.work_packages_by_workspace(workspace_id)
+            "#{workspace(workspace_id)}/work_packages"
           end
 
           index :workspace

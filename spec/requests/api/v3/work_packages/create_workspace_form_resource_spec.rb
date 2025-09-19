@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -24,21 +26,43 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-#++
 
-module API
-  module V3
-    module WorkPackages
-      class CreateProjectFormAPI < ::API::OpenProjectAPI
-        resource :form do
-          post &::API::V3::Utilities::Endpoints::CreateForm.new(model: WorkPackage,
-                                                                parse_service: WorkPackages::ParseParamsService,
-                                                                instance_generator: ->(*) {
-                                                                  WorkPackage.new(project: @project)
-                                                                })
-                                                           .mount
-        end
-      end
+require "spec_helper"
+require "rack/test"
+
+RSpec.describe "POST api/v3/workspace/:id/work_packages/form", content_type: :json do
+  include Rack::Test::Methods
+  include API::V3::Utilities::PathHelper
+
+  current_user { create(:admin) }
+
+  before do
+    post post_path
+  end
+
+  subject(:response) { last_response }
+
+  shared_examples "with work packages form" do
+    it "returns 200(OK)" do
+      expect(response).to have_http_status(:ok)
     end
+
+    it "is of type form" do
+      expect(response.body).to be_json_eql("Form".to_json).at_path("_type")
+    end
+  end
+
+  context "for a project path" do
+    let(:post_path) { api_v3_paths.create_workspace_work_package_form(project.id) }
+    let(:project) { create(:project) }
+
+    include_context "with work packages form"
+  end
+
+  context "for a workspace path" do
+    let(:post_path) { api_v3_paths.create_workspace_work_package_form(portfolio.id) }
+    let(:portfolio) { create(:portfolio) }
+
+    include_context "with work packages form"
   end
 end

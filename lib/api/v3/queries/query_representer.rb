@@ -62,7 +62,7 @@ module API
 
         link :results do
           path = if represented.project
-                   api_v3_paths.work_packages_by_project(represented.project.id)
+                   api_v3_paths.work_packages_by_workspace(represented.project.id)
                  else
                    api_v3_paths.work_packages
                  end
@@ -327,7 +327,6 @@ module API
                        results: nil,
                        embed_links: false,
                        params: {})
-
           self.results = results
           self.params = params
 

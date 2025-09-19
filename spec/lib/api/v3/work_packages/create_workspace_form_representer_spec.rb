@@ -30,7 +30,7 @@
 
 require "spec_helper"
 
-RSpec.describe API::V3::WorkPackages::CreateProjectFormRepresenter do
+RSpec.describe API::V3::WorkPackages::CreateWorkspaceFormRepresenter do
   include API::V3::Utilities::PathHelper
 
   let(:errors) { [] }
@@ -58,7 +58,7 @@ RSpec.describe API::V3::WorkPackages::CreateProjectFormRepresenter do
   describe "_links" do
     it do
       expect(generated).to be_json_eql(
-        api_v3_paths.create_project_work_package_form(work_package.project_id).to_json
+        api_v3_paths.create_workspace_work_package_form(work_package.project_id).to_json
       )
         .at_path("_links/self/href")
     end
@@ -70,7 +70,7 @@ RSpec.describe API::V3::WorkPackages::CreateProjectFormRepresenter do
     describe "validate" do
       it do
         expect(generated).to be_json_eql(
-          api_v3_paths.create_project_work_package_form(work_package.project_id).to_json
+          api_v3_paths.create_workspace_work_package_form(work_package.project_id).to_json
         )
           .at_path("_links/validate/href")
       end
@@ -106,7 +106,7 @@ RSpec.describe API::V3::WorkPackages::CreateProjectFormRepresenter do
       context "with a valid work package" do
         it do
           expect(generated).to be_json_eql(
-            api_v3_paths.work_packages_by_project(work_package.project_id).to_json
+            api_v3_paths.work_packages_by_workspace(work_package.project_id).to_json
           )
             .at_path("_links/commit/href")
         end

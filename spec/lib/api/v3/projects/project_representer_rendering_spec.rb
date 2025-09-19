@@ -259,12 +259,12 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
     describe "create work packages" do
       context "if user is allowed to create work packages" do
         it "has the correct path for a create form" do
-          expect(subject).to be_json_eql(api_v3_paths.create_project_work_package_form(project.id).to_json)
+          expect(subject).to be_json_eql(api_v3_paths.create_workspace_work_package_form(project.id).to_json)
                                .at_path("_links/createWorkPackage/href")
         end
 
         it "has the correct path to create a work package" do
-          expect(subject).to be_json_eql(api_v3_paths.work_packages_by_project(project.id).to_json)
+          expect(subject).to be_json_eql(api_v3_paths.work_packages_by_workspace(project.id).to_json)
                                .at_path("_links/createWorkPackageImmediately/href")
         end
       end
@@ -663,7 +663,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
         it_behaves_like "has an untitled link" do
           let(:link) { "workPackages" }
-          let(:href) { api_v3_paths.work_packages_by_project(project.id) }
+          let(:href) { api_v3_paths.work_packages_by_workspace(project.id) }
         end
       end
 

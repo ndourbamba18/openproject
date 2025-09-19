@@ -1001,7 +1001,7 @@ RSpec.describe API::V3::WorkPackages::WorkPackageRepresenter do
 
       context "when the user has the permission to add work packages" do
         it "has a link to add child" do
-          expect(subject).to be_json_eql("/api/v3/projects/#{project.identifier}/work_packages".to_json)
+          expect(subject).to be_json_eql(api_v3_paths.work_packages_by_workspace(project.identifier).to_json)
                                .at_path("_links/addChild/href")
         end
       end

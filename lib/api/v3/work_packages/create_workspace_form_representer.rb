@@ -29,17 +29,17 @@
 module API
   module V3
     module WorkPackages
-      class CreateProjectFormRepresenter < FormRepresenter
+      class CreateWorkspaceFormRepresenter < FormRepresenter
         link :self do
           {
-            href: api_v3_paths.create_project_work_package_form(represented.project_id),
+            href: api_v3_paths.create_workspace_work_package_form(represented.project_id),
             method: :post
           }
         end
 
         link :validate do
           {
-            href: api_v3_paths.create_project_work_package_form(represented.project_id),
+            href: api_v3_paths.create_workspace_work_package_form(represented.project_id),
             method: :post
           }
         end
@@ -55,7 +55,7 @@ module API
           if current_user.allowed_in_work_package?(:edit_work_packages, represented) &&
              @errors.empty?
             {
-              href: api_v3_paths.work_packages_by_project(represented.project_id),
+              href: api_v3_paths.work_packages_by_workspace(represented.project_id),
               method: :post
             }
           end

@@ -385,9 +385,7 @@ RSpec.describe "API v3 Project resource index", content_type: :json do
   context "as project collection" do
     let(:role) { create(:project_role, permissions: %i[view_work_packages]) }
     let(:projects) { [project] }
-    let(:expected) do
-      "#{api_v3_paths.project(project.id)}/work_packages"
-    end
+    let(:expected) { api_v3_paths.work_packages_by_workspace(project.id) }
 
     it "has projects with links to their work packages" do
       expect(last_response.body)

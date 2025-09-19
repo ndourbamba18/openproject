@@ -34,6 +34,7 @@ module API
       class NestedApis < ::API::OpenProjectAPI
         mount API::V3::Workspaces::AvailableAssigneesAPI
         mount API::V3::Types::TypesByWorkspaceAPI
+        mount API::V3::WorkPackages::WorkPackagesByWorkspaceAPI
       end
     end
   end

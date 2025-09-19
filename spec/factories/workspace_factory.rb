@@ -64,6 +64,21 @@ FactoryBot.define do
       status_explanation { "some explanation" }
     end
 
+    trait :with_types do
+      # using initialize_with types to prevent
+      # the project's initialize function looking for the default type
+      # when we will be setting the type later on anyway
+      initialize_with do
+        types = if instance_variable_get(:@build_strategy).is_a?(FactoryBot::Strategy::Stub)
+                  [build_stubbed(:type)]
+                else
+                  [build(:type)]
+                end
+
+        new(types:)
+      end
+    end
+
     trait :archived do
       active { false }
     end

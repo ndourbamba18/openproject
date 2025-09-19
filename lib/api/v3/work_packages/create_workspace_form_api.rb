@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -26,30 +24,21 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
+#++
 
-require "spec_helper"
-require "rack/test"
-
-RSpec.describe API::V3::WorkPackages::CreateProjectFormAPI, content_type: :json do
-  include Rack::Test::Methods
-  include API::V3::Utilities::PathHelper
-
-  let(:project) { create(:project, id: 5) }
-  let(:post_path) { api_v3_paths.create_project_work_package_form(project.id) }
-  let(:user) { create(:admin) }
-
-  before do
-    login_as(user)
-    post post_path
-  end
-
-  subject(:response) { last_response }
-
-  it "returns 200(OK)" do
-    expect(response).to have_http_status(:ok)
-  end
-
-  it "is of type form" do
-    expect(response.body).to be_json_eql("Form".to_json).at_path("_type")
+module API
+  module V3
+    module WorkPackages
+      class CreateWorkspaceFormAPI < ::API::OpenProjectAPI
+        resource :form do
+          post &::API::V3::Utilities::Endpoints::CreateForm.new(model: WorkPackage,
+                                                                parse_service: WorkPackages::ParseParamsService,
+                                                                instance_generator: ->(*) {
+                                                                  WorkPackage.new(project: @project)
+                                                                })
+                                                           .mount
+        end
+      end
+    end
   end
 end
