@@ -50,7 +50,7 @@ module WorkPackages
 
         def infinite_scroll_page_component
           WorkPackages::ActivitiesTab::Journals::InfiniteScrollPageComponent
-            .new(work_package:, journals:, paginator:, filter:)
+            .new(work_package:, current_page: paginator.page, next_page: paginator.next, filter:)
         end
 
         private

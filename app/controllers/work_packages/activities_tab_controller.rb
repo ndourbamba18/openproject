@@ -38,18 +38,46 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   before_action :find_journal, only: %i[edit cancel_edit update toggle_reaction]
   before_action :set_filter
   before_action :authorize
-  before_action :initialize_pagination, only: %i[index update_filter update_sorting]
+  before_action :initialize_pagination, only: %i[index page_streams update_filter update_sorting]
 
   def index
     infinitely_scrolled_component =
       if @paginator.page > 1
-        WorkPackages::ActivitiesTab::Journals::InfiniteScrollPageComponent.new(**paginated_component_args)
+        WorkPackages::ActivitiesTab::Journals::InfiniteScrollPageComponent.new(
+          work_package: @work_package,
+          current_page: @paginator.page,
+          next_page: @paginator.next,
+          filter: @filter
+        )
       else
         WorkPackages::ActivitiesTab::IndexComponent
           .new(**paginated_component_args, last_server_timestamp: get_current_server_timestamp)
       end
 
     render infinitely_scrolled_component, layout: false
+  end
+
+  def page_streams
+    wp_journal_emoji_reactions =
+      EmojiReactions::GroupedQueries.grouped_work_package_journals_emoji_reactions_by_reactable(@work_package)
+    @paginated_journals.each do |journal|
+      append_or_prepend_latest_journal_via_turbo_stream(journal, wp_journal_emoji_reactions.fetch(journal.id, {}))
+    end
+
+    component = WorkPackages::ActivitiesTab::Journals::InfiniteScrollPageComponent.new(
+      work_package: @work_package,
+      current_page: @paginator.page,
+      next_page: @paginator.next,
+      filter: @filter
+    )
+
+    if @paginator.next
+      update_via_turbo_stream(component:)
+    else
+      remove_via_turbo_stream(component:)
+    end
+
+    respond_with_turbo_streams
   end
 
   def update_streams
@@ -438,7 +466,9 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   def append_or_prepend_latest_journal_via_turbo_stream(journal, grouped_emoji_reactions)
     target_component = WorkPackages::ActivitiesTab::Journals::IndexComponent.new(
       work_package: @work_package,
-      filter: @filter
+      journals: [],
+      filter: @filter,
+      paginator: @paginator
     )
 
     component = WorkPackages::ActivitiesTab::Journals::ItemComponent.new(

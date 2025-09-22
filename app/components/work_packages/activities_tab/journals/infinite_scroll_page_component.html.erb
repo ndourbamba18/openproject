@@ -1,6 +1,6 @@
-<%
-  next_page_turbo_frame =
-    if (next_page = paginator.next)
+<%=
+  component_wrapper(data: { page_number: page_number(current_page) }) do
+    if next_page
       helpers.turbo_frame_tag(
         page_number(next_page),
         src: page_url(next_page),
@@ -16,32 +16,6 @@
           end
         end
       end
-    end
-%>
-
-<%=
-  helpers.turbo_frame_tag(page_number(paginator.page)) do
-    if journal_sorting_asc? && next_page_turbo_frame
-      concat(next_page_turbo_frame)
-    end
-
-    journals.each do |record|
-      concat(
-        if record.is_a?(Changeset)
-          render(WorkPackages::ActivitiesTab::Journals::RevisionComponent.new(changeset: record, filter:))
-        else
-          render(
-            WorkPackages::ActivitiesTab::Journals::ItemComponent.new(
-              journal: record, filter:,
-              grouped_emoji_reactions: wp_journals_grouped_emoji_reactions[record.id]
-            )
-          )
-        end
-      )
-    end
-
-    if journal_sorting_desc? && next_page_turbo_frame
-      concat(next_page_turbo_frame)
     end
   end
 %>

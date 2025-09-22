@@ -33,23 +33,27 @@ module WorkPackages
     module Journals
       class InfiniteScrollPageComponent < ApplicationComponent
         include OpPrimer::ComponentHelpers
+        include OpTurbo::Streamable
         include WorkPackages::ActivitiesTab::SharedHelpers
 
-        def initialize(work_package:, journals:, paginator:, filter: :all)
+        def initialize(work_package:, current_page:, next_page: nil, filter: :all)
           super
 
           @work_package = work_package
-          @journals = journals
-          @paginator = paginator
+          @current_page = current_page
+          @next_page = next_page
           @filter = filter
         end
 
         private
 
-        attr_reader :work_package, :journals, :paginator, :filter
+        attr_reader :work_package, :current_page, :next_page, :filter
 
         def page_number(page) = "wp-activities-page-#{page}"
-        def page_url(page) = work_package_activities_path(work_package, page:, filter:)
+
+        def page_url(page)
+          page_streams_work_package_activities_path(work_package, page:, filter:, format: :turbo_stream)
+        end
 
         def wp_journals_grouped_emoji_reactions
           @wp_journals_grouped_emoji_reactions ||=
