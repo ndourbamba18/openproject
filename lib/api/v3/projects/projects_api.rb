@@ -75,8 +75,6 @@ module API
             mount API::V3::Projects::Copy::CopyAPI
 
             mount ::API::V3::Workspaces::NestedApis
-
-            mount API::V3::Favorites::FavoriteActionsAPI, with: { favorite_object_getter: ->(*) { @project } }
           end
         end
       end

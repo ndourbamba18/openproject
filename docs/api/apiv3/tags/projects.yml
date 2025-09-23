@@ -6,13 +6,15 @@ description: |-
 
   ## Actions
 
-  | Link                         | Description                                                          | Condition                         |
-  |:--------------------------:  |----------------------------------------------------------------------| --------------------------------- |
-  | update                       | Form endpoint that aids in updating this project                     | **Permission**: edit project      |
-  | updateImmediately            | Directly update this project                                         | **Permission**: edit project      |
-  | delete                       | Delete this project                                                  | **Permission**: admin             |
-  | createWorkPackage            | Form endpoint that aids in preparing and creating a work package     | **Permission**: add work packages |
-  | createWorkPackageImmediately | Directly creates a work package in the project                       | **Permission**: add work packages |
+  | Link                         | Description                                                          | Condition                                                                                     |
+  |:--------------------------:  |----------------------------------------------------------------------| ---------------------------------                                                             |
+  | update                       | Form endpoint that aids in updating this project                     | **Permission**: edit project                                                                  |
+  | updateImmediately            | Directly update this project                                         | **Permission**: edit project                                                                  |
+  | delete                       | Delete this project                                                  | **Permission**: admin                                                                         |
+  | favor                        | Mark this project as favorited by the current user                   | **Permission**: none but login is required, only present if the project is not yet favorited  |
+  | disfavor                     | Mark this project as no longer favorited by the current user         | **Permission**: none but login is required, only present if the project is favorited          |
+  | createWorkPackage            | Form endpoint that aids in preparing and creating a work package     | **Permission**: add work packages                                                             |
+  | createWorkPackageImmediately | Directly creates a work package in the project                       | **Permission**: add work packages                                                             |
 
   ## Linked Properties
 
@@ -42,6 +44,7 @@ description: |-
   | identifier             |                                                                                                       | String            |                                      | READ/WRITE           |
   | name                   |                                                                                                       | String            |                                      | READ/WRITE           |
   | active                 | Indicates whether the project is currently active or already archived                                 | Boolean           |                                      | READ/WRITE           |
+  | favorited              | Indicates whether the project is favorited by the current user                                        | Boolean           |                                      | READ                 |
   | statusExplanation      | A text detailing and explaining why the project has the reported status                               | Formattable       |                                      | READ/WRITE           |
   | public                 | Indicates whether the project is accessible for everybody                                             | Boolean           |                                      | READ/WRITE           |
   | description            |                                                                                                       | Formattable       |                                      | READ/WRITE           |

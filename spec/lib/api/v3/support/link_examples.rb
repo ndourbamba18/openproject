@@ -49,29 +49,37 @@ RSpec.shared_context "action link shared" do
     end
   end
 
-  it "indicates the desired method" do
-    verb = begin
-      # the standard method #method on an object interferes
-      # with the let named 'method' conditionally defined
-      method
-    rescue ArgumentError
-      :get
-    end
-
-    if verb == :get
-      expect(subject)
-        .not_to have_json_path("_links/#{link}/method")
-    else
-      expect(subject)
-        .to be_json_eql(method.to_json)
-        .at_path("_links/#{link}/method")
-    end
-  end
+  include_examples "the link indicates the verb"
 
   describe "without permission" do
     let(:permissions) { all_permissions - Array(permission) }
 
     it_behaves_like "has no link"
+  end
+end
+
+RSpec.shared_examples_for "the link indicates the verb" do
+  let(:verb) do
+    super()
+  rescue NoMethodError
+    begin
+      #  # the standard method #method on an object interferes
+      #  # with the let named 'method' conditionally defined
+      method
+    rescue ArgumentError
+      :get
+    end
+  end
+
+  it "the link indicates the verb/method or omits it on get" do
+    if verb == :get
+      expect(subject)
+        .not_to have_json_path("_links/#{link}/method")
+    else
+      expect(subject)
+        .to be_json_eql(verb.to_json)
+              .at_path("_links/#{link}/method")
+    end
   end
 end
 

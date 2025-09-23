@@ -37,6 +37,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
   let(:available_custom_fields) { [int_custom_field, version_custom_field] }
   let(:all_available_custom_fields) { [int_custom_field, version_custom_field] }
+  let(:favorited) { true }
   let(:project) do
     build_stubbed(:project,
                   :with_status,
@@ -64,6 +65,10 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
           .to receive(calculated_value_custom_field.attribute_getter)
                 .and_return(calculated_custom_value.value)
       end
+
+      allow(p)
+        .to receive(:favorited_by?)
+              .and_return(favorited)
     end
   end
 
@@ -135,6 +140,10 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
     it_behaves_like "property", :public do
       let(:value) { project.public }
+    end
+
+    it_behaves_like "property", :favorited do
+      let(:value) { true }
     end
 
     it_behaves_like "formattable property", :description do
@@ -672,6 +681,72 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
         it_behaves_like "has no link" do
           let(:link) { "workPackages" }
+        end
+      end
+    end
+
+    describe "favor" do
+      context "when the project isn't favored yet" do
+        let(:favorited) { false }
+        let(:link) { "favor" }
+
+        it_behaves_like "has an untitled link" do
+          let(:href) { api_v3_paths.favor_workspace(project.id) }
+        end
+
+        it_behaves_like "the link indicates the verb" do
+          let(:verb) { :post }
+        end
+      end
+
+      context "when the project is favorited" do
+        let(:favorited) { true }
+
+        it_behaves_like "has no link" do
+          let(:link) { "favor" }
+        end
+      end
+
+      context "when the project isn't favored yet and the user is not logged in" do
+        let(:user) { build_stubbed(:anonymous) }
+        let(:favorited) { false }
+
+        it_behaves_like "has no link" do
+          let(:link) { "favor" }
+        end
+      end
+    end
+
+    describe "disfavor" do
+      context "when the project is favorited" do
+        let(:favorited) { true }
+        let(:link) { "disfavor" }
+
+        it_behaves_like "has an untitled link" do
+          let(:href) { api_v3_paths.favor_workspace(project.id) }
+        end
+
+        it_behaves_like "the link indicates the verb" do
+          let(:verb) { :delete }
+        end
+      end
+
+      context "when the project is not favorited" do
+        let(:favorited) { false }
+
+        it_behaves_like "has no link" do
+          let(:link) { "disfavor" }
+        end
+      end
+
+      # This should not happen at all since the anonymous user cannot favor a project
+      # in the first place.
+      context "when the project is favored yet and the user is not logged in" do
+        let(:user) { build_stubbed(:anonymous) }
+        let(:favorited) { true }
+
+        it_behaves_like "has no link" do
+          let(:link) { "unfavor" }
         end
       end
     end

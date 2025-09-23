@@ -293,6 +293,10 @@ module API
             "#{days_non_working}/#{date}"
           end
 
+          def self.favor_workspace(workspace_id)
+            "#{workspace(workspace_id)}/favorite"
+          end
+
           index :help_text
           show :help_text
 

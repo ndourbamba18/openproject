@@ -171,6 +171,22 @@ module API
           { href: api_v3_paths.path_for(:project_storages, filters:) }
         end
 
+        link :favor,
+             method: :post,
+             cache_if: -> {
+               current_user.logged? && !represented.favorited_by?(current_user)
+             } do
+          { href: api_v3_paths.favor_workspace(represented.id) }
+        end
+
+        link :disfavor,
+             method: :delete,
+             cache_if: -> {
+               current_user.logged? && represented.favorited_by?(current_user)
+             } do
+          { href: api_v3_paths.favor_workspace(represented.id) }
+        end
+
         associated_resource :parent,
                             v3_path: :project,
                             representer: ::API::V3::Projects::ProjectRepresenter,
@@ -187,6 +203,10 @@ module API
 
         property :active
         property :public
+
+        property :favorited,
+                 exec_context: :decorator,
+                 getter: ->(*) { represented.favorited_by?(current_user) }
 
         formattable_property :description,
                              cache_if: current_user_view_allowed_lambda

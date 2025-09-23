@@ -38,6 +38,7 @@ module API
         mount API::V3::Categories::CategoriesByWorkspaceAPI
         mount API::V3::Versions::VersionsByProjectAPI
         mount API::V3::Queries::QueriesByWorkspaceAPI
+        mount API::V3::Favorites::FavoriteActionsAPI, with: { favorite_object_getter: ->(*) { @project } }
       end
     end
   end

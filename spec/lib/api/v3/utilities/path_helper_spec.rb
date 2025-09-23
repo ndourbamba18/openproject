@@ -733,6 +733,12 @@ RSpec.describe API::V3::Utilities::PathHelper do
 
   describe "workspace paths" do
     it_behaves_like "index", :workspace
+
+    describe "#favor_workspace" do
+      subject { helper.favor_workspace 42 }
+
+      it_behaves_like "api v3 path", "/workspaces/42/favorite"
+    end
   end
 
   describe ".timestamps_to_param_value" do

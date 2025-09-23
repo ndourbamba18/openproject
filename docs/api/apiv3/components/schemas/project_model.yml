@@ -17,6 +17,9 @@ properties:
   active:
     type: boolean
     description: Indicates whether the project is currently active or already archived
+  favorited:
+    type: boolean
+    description: Indicates whether the project is favorited by the current user
   statusExplanation:
     allOf:
       - $ref: './formattable.yml'
@@ -71,6 +74,27 @@ properties:
               # Conditions
               
               **Permission**: admin
+      favor:
+        allOf:
+          - $ref: './link.yml'
+          - description: |-
+              Mark this project as favorited by the current user
+
+              # Conditions
+
+              Only present if the project is not yet favorited
+
+              Permission**: none but login is required
+      disfavor:
+        allOf:
+          - $ref: './link.yml'
+          - description: |-
+              Mark this project as not favorited by the current user
+
+              # Conditions
+              Only present if the project is favorited by the current user
+
+              Permission**: none but login is required
       createWorkPackage:
         allOf:
           - $ref: './link.yml'
