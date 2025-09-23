@@ -64,6 +64,20 @@ module API
                                                             embed_links: true)
             end
 
+            get "content_binary" do
+              doc = document
+              binary = doc.content_binary
+
+              if binary.present?
+                header["Content-Type"] = "application/octet-stream"
+                header["Content-Disposition"] = "attachment; filename=\"document_#{doc.id}_binary\""
+                env["api.format"] = :binary # disables JSON formatting
+                body binary
+              else
+                error!("No binary content", 404)
+              end
+            end
+
             mount ::API::V3::Attachments::AttachmentsByDocumentAPI
           end
         end

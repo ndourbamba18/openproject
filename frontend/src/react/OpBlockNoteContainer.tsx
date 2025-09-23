@@ -69,7 +69,7 @@ export default function OpBlockNoteContainer({ inputField,
                                                activeUser,
                                                hocuspocusUrl,
                                                hocuspocusAccessToken,
-                                               documentName ,
+                                               documentName,
                                                openProjectUrl }:OpBlockNoteContainerProps) {
   const [isLoading, setIsLoading] = useState(true);
 
