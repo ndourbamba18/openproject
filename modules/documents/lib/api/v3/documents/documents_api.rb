@@ -56,6 +56,14 @@ module API
               def document
                 Document.visible.find(params[:id])
               end
+
+              def allowed_content_types
+                if request.env["REQUEST_METHOD"] == "PUT" && request.path.end_with?("content_binary")
+                  %w(application/octet-stream)
+                else
+                  super
+                end
+              end
             end
 
             get do
@@ -71,10 +79,27 @@ module API
               if binary.present?
                 header["Content-Type"] = "application/octet-stream"
                 header["Content-Disposition"] = "attachment; filename=\"document_#{doc.id}_binary\""
-                env["api.format"] = :binary # disables JSON formatting
+
                 body binary
               else
                 error!("No binary content", 404)
+              end
+            end
+
+            put "content_binary" do
+              doc = document
+              binary_data = request.body.read
+
+              if binary_data.present?
+                doc.content_binary = binary_data
+                if doc.save
+                  status 200
+                  { message: "Binary content updated successfully" }
+                else
+                  error!("Failed to update binary content", 422)
+                end
+              else
+                error!("No binary data provided", 400)
               end
             end
 
