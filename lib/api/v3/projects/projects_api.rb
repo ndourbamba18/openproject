@@ -66,7 +66,6 @@ module API
             end
 
             get &::API::V3::Utilities::Endpoints::Show.new(model: Project).mount
-            patch &::API::V3::Utilities::Endpoints::Update.new(model: Project).mount
             delete &::API::V3::Utilities::Endpoints::Delete.new(model: Project,
                                                                 process_service: ::Projects::ScheduleDeletionService)
                                                            .mount

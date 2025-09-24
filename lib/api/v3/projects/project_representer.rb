@@ -128,7 +128,7 @@ module API
                current_user.allowed_in_project?(:edit_project, represented)
              } do
           {
-            href: api_v3_paths.project(represented.id),
+            href: api_v3_paths.workspace(represented.id),
             method: :patch
           }
         end

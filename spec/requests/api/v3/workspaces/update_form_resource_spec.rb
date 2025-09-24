@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-#-- copyright
+# -- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -26,11 +26,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
+# ++
 
 require "spec_helper"
 require "rack/test"
 
-RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
+RSpec.describe "API v3 Workspace resource update form", content_type: :json do
   include Rack::Test::Methods
   include API::V3::Utilities::PathHelper
 
