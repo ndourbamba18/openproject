@@ -41,7 +41,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
   let(:project) do
     build_stubbed(:project,
                   :with_status,
-                  parent: parent_project,
+                  parent: parent_workspace,
                   description: "some description").tap do |p|
       allow(p).to receive_messages(available_custom_fields:,
                                    all_available_custom_fields:,
@@ -96,7 +96,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
     build(:custom_value, custom_field: calculated_value_custom_field, value: "24.0")
   end
   let(:permissions) { %i[view_project add_work_packages view_members] }
-  let(:parent_project) do
+  let(:parent_workspace) do
     build_stubbed(:project).tap do |parent|
       allow(parent)
         .to receive(:visible?)
@@ -105,7 +105,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
   end
   let(:representer) { described_class.create(project, current_user: user, embed_links: true) }
   let(:parent_visible) { true }
-  let(:ancestors) { [parent_project] }
+  let(:ancestors) { [parent_workspace] }
 
   let(:user) { build_stubbed(:user) }
 
@@ -336,9 +336,39 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
     describe "parent" do
       let(:link) { "parent" }
 
-      it_behaves_like "has a titled link" do
-        let(:href) { api_v3_paths.project(parent_project.id) }
-        let(:title) { parent_project.name }
+      context "for a project" do
+        it_behaves_like "has a titled link" do
+          let(:href) { api_v3_paths.project(parent_workspace.id) }
+          let(:title) { parent_workspace.name }
+        end
+      end
+
+      context "for a portfolio" do
+        it_behaves_like "has a titled link" do
+          let(:parent_workspace) do
+            build_stubbed(:portfolio).tap do |parent|
+              allow(parent)
+                .to receive(:visible?)
+                      .and_return(true)
+            end
+          end
+          let(:href) { api_v3_paths.portfolio(parent_workspace.id) }
+          let(:title) { parent_workspace.name }
+        end
+      end
+
+      context "for a program" do
+        it_behaves_like "has a titled link" do
+          let(:parent_workspace) do
+            build_stubbed(:program).tap do |parent|
+              allow(parent)
+                .to receive(:visible?)
+                      .and_return(true)
+            end
+          end
+          let(:href) { api_v3_paths.program(parent_workspace.id) }
+          let(:title) { parent_workspace.name }
+        end
       end
 
       context "if lacking the permissions to see the parent" do
@@ -360,13 +390,13 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
         end
 
         it_behaves_like "has a titled link" do
-          let(:href) { api_v3_paths.project(parent_project.id) }
-          let(:title) { parent_project.name }
+          let(:href) { api_v3_paths.project(parent_workspace.id) }
+          let(:title) { parent_workspace.name }
         end
       end
 
       context "without a parent" do
-        let(:parent_project) { nil }
+        let(:parent_workspace) { nil }
         let(:ancestors) { [] }
 
         it_behaves_like "has an untitled link" do
@@ -377,36 +407,36 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
     describe "ancestors" do
       let(:link) { "ancestors" }
-      let(:grandparent_project) do
-        build_stubbed(:project).tap do |p|
+      let(:grandparent_program) do
+        build_stubbed(:program).tap do |p|
           allow(p)
             .to receive(:visible?)
                   .and_return(true)
         end
       end
-      let(:root_project) do
-        build_stubbed(:project).tap do |p|
+      let(:root_portfolio) do
+        build_stubbed(:portfolio).tap do |p|
           allow(p)
             .to receive(:visible?)
                   .and_return(true)
         end
       end
-      let(:ancestors) { [root_project, grandparent_project, parent_project] }
+      let(:ancestors) { [root_portfolio, grandparent_program, parent_workspace] }
 
       it_behaves_like "has a link collection" do
         let(:hrefs) do
           [
             {
-              href: api_v3_paths.project(root_project.id),
-              title: root_project.name
+              href: api_v3_paths.portfolio(root_portfolio.id),
+              title: root_portfolio.name
             },
             {
-              href: api_v3_paths.project(grandparent_project.id),
-              title: grandparent_project.name
+              href: api_v3_paths.program(grandparent_program.id),
+              title: grandparent_program.name
             },
             {
-              href: api_v3_paths.project(parent_project.id),
-              title: parent_project.name
+              href: api_v3_paths.project(parent_workspace.id),
+              title: parent_workspace.name
             }
           ]
         end
@@ -419,12 +449,12 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
           let(:hrefs) do
             [
               {
-                href: api_v3_paths.project(root_project.id),
-                title: root_project.name
+                href: api_v3_paths.portfolio(root_portfolio.id),
+                title: root_portfolio.name
               },
               {
-                href: api_v3_paths.project(grandparent_project.id),
-                title: grandparent_project.name
+                href: api_v3_paths.program(grandparent_program.id),
+                title: grandparent_program.name
               },
               {
                 href: API::V3::URN_UNDISCLOSED,
@@ -448,16 +478,16 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
           let(:hrefs) do
             [
               {
-                href: api_v3_paths.project(root_project.id),
-                title: root_project.name
+                href: api_v3_paths.portfolio(root_portfolio.id),
+                title: root_portfolio.name
               },
               {
-                href: api_v3_paths.project(grandparent_project.id),
-                title: grandparent_project.name
+                href: api_v3_paths.program(grandparent_program.id),
+                title: grandparent_program.name
               },
               {
-                href: api_v3_paths.project(parent_project.id),
-                title: parent_project.name
+                href: api_v3_paths.project(parent_workspace.id),
+                title: parent_workspace.name
               }
             ]
           end
@@ -465,7 +495,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
       end
 
       context "without an ancestor" do
-        let(:parent_project) { nil }
+        let(:parent_workspace) { nil }
         let(:ancestors) { [] }
 
         it_behaves_like "has an empty link collection"
@@ -806,7 +836,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
       let(:embedded_path) { "_embedded/parent" }
 
       before do
-        allow(parent_project)
+        allow(parent_workspace)
           .to receive(:visible?)
                 .and_return(parent_visible)
       end
@@ -820,7 +850,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
                   .at_path("#{embedded_path}/_type")
 
           expect(generated)
-            .to be_json_eql(parent_project.name.to_json)
+            .to be_json_eql(parent_workspace.name.to_json)
                   .at_path("#{embedded_path}/name")
         end
       end

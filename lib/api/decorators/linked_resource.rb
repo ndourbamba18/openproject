@@ -90,7 +90,6 @@ module API
                      show_if: ->(*) { true },
                      skip_render: nil,
                      embedded: true)
-
           link(link_attr(name, uncacheable_link, link_cache_if), &link)
 
           property name,
@@ -113,7 +112,6 @@ module API
                       show_if: ->(*) { true },
                       skip_render: nil,
                       embedded: true)
-
           links(link_attr(name, uncacheable_link, link_cache_if), &link)
 
           property name,
@@ -131,7 +129,6 @@ module API
                           setter:,
                           getter:,
                           show_if: ->(*) { true })
-
           resource(name,
                    getter: ->(*) {},
                    setter:,
@@ -162,8 +159,7 @@ module API
                                                                        skip_link:,
                                                                        undisclosed:,
                                                                        title_attribute: link_title_attribute))
-
-          resource((as || name),
+          resource(as || name,
                    getter:,
                    setter:,
                    link:,
@@ -217,7 +213,7 @@ module API
             elsif !instance_exec(&skip_link)
               ::API::Decorators::LinkObject
                 .new(represented,
-                     path: v3_path,
+                     path: v3_path.is_a?(Proc) ? instance_exec(&v3_path) : v3_path,
                      property_name: name,
                      title_attribute:,
                      getter:)
@@ -240,7 +236,6 @@ module API
                                                                          v3_path:,
                                                                          skip_link:,
                                                                          title_attribute: link_title_attribute))
-
           resources(as,
                     getter:,
                     setter:,
@@ -251,7 +246,6 @@ module API
 
         def associated_resources_default_getter(name,
                                                 representer)
-
           representer ||= default_representer(name.to_s.singularize)
 
           ->(*) do

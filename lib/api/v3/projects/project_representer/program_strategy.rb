@@ -38,6 +38,10 @@ module API
           "Program"
         end
 
+        def self.path_name
+          :program
+        end
+
         def self.path(represented)
           api_v3_paths.program(represented.id)
         end

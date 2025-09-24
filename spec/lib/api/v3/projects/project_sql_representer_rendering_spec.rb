@@ -141,17 +141,18 @@ RSpec.describe API::V3::Projects::ProjectSqlRepresenter, "rendering" do
   end
 
   context "with an ancestor" do
-    let!(:parent) do
-      create(:project, members: { current_user => role }).tap do |parent|
-        project.parent = parent
-        project.save
-      end
+    let!(:elder) do
+      create(:portfolio, members: { current_user => role })
     end
 
     let!(:grandparent) do
-      create(:project, members: { current_user => role }).tap do |grandparent|
-        parent.parent = grandparent
-        parent.save
+      create(:program, members: { current_user => role }, parent: elder)
+    end
+
+    let!(:parent) do
+      create(:project, members: { current_user => role }, parent: grandparent) do |parent|
+        project.parent = parent
+        project.save
       end
     end
 
@@ -164,7 +165,11 @@ RSpec.describe API::V3::Projects::ProjectSqlRepresenter, "rendering" do
             _links: {
               ancestors: [
                 {
-                  href: api_v3_paths.project(grandparent.id),
+                  href: api_v3_paths.portfolio(elder.id),
+                  title: elder.name
+                },
+                {
+                  href: api_v3_paths.program(grandparent.id),
                   title: grandparent.name
                 },
                 {

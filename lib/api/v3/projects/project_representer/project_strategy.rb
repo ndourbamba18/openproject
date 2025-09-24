@@ -38,6 +38,10 @@ module API
           "Project"
         end
 
+        def self.path_name
+          :project
+        end
+
         def self.path(represented)
           api_v3_paths.project(represented.id)
         end

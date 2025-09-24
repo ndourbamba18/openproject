@@ -153,7 +153,7 @@ module API
             # will lead to the admin losing permissions in the project.
             if current_user.admin? || ancestor.visible?
               {
-                href: api_v3_paths.project(ancestor.id),
+                href: strategy(ancestor).path(ancestor),
                 title: ancestor.name
               }
             else
@@ -187,7 +187,7 @@ module API
         end
 
         associated_resource :parent,
-                            v3_path: :project,
+                            v3_path: ->(*) { represented.parent and strategy(represented.parent).path_name },
                             representer: ::API::V3::Projects::ProjectRepresenter,
                             uncacheable_link: true,
                             undisclosed: true,
@@ -258,8 +258,8 @@ module API
           strategy.path(represented)
         end
 
-        def strategy
-          case represented.workspace_type
+        def strategy(resource = represented)
+          case resource.workspace_type
           when "project"
             ProjectStrategy
           when "program"

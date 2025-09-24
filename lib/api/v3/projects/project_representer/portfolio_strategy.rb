@@ -38,6 +38,10 @@ module API
           "Portfolio"
         end
 
+        def self.path_name
+          :portfolio
+        end
+
         def self.path(represented)
           api_v3_paths.portfolio(represented.id)
         end
