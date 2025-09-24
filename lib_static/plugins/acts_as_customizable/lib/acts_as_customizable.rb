@@ -235,6 +235,10 @@ module Redmine
             .each { |custom_value| add_custom_value_errors! custom_value }
         end
 
+        def activate_custom_field_validations!
+          self.custom_values_to_validate = custom_field_values
+        end
+
         # Build the changes hash similar to ActiveRecord::Base#changes,
         # but for the custom field values that have been changed.
         def custom_field_changes

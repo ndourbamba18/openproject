@@ -340,6 +340,9 @@ RSpec.describe "time entry dialog", :js do
 
         time_logging_modal.is_visible(true)
 
+        # ensure the work package autocompleter is filled
+        time_logging_modal.update_field("entity_id", work_package_a.id)
+
         # validates the required custom field and prevents update when missing
         time_logging_modal.submit
         wait_for_network_idle

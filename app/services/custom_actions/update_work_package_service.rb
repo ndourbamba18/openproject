@@ -42,7 +42,9 @@ class CustomActions::UpdateWorkPackageService
   end
 
   def call(work_package:, &)
-    activate_custom_field_validations!(work_package)
+    # Activate all custom field validations because by default
+    # no custom fields are validated on existing work packages
+    work_package.activate_custom_field_validations!
     apply_actions(work_package, action.actions)
 
     result = ::WorkPackages::UpdateService
@@ -89,11 +91,5 @@ class CustomActions::UpdateWorkPackageService
 
   def append_id(sym)
     "#{sym.to_s.chomp('_id')}_id"
-  end
-
-  # Activating all custom field validations via the custom_values_to_validate
-  # setter, because by default no custom fields are validated on existing work packages
-  def activate_custom_field_validations!(work_package)
-    work_package.custom_values_to_validate = work_package.custom_field_values
   end
 end
