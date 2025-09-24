@@ -118,7 +118,7 @@ module API
                current_user.allowed_in_project?(:edit_project, represented)
              } do
           {
-            href: api_v3_paths.project_form(represented.id),
+            href: api_v3_paths.workspace_form(represented.id),
             method: :post
           }
         end

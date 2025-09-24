@@ -133,13 +133,13 @@ RSpec.describe "API v3 Project favorite resource", content_type: :json do
     end
   end
 
-  context "for api/v3/projects/:id/favorite" do
+  describe "api/v3/projects/:id/favorite" do
     include_examples "favoring a workspace" do
       let(:favorite_path) { "/api/v3/projects/#{project.id}/favorite" }
     end
   end
 
-  context "for api/v3/workspaces/:id/favorite" do
+  describe "api/v3/workspaces/:id/favorite" do
     include_examples "favoring a workspace" do
       let(:favorite_path) { api_v3_paths.favor_workspace(project.id) }
     end

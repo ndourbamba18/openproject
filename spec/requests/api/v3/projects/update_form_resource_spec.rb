@@ -61,7 +61,6 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
   end
   let(:permissions) { %i[edit_project view_project_attributes edit_project_attributes] }
   let(:parent_project_permissions) { [:add_subprojects] }
-  let(:path) { api_v3_paths.project_form(project.id) }
   let(:params) do
     {}
   end
@@ -74,7 +73,7 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
 
   subject(:response) { last_response }
 
-  describe "#POST /api/v3/projects/:id/form" do
+  shared_examples_for "form of a workspace" do
     it "returns 200 OK" do
       expect(response).to have_http_status(:ok)
     end
@@ -370,17 +369,31 @@ RSpec.describe API::V3::Projects::UpdateFormAPI, content_type: :json do
     end
 
     context "with a non existing id" do
-      let(:path) { api_v3_paths.project_form(1) }
+      let(:path_id) { 1 }
 
       it_behaves_like "not found"
     end
+  end
 
-    context "with a portfolio id" do
-      let(:project) do
-        create(:portfolio, public: true)
+  describe "POST /api/v3/projects/:id/form" do
+    include_examples "form of a workspace" do
+      let(:path_id) { project.id }
+      let(:path) { api_v3_paths.project_form(path_id) }
+
+      context "with a portfolio id" do
+        let(:project) do
+          create(:portfolio, public: true)
+        end
+
+        it_behaves_like "not found"
       end
+    end
+  end
 
-      it_behaves_like "not found"
+  describe "POST /api/v3/workspaces/:id/form" do
+    include_examples "form of a workspace" do
+      let(:path_id) { project.id }
+      let(:path) { api_v3_paths.workspace_form(path_id) }
     end
   end
 end

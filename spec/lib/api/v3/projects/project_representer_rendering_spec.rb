@@ -611,7 +611,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
         it_behaves_like "has an untitled link" do
           let(:link) { "update" }
-          let(:href) { api_v3_paths.project_form project.id }
+          let(:href) { api_v3_paths.workspace_form project.id }
         end
       end
 

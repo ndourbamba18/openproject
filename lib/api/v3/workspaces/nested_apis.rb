@@ -32,6 +32,8 @@ module API
   module V3
     module Workspaces
       class NestedApis < ::API::OpenProjectAPI
+        mount ::API::V3::Projects::UpdateFormAPI
+
         mount API::V3::Workspaces::AvailableAssigneesAPI
         mount API::V3::Types::TypesByWorkspaceAPI
         mount API::V3::WorkPackages::WorkPackagesByWorkspaceAPI
