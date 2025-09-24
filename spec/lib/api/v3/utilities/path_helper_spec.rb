@@ -732,7 +732,7 @@ RSpec.describe API::V3::Utilities::PathHelper do
   end
 
   describe "workspace paths" do
-    it_behaves_like "resource", :workspace, except: %i[create_form show schema]
+    it_behaves_like "resource", :workspace, except: %i[create_form show]
 
     describe "#favor_workspace" do
       subject { helper.favor_workspace 42 }

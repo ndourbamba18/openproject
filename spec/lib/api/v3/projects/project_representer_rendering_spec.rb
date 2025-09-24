@@ -576,6 +576,13 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
       end
     end
 
+    describe "schema" do
+      it_behaves_like "has an untitled link" do
+        let(:link) { "schema" }
+        let(:href) { api_v3_paths.workspace_schema }
+      end
+    end
+
     describe "storages" do
       let(:storage) { build_stubbed(:nextcloud_storage) }
       let(:permissions) { %i[view_file_links] }

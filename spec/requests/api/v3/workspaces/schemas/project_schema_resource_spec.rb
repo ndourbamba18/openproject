@@ -31,23 +31,19 @@
 require "spec_helper"
 require "rack/test"
 
-RSpec.describe "API v3 Projects schema resource", content_type: :json do
+RSpec.describe "API v3 Workspaces schema resource", content_type: :json do
   include Rack::Test::Methods
   include API::V3::Utilities::PathHelper
 
-  shared_let(:current_user) do
+  shared_let(:user) do
     create(:user)
   end
 
-  let(:path) { api_v3_paths.project_schema }
-
-  before do
-    login_as(current_user)
-  end
+  current_user { user }
 
   subject(:response) { last_response }
 
-  describe "#GET /projects/schema" do
+  shared_examples_for "fetching the project schema" do
     before do
       get path
     end
@@ -65,6 +61,18 @@ RSpec.describe "API v3 Projects schema resource", content_type: :json do
     it "does not embed" do
       expect(subject.body)
         .not_to have_json_path("parent/_links/allowedValues")
+    end
+  end
+
+  describe "GET /projects/schema" do
+    include_examples "fetching the project schema" do
+      let(:path) { api_v3_paths.project_schema }
+    end
+  end
+
+  describe "GET /workspaces/schema" do
+    include_examples "fetching the project schema" do
+      let(:path) { api_v3_paths.workspace_schema }
     end
   end
 end

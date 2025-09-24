@@ -48,7 +48,7 @@ module API
                                                             })
                                                        .mount
 
-          mount ::API::V3::Projects::Schemas::ProjectSchemaAPI
+          mount ::API::V3::Workspaces::Schemas::WorkspaceSchemaAPI
           mount ::API::V3::Projects::CreateFormAPI
 
           mount API::V3::Projects::AvailableParentsAPI

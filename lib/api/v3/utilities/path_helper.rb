@@ -697,7 +697,7 @@ module API
             "#{workspace(workspace_id)}/work_packages"
           end
 
-          resources :workspace, except: %i[schema create_form]
+          resources :workspace, except: %i[create_form]
 
           def self.timestamps_to_param_value(timestamps)
             Array(timestamps).map { |timestamp| Timestamp.parse(timestamp).absolute }.join(",")

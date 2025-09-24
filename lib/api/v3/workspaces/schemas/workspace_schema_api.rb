@@ -1,4 +1,4 @@
-#-- copyright
+# -- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -24,13 +24,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # See COPYRIGHT and LICENSE files for more details.
-#++
+# ++
 
 module API
   module V3
-    module Projects
+    module Workspaces
       module Schemas
-        class ProjectSchemaAPI < ::API::OpenProjectAPI
+        class WorkspaceSchemaAPI < ::API::OpenProjectAPI
           resources :schema do
             get &::API::V3::Utilities::Endpoints::Schema.new(model: Project).mount
           end

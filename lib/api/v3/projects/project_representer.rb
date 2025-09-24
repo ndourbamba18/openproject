@@ -142,7 +142,7 @@ module API
 
         link :schema do
           {
-            href: api_v3_paths.projects_schema
+            href: api_v3_paths.workspace_schema
           }
         end
 
