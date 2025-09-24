@@ -99,6 +99,21 @@ module API
         end
 
         link :self,
+             sql: -> {
+               <<~SQL.squish
+                 CASE
+                   WHEN workspace_type = 'project'
+                     THEN json_build_object('href', format('#{api_v3_paths.project('%s')}', id),
+                                            'title', name)
+                   WHEN workspace_type = 'program'
+                     THEN json_build_object('href', format('#{api_v3_paths.program('%s')}', id),
+                                            'title', name)
+                   WHEN workspace_type = 'portfolio'
+                     THEN json_build_object('href', format('#{api_v3_paths.portfolio('%s')}', id),
+                                            'title', name)
+                 END
+               SQL
+             },
              path: { api: :project, params: %w(id) },
              column: -> { :id },
              title: -> { :name }

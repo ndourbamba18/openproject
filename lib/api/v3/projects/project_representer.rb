@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -25,9 +27,6 @@
 #
 # See COPYRIGHT and LICENSE files for more details.
 #++
-
-require "roar/decorator"
-require "roar/json/hal"
 
 module API
   module V3
@@ -252,21 +251,24 @@ module API
                              cache_if: current_user_view_allowed_lambda
 
         def _type
-          # TODO: check for a different implementation
-          case represented.workspace_type
-          when "project"
-            "Project"
-          when "program"
-            "Program"
-          when "portfolio"
-            "Portfolio"
-          else
-            raise NoMethodError
-          end
+          strategy.type
         end
 
         def self_v3_path(*)
-          api_v3_paths.project(represented.id)
+          strategy.path(represented)
+        end
+
+        def strategy
+          case represented.workspace_type
+          when "project"
+            ProjectStrategy
+          when "program"
+            ProgramStrategy
+          when "portfolio"
+            PortfolioStrategy
+          else
+            raise NoMethodError
+          end
         end
 
         self.to_eager_load = [:enabled_modules]

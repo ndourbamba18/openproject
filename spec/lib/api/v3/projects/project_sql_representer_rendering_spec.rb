@@ -103,7 +103,7 @@ RSpec.describe API::V3::Projects::ProjectSqlRepresenter, "rendering" do
             _links: {
               ancestors: [],
               self: {
-                href: api_v3_paths.project(program.id),
+                href: api_v3_paths.program(program.id),
                 title: program.name
               }
             }
@@ -131,7 +131,7 @@ RSpec.describe API::V3::Projects::ProjectSqlRepresenter, "rendering" do
             _links: {
               ancestors: [],
               self: {
-                href: api_v3_paths.project(portfolio.id),
+                href: api_v3_paths.portfolio(portfolio.id),
                 title: portfolio.name
               }
             }

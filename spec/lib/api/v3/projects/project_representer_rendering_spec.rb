@@ -118,8 +118,28 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
   it { is_expected.to include_json("Project".to_json).at_path("_type") }
 
   describe "properties" do
-    it_behaves_like "property", :_type do
-      let(:value) { "Project" }
+    describe "_type" do
+      context "for a project" do
+        it_behaves_like "property", :_type do
+          let(:value) { "Project" }
+        end
+      end
+
+      context "for a portfolio" do
+        let(:project) { build_stubbed(:portfolio) }
+
+        it_behaves_like "property", :_type do
+          let(:value) { "Portfolio" }
+        end
+      end
+
+      context "for a program" do
+        let(:project) { build_stubbed(:program) }
+
+        it_behaves_like "property", :_type do
+          let(:value) { "Program" }
+        end
+      end
     end
 
     it_behaves_like "property", :id do
@@ -257,12 +277,34 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
   describe "_links" do
     it { is_expected.to have_json_type(Object).at_path("_links") }
 
-    it "links to self" do
-      expect(subject).to have_json_path("_links/self/href")
-    end
+    describe "self" do
+      context "for a project" do
+        it_behaves_like "has a titled link" do
+          let(:link) { "self" }
+          let(:href) { api_v3_paths.project(project.id) }
+          let(:title) { project.name }
+        end
+      end
 
-    it "has a title for link to self" do
-      expect(subject).to have_json_path("_links/self/title")
+      context "for a portfolio" do
+        let(:project) { build_stubbed(:portfolio) }
+
+        it_behaves_like "has a titled link" do
+          let(:link) { "self" }
+          let(:href) { api_v3_paths.portfolio(project.id) }
+          let(:title) { project.name }
+        end
+      end
+
+      context "for a program" do
+        let(:project) { build_stubbed(:program) }
+
+        it_behaves_like "has a titled link" do
+          let(:link) { "self" }
+          let(:href) { api_v3_paths.program(project.id) }
+          let(:title) { project.name }
+        end
+      end
     end
 
     describe "create work packages" do
