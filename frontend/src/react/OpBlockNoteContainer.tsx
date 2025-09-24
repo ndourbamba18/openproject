@@ -36,10 +36,6 @@ import { useEffect, useState } from 'react';
 import { OpColorMode } from 'core-app/core/setup/globals/theme-utils';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import {
-  DefaultThreadStoreAuth,
-  YjsThreadStore,
-} from '@blocknote/core/comments';
 import { User } from '@blocknote/core/comments';
 
 export interface OpBlockNoteContainerProps {
@@ -76,7 +72,6 @@ export default function OpBlockNoteContainer({ inputField,
   initOpenProjectApi({ baseUrl: openProjectUrl});
 
   let collaboration:any;
-  let comments:any;
   const collaborationEnabled = Boolean(hocuspocusUrl && documentName && hocuspocusAccessToken && activeUser);
   let hocuspocusProvider:HocuspocusProvider | null = null;
   let threadStore:any;
@@ -99,14 +94,6 @@ export default function OpBlockNoteContainer({ inputField,
       },
       showCursorLabels: 'activity'
     };
-    threadStore = new YjsThreadStore(
-      activeUser.id,
-      doc.getMap('threads'),
-      new DefaultThreadStoreAuth(activeUser.id, 'editor'),
-    );
-    comments = {
-      threadStore: threadStore,
-    };
   }
 
   let editor:any;
@@ -120,7 +107,6 @@ export default function OpBlockNoteContainer({ inputField,
         resolveUsers,
         collaboration,
         schema,
-        comments
       },
       [activeUser, threadStore]
     );
