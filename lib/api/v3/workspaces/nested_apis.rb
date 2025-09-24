@@ -34,6 +34,9 @@ module API
       class NestedApis < ::API::OpenProjectAPI
         mount ::API::V3::Projects::UpdateFormAPI
         patch &::API::V3::Utilities::Endpoints::Update.new(model: Project).mount
+        delete &::API::V3::Utilities::Endpoints::Delete.new(model: Project,
+                                                            process_service: ::Projects::ScheduleDeletionService)
+                                                       .mount
 
         mount API::V3::Workspaces::AvailableAssigneesAPI
         mount API::V3::Types::TypesByWorkspaceAPI

@@ -653,7 +653,7 @@ RSpec.describe API::V3::Projects::ProjectRepresenter, "rendering" do
 
         it_behaves_like "has an untitled link" do
           let(:link) { "delete" }
-          let(:href) { api_v3_paths.project project.id }
+          let(:href) { api_v3_paths.workspace project.id }
         end
       end
 

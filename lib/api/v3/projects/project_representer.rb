@@ -136,7 +136,7 @@ module API
         link :delete,
              cache_if: -> { current_user.admin? } do
           {
-            href: api_v3_paths.project(represented.id),
+            href: api_v3_paths.workspace(represented.id),
             method: :delete
           }
         end
