@@ -48,7 +48,8 @@ end
 
 RSpec.describe CollaborativeEditing::DocumentAccessTokenGenerator do
   describe ".call" do
-    let(:document_id) { "a809f02491b92e3addef5bc78319f788ca0d9c8e56c9a67532f6f8d76e5b54cc" }
+    let(:document_id) { 123 }
+    let(:document_name) { "a809f02491b92e3addef5bc78319f788ca0d9c8e56c9a67532f6f8d76e5b54cc" }
     let(:document_text) { "Some text" }
     let(:secret) { "jwt_secret" }
 
@@ -58,13 +59,14 @@ RSpec.describe CollaborativeEditing::DocumentAccessTokenGenerator do
       end
 
       it "returns a JWT token" do
-        token = described_class.call(document_id, document_text)
+        token = described_class.call(document_id, document_name, document_text)
 
         expect(token).to be_a(String)
 
         payload, header = JWT.decode(token, secret, true, algorithm: "HS256")
 
         expect(payload["document_id"]).to eq(document_id)
+        expect(payload["document_name"]).to eq(document_name)
         expect(payload["document_text"]).to eq(document_text)
         expect(payload["exp"]).to be_within(5).of(20.minutes.from_now.to_i)
         expect(header["alg"]).to eq("HS256")
@@ -77,7 +79,7 @@ RSpec.describe CollaborativeEditing::DocumentAccessTokenGenerator do
       end
 
       it "returns nil" do
-        expect(described_class.call(document_id, document_text)).to be_nil
+        expect(described_class.call(document_id, document_name, document_text)).to be_nil
       end
     end
   end

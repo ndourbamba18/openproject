@@ -233,7 +233,8 @@ RSpec.describe Primer::OpenProject::Forms::Dsl::InputMethods, type: :forms do
     end
 
     describe "#block_note_editor" do
-      let(:field_group) { form_dsl.block_note_editor(name:, label:, value: "", document_id: "123asdzxc", suggestions: [], **options) }
+      let(:document_name) { "1234asdzxc" }
+      let(:field_group) { form_dsl.block_note_editor(name:, label:, value: "", document_id: 8, document_name:, **options) }
 
       include_examples "input class", Primer::OpenProject::Forms::Dsl::BlockNoteEditorInput
       it_behaves_like "supporting help texts"
