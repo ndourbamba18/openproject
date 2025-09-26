@@ -98,7 +98,7 @@ RSpec.describe "version create", :js do
         # Verify the custom field value was saved
         created_version = Version.find_by(name: "Version 1.0")
         expect(created_version).not_to be_nil
-        expect(created_versio.send(:"custom_field_#{custom_field.id}"))
+        expect(created_version.send(:"custom_field_#{custom_field.id}"))
           .to eq("Bug fixes and improvements")
       end
     end
