@@ -20,7 +20,6 @@
             "allowedCommonJsDependencies": [
               "dom-plane",
               "pako",
-              "moment-timezone",
               "observable-array",
               "dragula",
               "jquery",
