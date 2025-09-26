@@ -85,12 +85,6 @@ module API
                                                                params_modifier: ->(attributes) {
                                                                  attributes[:send_notifications] = notify_according_to_params
                                                                  attributes
-                                                               },
-                                                               instance_generator: ->(*) {
-                                                                 # Activate all custom field validations because by default
-                                                                 # no custom fields are validated on existing work packages
-                                                                 @work_package.activate_custom_field_validations!
-                                                                 @work_package
                                                                })
                                                           .mount
 

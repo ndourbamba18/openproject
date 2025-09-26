@@ -238,7 +238,8 @@ import {
   WorkPackageEditActionsBarComponent,
 } from 'core-app/features/work-packages/components/edit-actions-bar/wp-edit-actions-bar.component';
 import { HalResource } from 'core-app/features/hal/resources/hal-resource';
-import { WorkPackageChangeset } from 'core-app/features/work-packages/components/wp-edit/work-package-changeset';
+import { EditFormWorkPackageChangeset } from 'core-app/shared/components/fields/edit/edit-form/edit-form-work-package-changeset';
+
 import {
   WorkPackageSingleCardComponent,
 } from 'core-app/features/work-packages/components/wp-card-view/wp-single-card/wp-single-card.component';
@@ -716,7 +717,7 @@ export class OpenprojectWorkPackagesModule {
     hookService.register('halResourceChangesetClass', (resource:HalResource) => {
       switch (resource._type) {
         case 'WorkPackage':
-          return WorkPackageChangeset;
+          return EditFormWorkPackageChangeset;
         case 'TimeEntry':
           return TimeEntryChangeset;
         default:
