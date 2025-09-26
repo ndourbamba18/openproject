@@ -37,7 +37,7 @@ module CustomField::CalculatedValue
   MATH_OPERATORS_FOR_FORMULA = %w[+ - * / % ( )].freeze
 
   # Field formats that can be used within a formula.
-  FIELD_FORMATS_FOR_FORMULA = %w[int float calculated_value].freeze
+  FIELD_FORMATS_FOR_FORMULA = %w[int float calculated_value scored_list].freeze
 
   def self.calculator_instance
     Dentaku::Calculator.new(case_sensitive: true)

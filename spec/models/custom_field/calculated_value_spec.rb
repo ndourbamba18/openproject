@@ -30,7 +30,10 @@
 
 require "spec_helper"
 
-RSpec.describe CustomField::CalculatedValue, with_flag: { calculated_value_project_attribute: true } do
+RSpec.describe CustomField::CalculatedValue, with_flag: {
+  calculated_value_project_attribute: true,
+  scored_list_custom_fields: true
+} do
   using CustomFieldFormulaReferencing
 
   subject(:custom_field) { create(:calculated_value_project_custom_field, formula: "1 + 1") }
@@ -216,13 +219,15 @@ RSpec.describe CustomField::CalculatedValue, with_flag: { calculated_value_proje
   describe "#usable_custom_field_references_for_formula" do
     let!(:int) { create(:project_custom_field, :integer, default_value: 4, is_for_all: true) }
     let!(:float) { create(:project_custom_field, :float, default_value: 5.5, is_for_all: true) }
+    let!(:scored_list) { create(:project_custom_field, :scored_list, is_for_all: true) }
     let!(:other_calculated_value) { create(:calculated_value_project_custom_field, formula: "2 + 2", is_for_all: true) }
 
     current_user { create(:admin) }
 
     context "with permission to see all custom fields" do
       it "returns custom fields with formats that can be used in formulas" do
-        expect(subject.usable_custom_field_references_for_formula).to contain_exactly(int, float, other_calculated_value)
+        expected = [int, float, other_calculated_value, scored_list]
+        expect(subject.usable_custom_field_references_for_formula).to match_array(expected)
       end
 
       it "excludes custom field formats that are not usable in formulas" do

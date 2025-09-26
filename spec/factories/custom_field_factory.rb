@@ -204,7 +204,7 @@ FactoryBot.define do
         projects { [] }
       end
 
-      # enable the the custom_field for the given projects
+      # Enable the custom_field for the given projects
       after(:create) do |custom_field, evaluator|
         projects = Array(evaluator.projects)
         next if projects.blank?
@@ -217,16 +217,17 @@ FactoryBot.define do
       end
 
       factory :boolean_project_custom_field, traits: [:boolean]
+      factory :calculated_value_project_custom_field, traits: [:calculated_value]
+      factory :date_project_custom_field, traits: [:date]
+      factory :float_project_custom_field, traits: [:float]
+      factory :integer_project_custom_field, traits: [:integer]
+      factory :link_project_custom_field, traits: [:link]
+      factory :list_project_custom_field, traits: [:list]
+      factory :scored_list_project_custom_field, traits: [:scored_list]
       factory :string_project_custom_field, traits: [:string]
       factory :text_project_custom_field, traits: [:text]
-      factory :integer_project_custom_field, traits: [:integer]
-      factory :calculated_value_project_custom_field, traits: [:calculated_value]
-      factory :float_project_custom_field, traits: [:float]
-      factory :date_project_custom_field, traits: [:date]
-      factory :list_project_custom_field, traits: [:list]
-      factory :version_project_custom_field, traits: [:version]
       factory :user_project_custom_field, traits: [:user]
-      factory :link_project_custom_field, traits: [:link]
+      factory :version_project_custom_field, traits: [:version]
     end
 
     factory :user_custom_field, class: "UserCustomField"
