@@ -26,7 +26,7 @@
 // See COPYRIGHT and LICENSE files for more details.
 //++
 
-import { Moment } from 'moment';
+import { DateTime } from 'luxon';
 import {
   Component,
   HostBinding,
@@ -89,14 +89,14 @@ export class FilterDateTimesValueComponent extends AbstractDateTimeValueControll
     this.filterChanged.emit(this.filter);
   }
 
-  public get lowerBoundary():Moment|null {
+  public get lowerBoundary():DateTime|null {
     if (this.begin && this.timezoneService.isValidISODateTime(this.begin.toString())) {
       return this.timezoneService.parseDatetime(this.begin.toString());
     }
     return null;
   }
 
-  public get upperBoundary():Moment|null {
+  public get upperBoundary():DateTime|null {
     if (this.end && this.timezoneService.isValidISODateTime(this.end.toString())) {
       return this.timezoneService.parseDatetime(this.end.toString());
     }
@@ -115,7 +115,7 @@ export class FilterDateTimesValueComponent extends AbstractDateTimeValueControll
         .timezoneService
         .parseISODatetime(date)
         .startOf('day')
-        .utc();
+        .toUTC();
 
       this.begin = this.timezoneService.formattedISODateTime(parsed);
     }
@@ -133,7 +133,7 @@ export class FilterDateTimesValueComponent extends AbstractDateTimeValueControll
         .timezoneService
         .parseISODatetime(date)
         .endOf('day')
-        .utc();
+        .toUTC();
 
       this.end = this.timezoneService.formattedISODateTime(parsed);
     }

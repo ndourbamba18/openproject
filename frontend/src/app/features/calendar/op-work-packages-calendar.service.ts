@@ -44,7 +44,7 @@ import {
   HalResourceEditingService,
 } from 'core-app/shared/components/fields/edit/services/hal-resource-editing.service';
 import { ResourceChangeset } from 'core-app/shared/components/fields/changeset/resource-changeset';
-import moment from 'moment';
+import { DateTime } from 'luxon';
 import {
   WorkPackageViewSelectionService,
 } from 'core-app/features/work-packages/routing/wp-view-base/view-services/wp-view-selection.service';
@@ -62,6 +62,7 @@ import { WeekdayService } from 'core-app/core/days/weekday.service';
 import { IDay } from 'core-app/core/state/days/day.model';
 import { DayResourceService } from 'core-app/core/state/days/day.service';
 import allLocales from '@fullcalendar/core/locales-all';
+import { DateLike, toDateTime } from 'core-app/shared/helpers/date-time-helpers';
 
 export interface CalendarViewEvent {
   el:HTMLElement;
@@ -153,8 +154,8 @@ export class OpWorkPackagesCalendarService extends UntilDestroyedMixin {
     this.nonWorkingDays = await firstValueFrom(this.dayService.requireNonWorkingYears$(start, end));
   }
 
-  isNonWorkingDay(date:Date|string):boolean {
-    const formatted = moment(date).format('YYYY-MM-DD');
+  isNonWorkingDay(date:DateLike):boolean {
+    const formatted = toDateTime(date).toISODate();
     return (this.nonWorkingDays.findIndex((el) => el.date === formatted) !== -1);
   }
 
@@ -169,8 +170,8 @@ export class OpWorkPackagesCalendarService extends UntilDestroyedMixin {
       return Promise.resolve();
     }
 
-    const startDate = moment(fetchInfo.start).format('YYYY-MM-DD');
-    const endDate = moment(fetchInfo.end).format('YYYY-MM-DD');
+    const startDate = DateTime.fromJSDate(fetchInfo.start).toISODate()!;
+    const endDate = DateTime.fromJSDate(fetchInfo.end).toISODate()!;
 
     let queryId:string|null = null;
     if (this.urlParams.query_id) {
@@ -276,7 +277,7 @@ export class OpWorkPackagesCalendarService extends UntilDestroyedMixin {
    * @param end A string representation of the end date
    */
   public getEndDateFromTimestamp(end:string):string {
-    return moment(end).subtract(1, 'd').format('YYYY-MM-DD');
+    return DateTime.fromISO(end).minus({ day: 1 }).toISODate()!;
   }
 
   public openSplitView(id:string, onlyWhenOpen = false):void {
@@ -433,7 +434,7 @@ export class OpWorkPackagesCalendarService extends UntilDestroyedMixin {
   updateDates(resizeInfo:EventResizeDoneArg|EventDropArg|EventReceiveArg, dragged?:boolean):ResourceChangeset<WorkPackageResource> {
     const workPackage = resizeInfo.event.extendedProps.workPackage as WorkPackageResource;
     const startDate = resizeInfo.event.startStr;
-    const endDate = moment(resizeInfo.event.endStr).subtract(1, 'day').format('YYYY-MM-DD');
+    const endDate = DateTime.fromISO(resizeInfo.event.endStr).minus({ day: 1 }).toISODate()!;
 
     // When resizing an event, or if it's a milestone, set work package dates to
     // event dates

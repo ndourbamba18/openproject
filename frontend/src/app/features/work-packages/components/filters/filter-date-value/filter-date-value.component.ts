@@ -38,7 +38,7 @@ import { UntilDestroyedMixin } from 'core-app/shared/helpers/angular/until-destr
 import { componentDestroyed } from '@w11k/ngx-componentdestroyed';
 import { TimezoneService } from 'core-app/core/datetime/timezone.service';
 import { QueryFilterInstanceResource } from 'core-app/features/hal/resources/query-filter-instance-resource';
-import moment from 'moment-timezone';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'op-filter-date-value',
@@ -78,14 +78,14 @@ export class FilterDateValueComponent extends UntilDestroyedMixin {
   }
 
   public parser(data:string) {
-    if (moment(data, 'YYYY-MM-DD', true).isValid()) {
+    if (DateTime.fromISO(data).isValid) {
       return data;
     }
     return null;
   }
 
   public formatter(data:string) {
-    if (moment(data, 'YYYY-MM-DD', true).isValid()) {
+    if (DateTime.fromISO(data).isValid) {
       const d = this.timezoneService.parseDate(data);
       return this.timezoneService.formattedISODate(d);
     }

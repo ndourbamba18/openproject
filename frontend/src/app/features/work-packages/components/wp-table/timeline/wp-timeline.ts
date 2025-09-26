@@ -25,7 +25,7 @@
 //
 // See COPYRIGHT and LICENSE files for more details.
 //++
-import moment, { Moment } from 'moment';
+import { DateTime, DateTimeUnit } from 'luxon';
 import { InputState, MultiInputState } from '@openproject/reactivestates';
 import { WorkPackageChangeset } from 'core-app/features/work-packages/components/wp-edit/work-package-changeset';
 import { WorkPackageResource } from 'core-app/features/hal/resources/work-package-resource';
@@ -76,11 +76,11 @@ export const requiredPixelMarginLeft = 120;
  *
  */
 export class TimelineViewParameters {
-  readonly now:Moment = moment({ hour: 0, minute: 0, seconds: 0 });
+  readonly now:DateTime = DateTime.fromObject({ hour: 0, minute: 0, second: 0 });
 
-  dateDisplayStart:Moment = moment({ hour: 0, minute: 0, seconds: 0 });
+  dateDisplayStart:DateTime = DateTime.fromObject({ hour: 0, minute: 0, second: 0 });
 
-  dateDisplayEnd:Moment = this.dateDisplayStart.clone().add(1, 'day');
+  dateDisplayEnd:DateTime = this.dateDisplayStart.plus({ day: 1 });
 
   settings:TimelineViewParametersSettings = new TimelineViewParametersSettings();
 
@@ -91,7 +91,7 @@ export class TimelineViewParameters {
   /**
    * The visible viewport (at the time the view parameters were calculated last!!!)
    */
-  visibleViewportAtCalculationTime:[Moment, Moment];
+  visibleViewportAtCalculationTime:[DateTime, DateTime];
 
   get pixelPerDay():number {
     return getPixelPerDayForZoomLevel(this.settings.zoomLevel);
@@ -102,7 +102,7 @@ export class TimelineViewParameters {
   }
 
   get maxSteps():number {
-    return this.dateDisplayEnd.diff(this.dateDisplayStart, 'days');
+    return this.dateDisplayEnd.diff(this.dateDisplayStart, 'days').days;
   }
 
   get dayCountForMarginLeft():number {
@@ -138,31 +138,31 @@ export function calculatePositionValueForDayCount(viewParams:TimelineViewParamet
 }
 
 export function getTimeSlicesForHeader(vp:TimelineViewParameters,
-  unit:moment.unitOfTime.DurationConstructor,
-  startView:Moment,
-  endView:Moment) {
-  const inViewport:[Moment, Moment][] = [];
-  const rest:[Moment, Moment][] = [];
+  unit:DateTimeUnit,
+  startView:DateTime,
+  endView:DateTime) {
+  const inViewport:[DateTime, DateTime][] = [];
+  const rest:[DateTime, DateTime][] = [];
 
-  const time = startView.clone().startOf(unit);
-  const end = endView.clone().endOf(unit);
+  let time = startView.startOf(unit);
+  const end = endView.endOf(unit);
 
-  while (time.isBefore(end)) {
-    const sliceStart = moment.max(time, startView).clone();
-    const sliceEnd = moment.min(time.clone().endOf(unit), endView).clone();
-    time.add(1, unit);
+  while (time < end) {
+    const sliceStart = DateTime.max(time, startView);
+    const sliceEnd = DateTime.min(time.endOf(unit), endView);
+    time = time.plus({ [unit]: 1 });
 
     const viewport = vp.visibleViewportAtCalculationTime;
-    if ((sliceStart.isSameOrAfter(viewport[0]) && sliceStart.isSameOrBefore(viewport[1]))
-      || (sliceEnd.isSameOrAfter(viewport[0]) && sliceEnd.isSameOrBefore(viewport[1]))) {
+    if ((sliceStart >= viewport[0] && sliceStart <= viewport[1])
+      || (sliceEnd >= viewport[0] && sliceEnd <= viewport[1])) {
       inViewport.push([sliceStart, sliceEnd]);
     } else {
       rest.push([sliceStart, sliceEnd]);
     }
   }
 
-  const firstRest:[Moment, Moment] = rest.splice(0, 1)[0];
-  const lastRest:[Moment, Moment] = rest.pop()!;
+  const firstRest:[DateTime, DateTime] = rest.splice(0, 1)[0];
+  const lastRest:[DateTime, DateTime] = rest.pop()!;
   const inViewportAndBoundaries = _.concat(
     [firstRest].filter((e) => !_.isNil(e)),
     inViewport,
@@ -178,8 +178,8 @@ export function getTimeSlicesForHeader(vp:TimelineViewParameters,
 export function calculateDaySpan(visibleWorkPackages:RenderedWorkPackage[],
   loadedWorkPackages:MultiInputState<WorkPackageResource>,
   viewParameters:TimelineViewParameters):number {
-  let earliest:Moment = moment();
-  let latest:Moment = moment();
+  let earliest:DateTime = DateTime.now();
+  let latest:DateTime = DateTime.now();
 
   visibleWorkPackages.forEach((renderedRow) => {
     const wpId = renderedRow.workPackageId;
@@ -195,16 +195,16 @@ export function calculateDaySpan(visibleWorkPackages:RenderedWorkPackage[],
     }
 
     const start = workPackage.startDate ? workPackage.startDate : workPackage.date;
-    if (start && moment(start).isBefore(earliest)) {
-      earliest = moment(start);
+    if (start && DateTime.fromISO(start) < earliest) {
+      earliest = DateTime.fromISO(start);
     }
 
     const due = workPackage.dueDate ? workPackage.dueDate : workPackage.date;
-    if (due && moment(due).isAfter(latest)) {
-      latest = moment(due);
+    if (due && DateTime.fromISO(due) > latest) {
+      latest = DateTime.fromISO(due);
     }
   });
 
-  const daysSpan = latest.diff(earliest, 'days') + 1;
+  const daysSpan = latest.diff(earliest, 'days').days + 1;
   return daysSpan;
 }

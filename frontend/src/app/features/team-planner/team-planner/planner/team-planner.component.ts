@@ -127,13 +127,12 @@ import {
   addBackgroundEvents,
   removeBackgroundEvents,
 } from 'core-app/features/team-planner/team-planner/planner/background-events';
-import moment from 'moment-timezone';
 import allLocales from '@fullcalendar/core/locales-all';
-import { octiconElement } from 'core-app/shared/helpers/op-icon-builder';
 import {
   personIconData,
   toDOMString,
 } from '@openproject/octicons-angular';
+import { DateTime } from 'luxon';
 
 export type TeamPlannerViewOptionKey = 'resourceTimelineWorkWeek'|'resourceTimelineWeek'|'resourceTimelineTwoWeeks'|'resourceTimelineFourWeeks'|'resourceTimelineEightWeeks';
 export type TeamPlannerViewOptions = { [K in TeamPlannerViewOptionKey]:RawOptionsFromRefiners<Required<ViewOptionRefiners>> };
@@ -560,8 +559,8 @@ export class TeamPlannerComponent extends UntilDestroyedMixin implements OnInit,
             editable: true,
             droppable: true,
             eventResize: (resizeInfo:EventResizeDoneArg) => {
-              const due = moment(resizeInfo.event.endStr).subtract(1, 'day').toDate();
-              const start = moment(resizeInfo.event.startStr).toDate();
+              const due = DateTime.fromISO(resizeInfo.event.endStr).minus({ day: 1 }).toJSDate();
+              const start = DateTime.fromISO(resizeInfo.event.startStr).toJSDate();
               const wp = resizeInfo.event.extendedProps.workPackage as WorkPackageResource;
               if (!wp.ignoreNonWorkingDays && (this.weekdayService.isNonWorkingDay(start) || this.weekdayService.isNonWorkingDay(due)
               || this.workPackagesCalendar.isNonWorkingDay(start)|| this.workPackagesCalendar.isNonWorkingDay(due))) {
@@ -595,7 +594,7 @@ export class TeamPlannerComponent extends UntilDestroyedMixin implements OnInit,
               removeBackgroundEvents(this.ucCalendar.getApi());
             },
             eventDrop: (dropInfo:EventDropArg) => {
-              const start = moment(dropInfo.event.startStr).toDate();
+              const start = DateTime.fromISO(dropInfo.event.startStr).toJSDate();
               const wp = dropInfo.event.extendedProps.workPackage as WorkPackageResource;
               if (!wp.ignoreNonWorkingDays && (this.weekdayService.isNonWorkingDay(start) || this.workPackagesCalendar.isNonWorkingDay(start))) {
                 this.toastService.addError(this.text.cannot_drag_to_non_working_day);
@@ -605,7 +604,7 @@ export class TeamPlannerComponent extends UntilDestroyedMixin implements OnInit,
               void this.updateEvent(dropInfo, true);
             },
             eventReceive: async (dropInfo:EventReceiveArg) => {
-              const start = moment(dropInfo.event.startStr).toDate();
+              const start = DateTime.fromISO(dropInfo.event.startStr).toJSDate();
               const wp = dropInfo.event.extendedProps.workPackage as WorkPackageResource;
               if (!wp.ignoreNonWorkingDays && (this.weekdayService.isNonWorkingDay(start) || this.workPackagesCalendar.isNonWorkingDay(start))) {
                 this.toastService.addError(this.text.cannot_drag_to_non_working_day);
@@ -809,7 +808,7 @@ export class TeamPlannerComponent extends UntilDestroyedMixin implements OnInit,
   }
 
   private handleDateClicked(info:DateSelectArg) {
-    const due = moment(info.endStr).subtract(1, 'day').toDate();
+    const due = DateTime.fromISO(info.endStr).minus({ day: 1 }).toJSDate();
     const nonWorkingDays = this.weekdayService.isNonWorkingDay(info.start) || this.weekdayService.isNonWorkingDay(due);
 
     this.openNewSplitCreate(
@@ -932,7 +931,7 @@ export class TeamPlannerComponent extends UntilDestroyedMixin implements OnInit,
 
   private wpEndDate(wp:WorkPackageResource):string {
     const endDate = this.workPackagesCalendar.eventDate(wp, 'due');
-    return moment(endDate).add(1, 'days').format('YYYY-MM-DD');
+    return DateTime.fromISO(endDate).plus({ day: 1 }).toISODate()!;
   }
 
   private wpAssignee(wp:WorkPackageResource):string {
@@ -973,8 +972,8 @@ export class TeamPlannerComponent extends UntilDestroyedMixin implements OnInit,
           this.addBackgroundEventsForNonWorkingDays();
         }
         const eventBase = {
-          start: moment().subtract('1', 'month').toDate(),
-          end: moment().add('1', 'month').toDate(),
+          start: DateTime.now().minus({ month: 1 }).toJSDate(),
+          end: DateTime.now().plus({ month: 1 }).toJSDate(),
         };
 
         principals.forEach((principal) => {

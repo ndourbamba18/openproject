@@ -1,6 +1,6 @@
 import { TypedJSON } from 'typedjson';
 import { BcfTopicResource } from 'core-app/features/bim/bcf/api/topics/bcf-topic.resource';
-import moment from 'moment';
+import { DateTime } from 'luxon';
 
 export const topic_object = {
   guid: '00efc0da-b4d5-4933-bcb6-e01513ee2bcc',
@@ -36,9 +36,9 @@ describe('BcfTopicResource', () => {
       'description'].forEach((item) => expect((subject as any)[item]).toEqual((topic_object as any)[item]));
 
     // Expect dates
-    expect(subject.creation_date).toEqual(moment(topic_object.creation_date));
-    expect(subject.modified_date).toEqual(moment(topic_object.modified_date));
-    expect(subject.due_date.format('YYYY-MM-DD')).toEqual(topic_object.due_date);
+    expect(subject.creation_date).toEqual(DateTime.fromISO(topic_object.creation_date));
+    expect(subject.modified_date).toEqual(DateTime.fromISO(topic_object.modified_date));
+    expect(subject.due_date.toISODate()!).toEqual(topic_object.due_date);
 
     expect(serializer.toPlainJson(subject)).toEqual(topic_object);
   });

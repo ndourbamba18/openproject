@@ -65,10 +65,18 @@ module API
                  exec_context: :decorator,
                  render_nil: true
 
+        property :date_format_options,
+                 exec_context: :decorator,
+                 render_nil: true
+
         property :duration_format,
                  render_nil: true
 
         property :time_format,
+                 exec_context: :decorator,
+                 render_nil: true
+
+        property :time_format_options,
                  exec_context: :decorator,
                  render_nil: true
 
@@ -130,7 +138,7 @@ module API
         end
 
         def date_format
-          reformated(Setting.date_format) do |directive|
+          to_format_str(Setting.date_format) do |directive|
             case directive
             when "%Y"
               "YYYY"
@@ -152,8 +160,29 @@ module API
           end
         end
 
+        def date_format_options
+          to_intl_date_format(Setting.date_format) do |directive, options|
+            case directive
+            when "%Y"
+              options[:year] = :numeric
+            when "%y"
+              options[:year] = :"2-digit"
+            when "%m"
+              options[:month] = :"2-digit"
+            when "%B"
+              options[:month] = :long
+            when "%b", "%h"
+              options[:month] = :short
+            when "%d"
+              options[:day] = :"2-digit"
+            when "%e"
+              options[:day] = :numeric
+            end
+          end
+        end
+
         def time_format
-          reformated(Setting.time_format) do |directive|
+          to_format_str(Setting.time_format) do |directive|
             case directive
             when "%H"
               "HH"
@@ -173,7 +202,40 @@ module API
           end
         end
 
-        def reformated(setting, &)
+        def time_format_options
+          to_intl_date_format(Setting.time_format) do |directive, options|
+            case directive
+            when "%H"
+              options[:hour] = :"2-digit"
+              options[:hour12] = false
+            when "%k"
+              options[:hour] = :numeric
+              options[:hour12] = false
+            when "%I"
+              options[:hour] = :"2-digit"
+              options[:hour12] = true
+            when "%l"
+              options[:hour] = :numeric
+              options[:hour12] = true
+            when "%P", "%p"
+              # omitting results in AM, PM
+            when "%M"
+              options[:minute] = :"2-digit"
+            end
+          end
+        end
+
+        private
+
+        def to_intl_date_format(setting, &)
+          setting
+            .to_s
+            .scan(/%\w/)
+            .each_with_object({}, &)
+            .presence
+        end
+
+        def to_format_str(setting, &)
           setting
             .to_s
             .gsub(/%\w/, &)

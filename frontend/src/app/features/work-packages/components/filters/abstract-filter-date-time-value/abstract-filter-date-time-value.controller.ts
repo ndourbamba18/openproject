@@ -26,7 +26,7 @@
 // See COPYRIGHT and LICENSE files for more details.
 //++
 
-import { Moment } from 'moment';
+import { DateTime } from 'luxon';
 import { I18nService } from 'core-app/core/i18n/i18n.service';
 import { OnInit, Directive } from '@angular/core';
 import { UntilDestroyedMixin } from 'core-app/shared/helpers/angular/until-destroyed.mixin';
@@ -48,9 +48,9 @@ export abstract class AbstractDateTimeValueController extends UntilDestroyedMixi
     this.filter.values = (this.filter.values as string[]).filter((value) => (value === '' || this.timezoneService.isValidISODateTime(value)));
   }
 
-  public abstract get lowerBoundary():Moment|null;
+  public abstract get lowerBoundary():DateTime|null;
 
-  public abstract get upperBoundary():Moment|null;
+  public abstract get upperBoundary():DateTime|null;
 
   public isoDateParser(data:any) {
     if (!this.timezoneService.isValidISODate(data)) {
@@ -74,7 +74,7 @@ export abstract class AbstractDateTimeValueController extends UntilDestroyedMixi
     if (!value) {
       return false;
     }
-    return value.hours() !== 0 || value.minutes() !== 0;
+    return value.hour !== 0 || value.minute !== 0;
   }
 
   public get timeZoneText() {
@@ -82,19 +82,19 @@ export abstract class AbstractDateTimeValueController extends UntilDestroyedMixi
       return this.I18n.t(
  'js.filter.time_zone_converted.two_values',
         {
-          from: this.lowerBoundary.format('YYYY-MM-DD HH:mm'),
-          to: this.upperBoundary.format('YYYY-MM-DD HH:mm'),
+          from: this.lowerBoundary.toFormat('yyyy-MM-dd HH:mm'),
+          to: this.upperBoundary.toFormat('yyyy-MM-dd HH:mm'),
         },
 );
     } if (this.upperBoundary) {
       return this.I18n.t(
  'js.filter.time_zone_converted.only_end',
-        { to: this.upperBoundary.format('YYYY-MM-DD HH:mm') },
+        { to: this.upperBoundary.toFormat('yyyy-MM-dd HH:mm') },
 );
     } if (this.lowerBoundary) {
       return this.I18n.t(
 'js.filter.time_zone_converted.only_start',
-        { from: this.lowerBoundary.format('YYYY-MM-DD HH:mm') },
+        { from: this.lowerBoundary.toFormat('yyyy-MM-dd HH:mm') },
 );
     }
 

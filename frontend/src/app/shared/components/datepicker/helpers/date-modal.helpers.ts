@@ -29,7 +29,7 @@
 import { DatePicker } from 'core-app/shared/components/datepicker/datepicker';
 import { DateOption } from 'flatpickr/dist/types/options';
 import { DayElement } from 'flatpickr/dist/types/instance';
-import moment from 'moment-timezone';
+import { DateTime } from 'luxon';
 
 /**
  * Map the date to the internal format,
@@ -49,7 +49,7 @@ export function parseDate(date:Date|string):Date|'' {
   if (date === '') {
     return '';
   }
-  return new Date(moment(date).toDate().setHours(0, 0, 0, 0));
+  return new Date(DateTime.fromISO(date).toJSDate().setHours(0, 0, 0, 0));
 }
 
 export function validDate(date:Date|string):boolean {

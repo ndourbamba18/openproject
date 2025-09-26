@@ -111,7 +111,7 @@ export class OpAttachmentListItemComponent extends UntilDestroyedMixin implement
     const href = this.attachment._links.author.href;
     this.author$ = this.principalsResourceService.requireEntity(href);
 
-    this.timestampText = this.timezoneService.parseDatetime(this.attachment.createdAt).fromNow();
+    this.timestampText = this.timezoneService.parseDatetime(this.attachment.createdAt).toRelative() ?? '';
 
     combineLatest([
       this.author$,

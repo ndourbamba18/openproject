@@ -26,8 +26,9 @@
 // See COPYRIGHT and LICENSE files for more details.
 //++
 
-import moment from 'moment';
+import { Settings, type WeekdayNumbers } from 'luxon';
 import { I18n } from 'i18n-js';
+import invariant from 'tiny-invariant';
 
 export function initializeLocale() {
   const meta = document.querySelector<HTMLMetaElement>('meta[name=openproject_initializer]');
@@ -43,21 +44,18 @@ export function initializeLocale() {
 
   window.I18n = i18n;
 
-  moment.locale(userLocale);
+  Settings.defaultLocale = userLocale;
 
-  // Remove Postformatting numbers in dates, this will ensure we are always using
-  // Arabic numbers in dates and durations, regardless of the chosen locale.
-  // Using moment.locale() ensures locale like "zh-CN" falls back to "zh-cn"
-  moment.updateLocale(moment.locale(), { postformat: (string:string) => string });
-
+  // Configure week settings if first day of week and first week of year are provided
   if (!Number.isNaN(firstDayOfWeek) && !Number.isNaN(firstWeekOfYear)) {
-    // ensure locale like "zh-CN" falls back to "zh-cn"
-    moment.updateLocale(moment.locale(), {
-      week: {
-        dow: firstDayOfWeek,
-        doy: 7 + firstDayOfWeek - firstWeekOfYear,
-      },
-    });
+    invariant(firstDayOfWeek >= 0 && firstDayOfWeek <= 7, 'Expected a valid firstdayofweek');
+    invariant(firstWeekOfYear >= 0 && firstWeekOfYear <= 7, 'Expected a valid firstweekofyear');
+
+    Settings.defaultWeekSettings = {
+      firstDay: firstDayOfWeek as WeekdayNumbers,
+      minimalDays: firstWeekOfYear as WeekdayNumbers, // Minimum days in first week of year
+      weekend: [6, 7] // Saturday and Sunday
+    };
   }
 
   // Override the default pluralization function to allow

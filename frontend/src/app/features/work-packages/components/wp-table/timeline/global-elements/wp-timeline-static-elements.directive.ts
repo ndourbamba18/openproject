@@ -85,8 +85,8 @@ export class WorkPackageTableTimelineStaticElements implements OnInit {
     }
     const timelineSide = document.querySelector('.work-packages-tabletimeline--timeline-side');
     if (timelineSide !== null && vp.settings.zoomLevel !== 'auto') {
-      const visibleMomentBeforeToday = vp.now.clone().subtract(vp.settings.visibleBeforeTodayInZoomLevel, vp.settings.zoomLevel)
-      const visibleDaysBeforeToday = visibleMomentBeforeToday.diff(vp.dateDisplayStart, 'days');
+      const visibleDateTimeBeforeToday = vp.now.minus({ [vp.settings.zoomLevel]: vp.settings.visibleBeforeTodayInZoomLevel });
+      const visibleDaysBeforeToday = visibleDateTimeBeforeToday.diff(vp.dateDisplayStart, 'days').days;
       const visibleDaysBeforeTodayPositionPixels = calculatePositionValueForDayCountingPx(vp, visibleDaysBeforeToday);
       timelineSide.scrollLeft = visibleDaysBeforeTodayPositionPixels;
     }

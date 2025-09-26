@@ -1,5 +1,5 @@
 import { Calendar } from '@fullcalendar/core';
-import moment from 'moment/moment';
+import { DateTime } from 'luxon';
 
 export const backgroundEvents = {
   events: [],
@@ -21,11 +21,11 @@ export function addBackgroundEvents(
   while (currentStartDate.getTime() < currentEndDate) {
     if (nonWorkingDay(currentStartDate)) {
       nonWorkingDays.push({
-        start: moment(currentStartDate).format('YYYY-MM-DD'),
-        end: moment(currentStartDate).add('1', 'day').format('YYYY-MM-DD'),
+        start: DateTime.fromJSDate(currentStartDate).toISODate()!,
+        end: DateTime.fromJSDate(currentStartDate).plus({ day: 1 }).toISODate()!,
       });
     }
-    currentStartDate = moment(currentStartDate).add('1', 'day').toDate();
+    currentStartDate = DateTime.fromJSDate(currentStartDate).plus({ day: 1 }).toJSDate();
   }
   nonWorkingDays.forEach((day) => {
     calendar.addEvent({ ...day }, 'background');

@@ -9,7 +9,7 @@ import {
 import { TimezoneService } from 'core-app/core/datetime/timezone.service';
 import { I18nService } from 'core-app/core/i18n/i18n.service';
 import { IInAppNotificationDetailsAttribute, INotification } from 'core-app/core/state/in-app-notifications/in-app-notification.model';
-import moment, { Moment } from 'moment';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'op-in-app-notification-date-alert',
@@ -71,8 +71,8 @@ export class InAppNotificationDateAlertComponent implements OnInit {
 
   private deriveDueDate(value:string, property:IInAppNotificationDetailsAttribute) {
     const dateValue = this.timezoneService.parseISODate(value).startOf('day');
-    const today = moment();
-    this.dateIsPast = dateValue.isBefore(today, 'day');
+    const today = DateTime.now();
+    this.dateIsPast = dateValue.startOf('day') < today.startOf('day');
     this.isOverdue = this.dateIsPast && ['date', 'dueDate'].includes(property);
     const diff = this.dateDiff(dateValue);
     this.propertyText = (this.isOverdue && diff > 0) ? this.text.overdue : this.text[property];
@@ -96,9 +96,9 @@ export class InAppNotificationDateAlertComponent implements OnInit {
     return this.text.property_is(daysText);
   }
 
-  private dateDiff(reference:Moment):number {
-    const now = moment().startOf('day');
-    return Math.abs(now.diff(reference, 'days'));
+  private dateDiff(reference:DateTime):number {
+    const now = DateTime.now().startOf('day');
+    return Math.abs(now.diff(reference, 'days').days);
   }
 
   private deriveMostRelevantAlert(aggregatedNotifications:INotification[]) {

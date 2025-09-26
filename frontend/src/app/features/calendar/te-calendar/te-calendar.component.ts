@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { FullCalendarComponent } from '@fullcalendar/angular';
 import { States } from 'core-app/core/states/states.service';
-import moment, { Moment } from 'moment';
+import { DateTime } from 'luxon';
 import { StateService } from '@uirouter/core';
 import { I18nService } from 'core-app/core/i18n/i18n.service';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -133,7 +133,7 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
 
   public scaleRatio = 1;
 
-  protected memoizedTimeEntries:{ start:Moment; end:Moment; entries:Promise<CollectionResource<TimeEntryResource>>; };
+  protected memoizedTimeEntries:{ start:DateTime; end:DateTime; entries:Promise<CollectionResource<TimeEntryResource>>; };
 
   public memoizedCreateAllowed = false;
 
@@ -191,8 +191,8 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     void this.weekdayService.loadWeekdays()
       .toPromise()
       .then(async () => {
-        const startOfWeek = moment().startOf('week').format('YYYY-MM-DD');
-        const endOfWeek = moment().endOf('week').format('YYYY-MM-DD');
+        const startOfWeek = DateTime.now().startOf('week').toISODate();
+        const endOfWeek = DateTime.now().endOf('week').toISODate();
         await this.requireNonWorkingDays(startOfWeek, endOfWeek);
         this.additionalOptions.hiddenDays = this.setHiddenDays(displayedDayss);
         this.calendarOptions$.next(this.additionalOptions);
@@ -239,8 +239,8 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     successCallback:(events:EventInput[]) => void,
     failureCallback:(error:Error) => void,
   ):void|PromiseLike<EventInput[]> {
-    const start = moment(fetchInfo.startStr);
-    const end = moment(fetchInfo.endStr);
+    const start = DateTime.fromISO(fetchInfo.startStr);
+    const end = DateTime.fromISO(fetchInfo.endStr);
     void this.fetchTimeEntries(start, end)
       .then(async (collection) => {
         this.entries.emit(collection);
@@ -250,10 +250,10 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
       .catch(failureCallback);
   }
 
-  protected fetchTimeEntries(start:Moment, end:Moment):Promise<CollectionResource<TimeEntryResource>> {
+  protected fetchTimeEntries(start:DateTime, end:DateTime):Promise<CollectionResource<TimeEntryResource>> {
     if (!this.memoizedTimeEntries
-      || this.memoizedTimeEntries.start.valueOf() !== start.valueOf()
-      || this.memoizedTimeEntries.end.valueOf() !== end.valueOf()) {
+      || !this.memoizedTimeEntries.start.equals(start)
+      || !this.memoizedTimeEntries.end.equals(end)) {
       const promise = firstValueFrom(
         this
         .apiV3Service
@@ -304,20 +304,20 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
   }
 
   private buildTimeEntryEntries(entries:TimeEntryResource[]):EventInput[] {
-    const hoursDistribution:{ [key:string]:Moment } = {};
+    const hoursDistribution:{ [key:string]:DateTime } = {};
 
     return entries.map((entry) => {
-      let start:Moment;
-      let end:Moment;
-      const hours = this.timezone.toHours(entry.hours as string) * this.scaleRatio;
+      let start:DateTime;
+      let end:DateTime;
+      const hours = this.timezone.toHours(entry.hours) * this.scaleRatio;
       const spentOn = entry.spentOn;
 
       if (hoursDistribution[spentOn]) {
-        start = hoursDistribution[spentOn].clone().subtract(hours, 'h');
-        end = hoursDistribution[spentOn].clone();
+        start = hoursDistribution[spentOn].minus({ hours });
+        end = hoursDistribution[spentOn];
       } else {
-        start = moment(spentOn).add(this.maxHour - hours, 'h');
-        end = moment(spentOn).add(this.maxHour, 'h');
+        start = DateTime.fromISO(spentOn).plus({ hours: this.maxHour - hours });
+        end = DateTime.fromISO(spentOn).plus({ hours: this.maxHour });
       }
 
       hoursDistribution[spentOn] = start;
@@ -331,8 +331,12 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
 
     const calendarEntries:EventInput[] = [];
 
-    for (let m = moment(this.timezone.formattedISODate(fetchInfo.start)); m.diff(fetchInfo.end, 'days') <= 0; m.add(1, 'days')) {
-      const duration = dateSums[m.format('YYYY-MM-DD')] || 0;
+    for (
+      let m = DateTime.fromISO(this.timezone.formattedISODate(fetchInfo.start));
+      m.diff(DateTime.fromJSDate(fetchInfo.end), 'days').days <= 0;
+      m = m.plus({ day: 1 })
+    ) {
+      const duration = dateSums[m.toISODate()!] || 0;
 
       calendarEntries.push(this.sumEntry(m, duration));
 
@@ -348,7 +352,7 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     const dateSums:{ [key:string]:number } = {};
 
     entries.forEach((entry) => {
-      const hours = this.timezone.toHours(entry.hours as string);
+      const hours = this.timezone.toHours(entry.hours);
       const spentOn = entry.spentOn;
 
       if (dateSums[spentOn]) {
@@ -361,12 +365,12 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     return dateSums;
   }
 
-  protected timeEntry(entry:TimeEntryResource, hours:number, start:Moment, end:Moment):EventInput {
+  protected timeEntry(entry:TimeEntryResource, hours:number, start:DateTime, end:DateTime):EventInput {
     const color = this.colors.toHsl(this.entryName(entry));
 
     const classNames = [TIME_ENTRY_CLASS_NAME];
 
-    const span = end.diff(start, 'm');
+    const span = end.diff(start, 'minutes').minutes;
 
     if (span < 40) {
       classNames.push('-no-fadeout');
@@ -375,8 +379,8 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     return {
       title: span < 20 ? '' : this.entryName(entry),
       startEditable: !!entry.update,
-      start: start.format(),
-      end: end.format(),
+      start: start.toISO({ suppressMilliseconds: true })!,
+      end: end.toISO({ suppressMilliseconds: true })!,
       backgroundColor: color,
       borderColor: color,
       classNames,
@@ -384,10 +388,10 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  protected sumEntry(date:Moment, duration:number):EventInput {
+  protected sumEntry(date:DateTime, duration:number):EventInput {
     return {
-      start: date.clone().add(this.maxHour - Math.min(duration * this.scaleRatio, this.maxHour - 0.5) - 0.5, 'h').format(),
-      end: date.clone().add(this.maxHour - Math.min((duration + 0.05) * this.scaleRatio, this.maxHour - 0.5), 'h').format(),
+      start: date.plus({ hours: this.maxHour - Math.min(duration * this.scaleRatio, this.maxHour - 0.5) - 0.5 }).toISO({ suppressMilliseconds: true })!,
+      end: date.plus({ hours: this.maxHour - Math.min((duration + 0.05) * this.scaleRatio, this.maxHour - 0.5) }).toISO({ suppressMilliseconds: true })!,
       classNames: DAY_SUM_CLASS_NAME,
       rendering: 'background' as const,
       startEditable: false,
@@ -395,7 +399,7 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  protected addEntry(date:Moment, duration:number):EventInput {
+  protected addEntry(date:DateTime, duration:number):EventInput {
     const classNames = [ADD_ENTRY_CLASS_NAME];
 
     if (duration >= 24) {
@@ -403,16 +407,16 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     }
 
     return {
-      start: date.clone().format(),
-      end: date.clone().add(this.maxHour - Math.min(duration * this.scaleRatio, this.maxHour - 1) - 0.5, 'h').format(),
+      start: date.toISO({ suppressMilliseconds: true })!,
+      end: date.plus({ hours: this.maxHour - Math.min(duration * this.scaleRatio, this.maxHour - 1) - 0.5 }).toISO({ suppressMilliseconds: true })!,
       rendering: 'background' as const,
       classNames,
     };
   }
 
-  protected dmFilters(start:Moment, end:Moment):Array<[string, FilterOperator, string[]]> {
-    const startDate = start.format('YYYY-MM-DD');
-    const endDate = end.subtract(1, 'd').format('YYYY-MM-DD');
+  protected dmFilters(start:DateTime, end:DateTime):Array<[string, FilterOperator, string[]]> {
+    const startDate = start.toISODate()!;
+    const endDate = end.minus({ day: 1 }).toISODate()!;
     return [
       ['spentOn', '<>d', [startDate, endDate]] as [ string, FilterOperator, string[] ],
       ['user_id', '=', ['me']] as [string, FilterOperator, [string]],
@@ -423,7 +427,7 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
     if (event.event.extendedProps.entry) {
       this.editEvent(event.event.extendedProps.entry as TimeEntryResource);
     } else if (event.el.classList.contains(ADD_ENTRY_CLASS_NAME) && !event.el.classList.contains(ADD_ENTRY_PROHIBITED_CLASS_NAME)) {
-      this.addEvent(moment(event.event.startStr));
+      this.addEvent(DateTime.fromISO(event.event.startStr));
     }
   }
 
@@ -439,7 +443,7 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
 
     // Use end instead of start as when dragging, the event might be too long and would thus be start
     // on the day before by fullcalendar.
-    entry.spentOn = moment(event.event.endStr).format('YYYY-MM-DD');
+    entry.spentOn = DateTime.fromISO(event.event.endStr).toISODate()!;
 
     void this.schemaCache.ensureLoaded(entry).then((schema) => {
       this.apiV3Service.time_entries
@@ -456,16 +460,16 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
   }
 
   public addEventToday():void {
-    this.addEvent(moment(new Date()));
+    this.addEvent(DateTime.now());
   }
 
-  private addEvent(date:Moment):void {
+  private addEvent(date:DateTime):void {
     if (!this.memoizedCreateAllowed) {
       return;
     }
 
     void this.turboRequests.request(
-      `${this.pathHelper.timeEntryDialog()}?date=${date.format('YYYY-MM-DD')}&onlyMe=true`,
+      `${this.pathHelper.timeEntryDialog()}?date=${date.toISODate()!}&onlyMe=true`,
       { method: 'GET' },
     );
   }
@@ -555,11 +559,11 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
   private prependDuration(event:CalendarViewEvent):void {
     const timeEntry = event.event.extendedProps.entry as TimeEntryResource;
 
-    if (this.timezone.toHours(timeEntry.hours as string) < 0.5) {
+    if (this.timezone.toHours(timeEntry.hours) < 0.5) {
       return;
     }
 
-    const formattedDuration = this.timezone.formattedDuration(timeEntry.hours as string);
+    const formattedDuration = this.timezone.formattedDuration(timeEntry.hours);
 
     jQuery(event.el)
       .find('.fc-event-title')
@@ -578,7 +582,7 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
   private appendFadeout(event:CalendarViewEvent):void {
     const timeEntry = event.event.extendedProps.entry as TimeEntryResource;
 
-    if (this.timezone.toHours(timeEntry.hours as string) < 0.5) {
+    if (this.timezone.toHours(timeEntry.hours) < 0.5) {
       return;
     }
 
@@ -636,7 +640,7 @@ export class TimeEntryCalendarComponent implements AfterViewInit, OnDestroy {
           </li>
           <li class="tooltip--map--item">
             <span class="tooltip--map--key">${schema.hours.name}:</span>
-            <span class="tooltip--map--value">${this.timezone.formattedDuration(entry.hours as string)}</span>
+            <span class="tooltip--map--value">${this.timezone.formattedDuration(entry.hours)}</span>
           </li>
           <li class="tooltip--map--item">
             <span class="tooltip--map--key">${schema.comment.name}:</span>

@@ -20,7 +20,7 @@ import { TurboRequestsService } from 'core-app/core/turbo/turbo-requests.service
 import { ToastService } from 'core-app/shared/components/toaster/toast.service';
 import { PathHelperService } from 'core-app/core/path-helper/path-helper.service';
 import { I18nService } from 'core-app/core/i18n/i18n.service';
-import moment from 'moment/moment';
+import { DateTime } from 'luxon';
 import { StopExistingTimerModalComponent } from 'core-app/shared/components/time_entries/timer/stop-existing-timer-modal.component';
 import { WorkPackageResource } from 'core-app/features/hal/resources/work-package-resource';
 import { OpModalService } from 'core-app/shared/components/modal/modal.service';
@@ -148,7 +148,7 @@ export class TimeEntryTimerService {
 
   private timerPayload(workPackage:WorkPackageResource) {
     return {
-      spentOn: moment().format('YYYY-MM-DD'),
+      spentOn: DateTime.now().toISODate(),
       hours: null,
       ongoing: true,
       _links: {

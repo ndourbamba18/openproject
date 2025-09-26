@@ -7,9 +7,9 @@ import { UntilDestroyedMixin } from 'core-app/shared/helpers/angular/until-destr
 import { WeekdayService } from 'core-app/core/days/weekday.service';
 import { DayResourceService } from 'core-app/core/state/days/day.service';
 import { IDay } from 'core-app/core/state/days/day.model';
-import moment from 'moment-timezone';
 import { ConfigurationService } from 'core-app/core/config/configuration.service';
 import { DayHeaderContentArg } from '@fullcalendar/core';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class OpCalendarService extends UntilDestroyedMixin {
@@ -38,8 +38,8 @@ export class OpCalendarService extends UntilDestroyedMixin {
   }
 
   applyNonWorkingDay({ date }:{ date?:Date }, nonWorkingDays:IDay[]):string[] {
-    const utcDate = moment(date).utc();
-    const formatted = utcDate.format('YYYY-MM-DD');
+    const utcDate = DateTime.fromJSDate(date!).toUTC();
+    const formatted = utcDate.toISODate()!;
     if (date && (this.weekdayService.isNonWorkingDay(utcDate) || nonWorkingDays.find((el) => el.date === formatted))) {
       return ['fc-non-working-day'];
     }
@@ -49,7 +49,7 @@ export class OpCalendarService extends UntilDestroyedMixin {
   dayHeaderContent(event:DayHeaderContentArg):string {
     // When the user did not configure a custom date format, we can always return the default content for the
     // fullcalendar day header.
-    if (!this.configurationService.dateFormatPresent()) {
+    if (!this.configurationService.dateFormat()) {
       return event.text;
     }
 
@@ -60,14 +60,14 @@ export class OpCalendarService extends UntilDestroyedMixin {
 
     // We are not in month grid view and there is a date format configured => return a formatted date according to
     // the settings. Prefix the day of the week name for better readability.
-    const configuredDateFormat = this.configurationService.dateFormat();
+    const configuredDateFormat = this.configurationService.dateFormat()!;
     const formatWithoutYear = this.stripYearFromDateFormat(configuredDateFormat);
-    const utcDate = moment(event.date).utc();
+    const utcDate = DateTime.fromJSDate(event.date).toUTC();
 
-    return utcDate.format(`ddd ${formatWithoutYear}`);
+    return utcDate.toFormat(`EEE ${formatWithoutYear}`);
   }
 
   stripYearFromDateFormat(format:string):string {
-    return format.replace(/(\/|-|,?\s?)Y{3,4}$/, '').replace(/^Y{4}-/, '');
+    return format.replace(/(\/|-|,?\s?)y{2,4}$/, '').replace(/^y{4}-/, '');
   }
 }

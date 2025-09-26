@@ -1,9 +1,9 @@
 import { IWorkPackageTimestamp } from 'core-app/features/hal/resources/work-package-timestamp-resource';
 import { ISchemaProxy } from 'core-app/features/hal/schemas/schema-proxy';
 import { DEFAULT_TIMESTAMP } from 'core-app/features/work-packages/routing/wp-view-base/view-services/wp-view-baseline.service';
-import moment from 'moment-timezone';
 import { WorkPackageResource } from 'core-app/features/hal/resources/work-package-resource';
 import { SchemaCacheService } from 'core-app/core/schemas/schema-cache.service';
+import { DateTime } from 'luxon';
 
 export type BaselineOption = 'oneDayAgo'|'lastWorkingDay'|'oneWeekAgo'|'oneMonthAgo'|'aSpecificDate'|'betweenTwoSpecificDates';
 export type BaselineMode = 'added'|'updated'|'removed'|null;
@@ -41,10 +41,10 @@ export function getPartsFromTimestamp(value:string):BaselineTimestamp|null {
   }
 
   if (value !== 'PT0S') {
-    const dateObj = moment.parseZone(value);
-    const date = dateObj.format('YYYY-MM-DD');
-    const time = dateObj.format('HH:mm');
-    const offset = dateObj.format('Z');
+    const dateObj = DateTime.fromISO(value);
+    const date = dateObj.toISODate()!;
+    const time = dateObj.toFormat('HH:mm');
+    const offset = dateObj.toFormat('ZZ');
 
     return { date, time, offset };
   }

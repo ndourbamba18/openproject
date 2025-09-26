@@ -1,4 +1,4 @@
-import moment from 'moment-timezone';
+import { DateTime } from 'luxon';
 
 export const skeletonResources = [
   {
@@ -33,24 +33,24 @@ export const skeletonEvents = [
     ...baseSkeleton,
     id: 'skeleton-1',
     resourceId: skeletonResources[0].id,
-    start: moment().subtract(1, 'days').toDate(),
-    end: moment().add(1, 'day').toDate(),
+    start: DateTime.now().minus({ day: 1 }).toJSDate(),
+    end: DateTime.now().plus({ day: 1 }).toJSDate(),
     viewBox: '0 0 800 80',
   },
   {
     ...baseSkeleton,
     id: 'skeleton-2',
     resourceId: skeletonResources[1].id,
-    start: moment().subtract(3, 'days').toDate(),
-    end: moment().toDate(),
+    start: DateTime.now().minus({ days: 3 }).toJSDate(),
+    end: DateTime.now().toJSDate(),
     viewBox: '0 0 1200 80',
   },
   {
     ...baseSkeleton,
     id: 'skeleton-3',
     resourceId: skeletonResources[2].id,
-    start: moment().toDate(),
-    end: moment().add(3, 'days').toDate(),
+    start: DateTime.now().toJSDate(),
+    end: DateTime.now().plus({ days: 3 }).toJSDate(),
     viewBox: '0 0 1200 80',
   },
 ];

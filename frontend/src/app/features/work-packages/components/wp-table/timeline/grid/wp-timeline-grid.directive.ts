@@ -30,7 +30,7 @@ import {
   Component,
   ElementRef,
 } from '@angular/core';
-import moment, { Moment } from 'moment';
+import { DateTime, DateTimeUnit } from 'luxon';
 import { TimelineZoomLevel } from 'core-app/features/hal/resources/query-resource';
 import { WorkPackageTimelineTableController } from '../container/wp-timeline-container.directive';
 import {
@@ -159,17 +159,17 @@ export class WorkPackageTableTimelineGrid implements AfterViewInit {
   }
 
   renderTimeSlices(vp:TimelineViewParameters,
-    unit:moment.unitOfTime.DurationConstructor,
-    startView:Moment,
-    endView:Moment,
-    cellCallback:(start:Moment, cell:HTMLElement) => void):void {
+    unit:DateTimeUnit,
+    startView:DateTime,
+    endView:DateTime,
+    cellCallback:(start:DateTime, cell:HTMLElement) => void):void {
     const { inViewportAndBoundaries, rest } = getTimeSlicesForHeader(vp, unit, startView, endView);
 
     for (const [start, end] of inViewportAndBoundaries) {
       const cell = document.createElement('div');
       cell.classList.add(timelineElementCssClass, timelineGridElementCssClass);
-      cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days'));
-      cell.style.width = calculatePositionValueForDayCount(vp, end.diff(start, 'days') + 1);
+      cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days').days);
+      cell.style.width = calculatePositionValueForDayCount(vp, end.diff(start, 'days').days + 1);
       this.gridContainer[0].appendChild(cell);
       cellCallback(start, cell);
     }
@@ -177,16 +177,16 @@ export class WorkPackageTableTimelineGrid implements AfterViewInit {
       for (const [start, end] of rest) {
         const cell = document.createElement('div');
         cell.classList.add(timelineElementCssClass, timelineGridElementCssClass);
-        cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days'));
-        cell.style.width = calculatePositionValueForDayCount(vp, end.diff(start, 'days') + 1);
+        cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days').days);
+        cell.style.width = calculatePositionValueForDayCount(vp, end.diff(start, 'days').days + 1);
         this.gridContainer[0].appendChild(cell);
         cellCallback(start, cell);
       }
     }, 0);
   }
 
-  private checkForNonWorkingDayHighlight(date:Moment, cell:HTMLElement) {
-    const day = date.toDate();
+  private checkForNonWorkingDayHighlight(date:DateTime, cell:HTMLElement) {
+    const day = date.toJSDate();
     if (this.weekdaysService.isNonWorkingDay(day) || this.wpTimeline.isNonWorkingDay(day)) {
       cell.classList.add('wp-timeline--non-working-day');
       cell.dataset.testSelector = `wp-timeline--non-working-day_${day.getDate()}-${day.getMonth() + 1}-${day.getFullYear()}`;

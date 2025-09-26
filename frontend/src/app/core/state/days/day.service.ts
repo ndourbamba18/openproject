@@ -9,7 +9,8 @@ import {
   ResourceStore,
   ResourceStoreService,
 } from 'core-app/core/state/resource-store.service';
-import moment from 'moment-timezone';
+import { DateTime } from 'luxon';
+import { DateLike, toDateTime } from 'core-app/shared/helpers/date-time-helpers';
 
 @Injectable()
 export class DayResourceService extends ResourceStoreService<IDay> {
@@ -22,7 +23,7 @@ export class DayResourceService extends ResourceStoreService<IDay> {
   }
 
   isNonWorkingDay$(input:Date):Promise<boolean> {
-    const date = moment(input).format('YYYY-MM-DD');
+    const date = DateTime.fromJSDate(input).toISODate();
 
     return firstValueFrom(
       this
@@ -33,9 +34,9 @@ export class DayResourceService extends ResourceStoreService<IDay> {
     );
   }
 
-  requireNonWorkingYear$(date:Date|string):Observable<IDay[]> {
-    const from = moment(date).startOf('year').format('YYYY-MM-DD');
-    const to = moment(date).endOf('year').format('YYYY-MM-DD');
+  requireNonWorkingYear$(date:DateLike):Observable<IDay[]> {
+    const from = toDateTime(date).startOf('year').toISODate()!;
+    const to = toDateTime(date).endOf('year').toISODate()!;
 
     const filters:ApiV3ListFilter[] = [
       ['date', '<>d', [from, to]],
@@ -44,9 +45,9 @@ export class DayResourceService extends ResourceStoreService<IDay> {
     return this.requireCollection({ filters });
   }
 
-  requireNonWorkingYears$(start:Date|string, end:Date|string):Observable<IDay[]> {
-    const from = moment(start).startOf('year').format('YYYY-MM-DD');
-    const to = moment(end).endOf('year').format('YYYY-MM-DD');
+  requireNonWorkingYears$(start:DateLike, end:DateLike):Observable<IDay[]> {
+    const from = toDateTime(start).startOf('year').toISODate()!;
+    const to = toDateTime(end).endOf('year').toISODate()!;
 
     const filters:ApiV3ListFilter[] = [
       ['date', '<>d', [from, to]],

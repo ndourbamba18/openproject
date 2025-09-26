@@ -124,7 +124,7 @@ export class FileLinkListItemComponent implements OnInit, OnChanges, AfterViewIn
 
   ngOnInit():void {
     if (this.originData.lastModifiedAt) {
-      this.infoTimestampText = this.timezoneService.parseDatetime(this.originData.lastModifiedAt).fromNow();
+      this.infoTimestampText = this.timezoneService.parseDatetime(this.originData.lastModifiedAt).toRelative() ?? '';
     }
 
     this.fileLinkIcon = getIconForMimeType(this.originData.mimeType);

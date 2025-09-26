@@ -38,7 +38,7 @@ import {
   ToastService,
 } from 'core-app/shared/components/toaster/toast.service';
 import { WorkPackageResource } from 'core-app/features/hal/resources/work-package-resource';
-import moment, { Moment } from 'moment';
+import { DateTime } from 'luxon';
 import {
   filter,
   takeUntil,
@@ -89,6 +89,7 @@ import { WeekdayService } from 'core-app/core/days/weekday.service';
 import Mousetrap from 'mousetrap';
 import { DayResourceService } from 'core-app/core/state/days/day.service';
 import { IDay } from 'core-app/core/state/days/day.model';
+import { DateLike, toDateTime } from 'core-app/shared/helpers/date-time-helpers';
 
 @Component({
   selector: 'wp-timeline-container',
@@ -170,7 +171,7 @@ export class WorkPackageTimelineTableController extends UntilDestroyedMixin impl
     const scrollBar = document.querySelector('.work-packages-tabletimeline--timeline-side');
     if (scrollBar) {
       scrollBar.addEventListener('scroll', () => {
-        this.requireNonWorkingDays(this.getFirstDayInViewport().format('YYYY-MM-DD'), this.getLastDayInViewport().format('YYYY-MM-DD'));
+        this.requireNonWorkingDays(this.getFirstDayInViewport().toJSDate(), this.getLastDayInViewport().toJSDate());
       });
     }
 
@@ -263,7 +264,7 @@ export class WorkPackageTimelineTableController extends UntilDestroyedMixin impl
 
       this.calculateViewParams(this._viewParameters);
 
-      await this.requireNonWorkingDays(this.getFirstDayInViewport().format('YYYY-MM-DD'), this.getLastDayInViewport().format('YYYY-MM-DD'));
+      await this.requireNonWorkingDays(this.getFirstDayInViewport().toJSDate(), this.getLastDayInViewport().toJSDate());
 
       // Update all cells
       this.cellsRenderer.refreshAllCells();
@@ -322,7 +323,7 @@ export class WorkPackageTimelineTableController extends UntilDestroyedMixin impl
     const outerContainer = this.getParentScrollContainer();
     const { scrollLeft } = outerContainer;
     const nonVisibleDaysLeft = Math.floor(scrollLeft / this.viewParameters.pixelPerDay);
-    return this.viewParameters.dateDisplayStart.clone().add(nonVisibleDaysLeft, 'days');
+    return this.viewParameters.dateDisplayStart.plus({ days: nonVisibleDaysLeft });
   }
 
   getLastDayInViewport() {
@@ -331,7 +332,7 @@ export class WorkPackageTimelineTableController extends UntilDestroyedMixin impl
     const width = outerContainer.offsetWidth;
     const viewPortRight = scrollLeft + width;
     const daysUntilViewPortEnds = Math.ceil(viewPortRight / this.viewParameters.pixelPerDay) + 1;
-    return this.viewParameters.dateDisplayStart.clone().add(daysUntilViewPortEnds, 'days');
+    return this.viewParameters.dateDisplayStart.plus({ days: daysUntilViewPortEnds });
   }
 
   forceCursor(cursor:string) {
@@ -391,8 +392,8 @@ export class WorkPackageTimelineTableController extends UntilDestroyedMixin impl
     );
   }
 
-  isNonWorkingDay(date:Date|string):boolean {
-    const formatted = moment(date).format('YYYY-MM-DD');
+  isNonWorkingDay(date:DateLike):boolean {
+    const formatted = toDateTime(date).toISODate();
     return (this.nonWorkingDays.findIndex((el) => el.date === formatted) !== -1);
   }
 
@@ -419,29 +420,29 @@ export class WorkPackageTimelineTableController extends UntilDestroyedMixin impl
       }
 
       // We may still have a reference to a row that, e.g., just got deleted
-      const startDate = workPackage.startDate ? moment(workPackage.startDate) : currentParams.now;
-      const dueDate = workPackage.dueDate ? moment(workPackage.dueDate) : currentParams.now;
-      const date = workPackage.date ? moment(workPackage.date) : currentParams.now;
+      const startDate = workPackage.startDate ? DateTime.fromISO(workPackage.startDate) : currentParams.now;
+      const dueDate = workPackage.dueDate ? DateTime.fromISO(workPackage.dueDate) : currentParams.now;
+      const date = workPackage.date ? DateTime.fromISO(workPackage.date) : currentParams.now;
 
       // start date
-      newParams.dateDisplayStart = moment.min(
+      newParams.dateDisplayStart = DateTime.min(
         newParams.dateDisplayStart,
         currentParams.now,
         startDate,
         date,
-      ).clone(); // clone because currentParams.now should not be changed
+      );
 
       // finish date
-      newParams.dateDisplayEnd = moment.max(
+      newParams.dateDisplayEnd = DateTime.max(
         newParams.dateDisplayEnd,
         currentParams.now,
         dueDate,
         date,
-      ).clone(); // clone because currentParams.now should not be changed
+      );
     });
 
     // left spacing
-    newParams.dateDisplayStart.subtract(currentParams.dayCountForMarginLeft, 'days'); // .substract modifies its instance
+    newParams.dateDisplayStart = newParams.dateDisplayStart.minus({ days: currentParams.dayCountForMarginLeft });
 
     // right spacing
     // RR: kept both variants for documentation purpose.
@@ -452,18 +453,18 @@ export class WorkPackageTimelineTableController extends UntilDestroyedMixin impl
 
     const { pixelPerDay } = currentParams;
     const visibleDays = Math.ceil((width / pixelPerDay) * 1.5);
-    newParams.dateDisplayEnd.add(visibleDays, 'days'); // .add modifies its instance
+    newParams.dateDisplayEnd = newParams.dateDisplayEnd.plus({ days: visibleDays });
 
     // Check if view params changed:
 
     // start date
-    if (!newParams.dateDisplayStart.isSame(this._viewParameters.dateDisplayStart)) {
+    if (!newParams.dateDisplayStart.equals(this._viewParameters.dateDisplayStart)) {
       changed = true;
       this._viewParameters.dateDisplayStart = newParams.dateDisplayStart;
     }
 
     // end date
-    if (!newParams.dateDisplayEnd.isSame(this._viewParameters.dateDisplayEnd)) {
+    if (!newParams.dateDisplayEnd.equals(this._viewParameters.dateDisplayEnd)) {
       changed = true;
       this._viewParameters.dateDisplayEnd = newParams.dateDisplayEnd;
     }
@@ -471,7 +472,7 @@ export class WorkPackageTimelineTableController extends UntilDestroyedMixin impl
     // Calculate the visible viewport
     const firstDayInViewport = this.getFirstDayInViewport();
     const lastDayInViewport = this.getLastDayInViewport();
-    const viewport:[Moment, Moment] = [firstDayInViewport, lastDayInViewport];
+    const viewport:[DateTime, DateTime] = [firstDayInViewport, lastDayInViewport];
     this._viewParameters.visibleViewportAtCalculationTime = viewport;
 
     return changed;

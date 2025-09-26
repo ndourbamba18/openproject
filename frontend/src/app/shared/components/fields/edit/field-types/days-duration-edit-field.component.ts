@@ -31,7 +31,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { DatePickerEditFieldComponent } from 'core-app/shared/components/fields/edit/field-types/date-picker-edit-field.component';
-import moment from 'moment-timezone';
+import { Duration } from 'luxon';
 
 @Component({
   templateUrl: './days-duration-edit-field.component.html',
@@ -39,7 +39,7 @@ import moment from 'moment-timezone';
 })
 export class DaysDurationEditFieldComponent extends DatePickerEditFieldComponent implements OnInit {
   public get formattedValue():number {
-    return Number(moment.duration(this.value).asDays().toFixed(0));
+    return Number(Duration.fromObject({ days: this.value }).as('days').toFixed(0));
   }
 
   ngOnInit():void {

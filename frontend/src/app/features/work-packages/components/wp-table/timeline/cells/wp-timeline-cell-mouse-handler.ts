@@ -27,7 +27,7 @@
 //++
 
 import { Injector } from '@angular/core';
-import moment, { Moment } from 'moment';
+import { DateTime } from 'luxon';
 import { IsolatedQuerySpace } from 'core-app/features/work-packages/directives/query-space/isolated-query-space';
 import { LoadingIndicatorService } from 'core-app/core/loading-indicator/loading-indicator.service';
 
@@ -76,7 +76,7 @@ export function registerWorkPackageMouseHandler(this:void,
   // handles initial creation of start/due values
   cell.onmousemove = handleMouseMoveOnEmptyCell;
 
-  function applyRendererMoveChanges(dayUnderCursor:Moment, days:number, direction:MouseDirection) {
+  function applyRendererMoveChanges(dayUnderCursor:DateTime, days:number, direction:MouseDirection) {
     const moved = renderer.onDaysMoved(renderInfo.change, dayUnderCursor, days, direction);
     renderer.assignDateValues(renderInfo.change, labels, moved);
     renderer.update(bar, labels, renderInfo);
@@ -118,7 +118,7 @@ export function registerWorkPackageMouseHandler(this:void,
     return (ev:JQuery.MouseMoveEvent) => {
       const days = getCursorOffsetInDaysFromLeft(ev.originalEvent as MouseEvent) - (mouseDownStartDay as number);
       const offsetDayCurrent = Math.floor(ev.offsetX / renderInfo.viewParams.pixelPerDay);
-      const dayUnderCursor = renderInfo.viewParams.dateDisplayStart.clone().add(offsetDayCurrent, 'days');
+      const dayUnderCursor = renderInfo.viewParams.dateDisplayStart.plus({ days: offsetDayCurrent });
 
       applyRendererMoveChanges(dayUnderCursor, days, direction);
     };
@@ -173,7 +173,7 @@ export function registerWorkPackageMouseHandler(this:void,
       bar.style.pointerEvents = 'none';
 
       const [clickStart, offsetDayStart] = renderer.cursorDateAndDayOffset(evt, renderInfo);
-      const dateForCreate = clickStart.format('YYYY-MM-DD');
+      const dateForCreate = clickStart.toISODate()!;
       const direction = renderer.onMouseDown(evt, dateForCreate, renderInfo, labels);
       renderer.update(bar, labels, renderInfo);
 
@@ -198,7 +198,7 @@ export function registerWorkPackageMouseHandler(this:void,
       placeholderForEmptyCell.remove();
       const relativePosition = Math.abs(cell.getBoundingClientRect().x - ev.clientX);
       const offsetDayCurrent = Math.floor(relativePosition / renderInfo.viewParams.pixelPerDay);
-      const dayUnderCursor = renderInfo.viewParams.dateDisplayStart.clone().add(offsetDayCurrent, 'days');
+      const dayUnderCursor = renderInfo.viewParams.dateDisplayStart.plus({ days: offsetDayCurrent });
       const widthInDays = offsetDayCurrent - offsetDayStart;
 
       applyRendererMoveChanges(dayUnderCursor, widthInDays, mouseDownType);
@@ -223,7 +223,7 @@ export function registerWorkPackageMouseHandler(this:void,
 
     // Cancel changes if the startDate or dueDate are not allowed
     const { startDate, dueDate } = change.projectedResource;
-    const invalidDates = renderer.cursorOrDatesAreNonWorking([moment(startDate), moment(dueDate)], renderInfo, direction);
+    const invalidDates = renderer.cursorOrDatesAreNonWorking([DateTime.fromISO(startDate), DateTime.fromISO(dueDate)], renderInfo, direction);
 
     if (cancelled || change.isEmpty() || invalidDates) {
       cancelChange();
@@ -262,7 +262,7 @@ export function registerWorkPackageMouseHandler(this:void,
     const querySpace:IsolatedQuerySpace = injector.get(IsolatedQuerySpace);
 
     // Remember the time before saving the work package to know which work packages to update
-    const updatedAt = moment().toISOString();
+    const updatedAt = DateTime.now().toISO({ suppressMilliseconds: true });
 
     return (loadingIndicator.table.promise = halEditing
       .save<WorkPackageResource, WorkPackageChangeset>(change)

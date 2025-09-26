@@ -51,7 +51,7 @@ export class StorageFileListItem {
 
   get timestamp():string|undefined {
     return this.storageFile.lastModifiedAt
-      ? this.timezoneService.parseDatetime(this.storageFile.lastModifiedAt).fromNow()
+      ? this.timezoneService.parseDatetime(this.storageFile.lastModifiedAt).toRelative() ?? ''
       : undefined;
   }
 

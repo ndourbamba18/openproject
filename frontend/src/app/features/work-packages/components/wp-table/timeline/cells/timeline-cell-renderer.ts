@@ -1,4 +1,4 @@
-import moment, { Moment } from 'moment';
+import { DateTime, Duration } from 'luxon';
 import { WorkPackageResource } from 'core-app/features/hal/resources/work-package-resource';
 import { DisplayFieldRenderer } from 'core-app/shared/components/fields/display/display-field-renderer';
 import { Injector } from '@angular/core';
@@ -23,10 +23,10 @@ import {
 
 export interface CellDateMovement {
   // Target values to move work package to
-  startDate?:Moment;
-  dueDate?:Moment;
+  startDate?:DateTime;
+  dueDate?:DateTime;
   // Target value to move milestone to
-  date?:Moment;
+  date?:DateTime;
 }
 
 export type LabelPosition = 'left'|'right'|'farRight';
@@ -83,10 +83,11 @@ export class TimelineCellRenderer {
   }
 
   public isEmpty(wp:WorkPackageResource) {
-    const start = moment(wp.startDate as any);
-    const due = moment(wp.dueDate as any);
-    const noStartAndDueValues = _.isNaN(start.valueOf()) && _.isNaN(due.valueOf());
-    return noStartAndDueValues;
+    if (!wp.startDate && !wp.dueDate) return true;
+
+    const start = DateTime.fromISO(wp.startDate);
+    const due = DateTime.fromISO(wp.dueDate);
+    return !start.isValid && !due.isValid;
   }
 
   public displayPlaceholderUnderCursor(ev:MouseEvent, renderInfo:RenderInfo):HTMLElement {
@@ -116,8 +117,8 @@ export class TimelineCellRenderer {
     labels:WorkPackageCellLabels,
     dates:CellDateMovement,
   ):void {
-    this.assignDate(change, 'startDate', dates.startDate as Moment);
-    this.assignDate(change, 'dueDate', dates.dueDate as Moment);
+    this.assignDate(change, 'startDate', dates.startDate!);
+    this.assignDate(change, 'dueDate', dates.dueDate!);
 
     this.updateLabels(true, labels, change);
   }
@@ -127,44 +128,44 @@ export class TimelineCellRenderer {
    * depending on which initial date was set.
    */
   public onDaysMoved(change:WorkPackageChangeset,
-    dayUnderCursor:Moment,
+    dayUnderCursor:DateTime,
     delta:number,
     direction:MouseDirection):CellDateMovement {
     const initialStartDate = change.pristineResource.startDate;
     const initialDueDate = change.pristineResource.dueDate;
 
-    const now = moment().format('YYYY-MM-DD');
+    const now = DateTime.now().toISODate();
 
-    const startDate = moment(change.projectedResource.startDate);
-    const dueDate = moment(change.projectedResource.dueDate);
+    const startDate = DateTime.fromISO(change.projectedResource.startDate);
+    const dueDate = DateTime.fromISO(change.projectedResource.dueDate);
 
     const dates:CellDateMovement = {};
 
     if (direction === 'left') {
-      dates.startDate = moment(initialStartDate || initialDueDate).add(delta, 'days');
+      dates.startDate = DateTime.fromISO(initialStartDate || initialDueDate).plus({ days: delta });
     } else if (direction === 'right') {
       // When no due date is present and the start date is in the past,
       // we assume the task hasn't finished yet, meaning the end date is not in the past.
       // To cover this case we have to choose the start date, only when it's in the future,
       // and choose now if the start date is in the past.
       const calculatedDueDate = initialDueDate || (now > initialStartDate ? now : initialStartDate);
-      dates.dueDate = moment(calculatedDueDate).add(delta, 'days');
+      dates.dueDate = DateTime.fromISO(calculatedDueDate).plus({ days: delta });
     } else if (direction === 'both') {
       if (initialStartDate) {
-        dates.startDate = moment(initialStartDate).add(delta, 'days');
+        dates.startDate = DateTime.fromISO(initialStartDate).plus({ days: delta });
       }
       if (initialDueDate) {
-        dates.dueDate = moment(initialDueDate).add(delta, 'days');
+        dates.dueDate = DateTime.fromISO(initialDueDate).plus({ days: delta });
       }
     } else if (direction === 'dragright') {
-      dates.dueDate = startDate.clone().add(delta, 'days');
+      dates.dueDate = startDate.plus({ days: delta });
     }
 
     // avoid negative "overdrag" if only start or due are changed
     if (direction !== 'both') {
-      if (dates.startDate !== undefined && dates.startDate.isAfter(dueDate)) {
+      if (dates.startDate !== undefined && dates.startDate > dueDate) {
         dates.startDate = dueDate;
-      } else if (dates.dueDate !== undefined && dates.dueDate.isBefore(startDate)) {
+      } else if (dates.dueDate !== undefined && dates.dueDate < startDate) {
         dates.dueDate = startDate;
       }
     }
@@ -215,7 +216,7 @@ export class TimelineCellRenderer {
       const duration = this.displayDurationForDate(renderInfo, dateUnderCursor) - 1;
 
       projection.startDate = dateForCreate;
-      projection.dueDate = moment(dateForCreate).add(duration, 'days').format('YYYY-MM-DD');
+      projection.dueDate = DateTime.fromISO(dateForCreate).plus({ days: duration }).toISODate()!;
       direction = 'dragright';
       this.mouseDirection = 'dragright';
     }
@@ -239,25 +240,25 @@ export class TimelineCellRenderer {
   public update(element:HTMLDivElement, labels:WorkPackageCellLabels|null, renderInfo:RenderInfo):boolean {
     const { change } = renderInfo;
     const bar = element.querySelector(`.${timelineBackgroundElementClass}`) as HTMLElement;
-    let start = moment(change.projectedResource.startDate);
-    let due = moment(change.projectedResource.dueDate);
+    let start = DateTime.fromISO(change.projectedResource.startDate);
+    let due = DateTime.fromISO(change.projectedResource.dueDate);
 
-    if (_.isNaN(start.valueOf()) && _.isNaN(due.valueOf())) {
+    if (!start.isValid && !due.isValid) {
       element.style.visibility = 'hidden';
     } else {
       element.style.visibility = 'visible';
     }
 
     // only start date, fade out bar to the right
-    if (_.isNaN(due.valueOf()) && !_.isNaN(start.valueOf())) {
+    if (!due.isValid && start.isValid) {
       // Set due date to today
-      due = moment();
+      due = DateTime.now();
       bar.setAttribute('style', 'background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, #F1F1F1 100%) !important');
     }
 
     // only finish date, fade out bar to the left
-    if (_.isNaN(start.valueOf()) && !_.isNaN(due.valueOf())) {
-      start = due.clone();
+    if (!start.isValid && due.isValid) {
+      start = due;
       bar.setAttribute('style', 'background-image: linear-gradient(90deg, #F1F1F1 0%, rgba(255,255,255,0) 80%) !important');
     }
 
@@ -275,9 +276,9 @@ export class TimelineCellRenderer {
     return true;
   }
 
-  public cursorDateAndDayOffset(ev:MouseEvent, renderInfo:RenderInfo):[Moment, number] {
+  public cursorDateAndDayOffset(ev:MouseEvent, renderInfo:RenderInfo):[DateTime, number] {
     const dayOffset = Math.floor(ev.offsetX / renderInfo.viewParams.pixelPerDay);
-    const dateUnderCursor = renderInfo.viewParams.dateDisplayStart.clone().add(dayOffset, 'days');
+    const dateUnderCursor = renderInfo.viewParams.dateDisplayStart.plus({ days: dayOffset });
     return [dateUnderCursor, dayOffset];
   }
 
@@ -301,9 +302,9 @@ export class TimelineCellRenderer {
    * @return {number} the NonWorkingDays adjusted duration
    */
 
-  protected displayDurationForDate(renderInfo:RenderInfo, date:Moment):number {
+  protected displayDurationForDate(renderInfo:RenderInfo, date:DateTime):number {
     const { workPackage } = renderInfo;
-    let duration = Number(moment.duration(workPackage.duration || 'P1D').asDays().toFixed(0));
+    let duration = Number(Duration.fromISO(workPackage.duration || 'P1D').as('days').toFixed(0));
 
     if (workPackage.ignoreNonWorkingDays) {
       return duration;
@@ -313,14 +314,14 @@ export class TimelineCellRenderer {
     let newDuration = 0;
 
     for (newDuration; newDuration < duration; newDuration++) {
-      const currentDate = date.clone().add(newDuration, 'days');
+      const currentDate = date.plus({ days: newDuration });
 
       // Stop adding duration when we reach end of the visible table
       if (currentDate > dateDisplayEnd) {
         break;
       }
       // Extend the duration if the currentDate is non-working
-      if (this.weekdayService.isNonWorkingDay(currentDate.toDate() || this.workPackageTimeline.isNonWorkingDay(currentDate.toDate()))) {
+      if (this.weekdayService.isNonWorkingDay(currentDate.toJSDate() || this.workPackageTimeline.isNonWorkingDay(currentDate.toJSDate()))) {
         duration += 1;
       }
     }
@@ -330,11 +331,11 @@ export class TimelineCellRenderer {
   getMarginLeftOfLeftSide(renderInfo:RenderInfo):number {
     const projection = renderInfo.change.projectedResource;
 
-    let start = moment(projection.startDate);
-    const due = moment(projection.dueDate);
-    start = _.isNaN(start.valueOf()) ? due.clone() : start;
+    let start = DateTime.fromISO(projection.startDate);
+    const due = DateTime.fromISO(projection.dueDate);
+    start = !start.isValid ? due : start;
 
-    const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days');
+    const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days').days;
 
     return calculatePositionValueForDayCountingPx(renderInfo.viewParams, offsetStart);
   }
@@ -342,14 +343,13 @@ export class TimelineCellRenderer {
   getMarginLeftOfRightSide(renderInfo:RenderInfo):number {
     const projection = renderInfo.change.projectedResource;
 
-    let start = moment(projection.startDate);
-    let due = moment(projection.dueDate);
+    let start = DateTime.fromISO(projection.startDate);
+    let due = DateTime.fromISO(projection.dueDate);
+    start = start.isValid ? due : start;
+    due = due.isValid ? start : due;
 
-    start = _.isNaN(start.valueOf()) ? due.clone() : start;
-    due = _.isNaN(due.valueOf()) ? start.clone() : due;
-
-    const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days');
-    const duration = due.diff(start, 'days') + 1;
+    const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days').days;
+    const duration = due.diff(start, 'days').plus({ day: 1 }).as('days');
 
     return calculatePositionValueForDayCountingPx(renderInfo.viewParams, offsetStart + duration);
   }
@@ -440,30 +440,30 @@ export class TimelineCellRenderer {
     }
   }
 
-  protected assignDate(change:WorkPackageChangeset, attributeName:string, value:Moment) {
+  protected assignDate(change:WorkPackageChangeset, attributeName:string, value:DateTime) {
     if (value) {
-      change.projectedResource[attributeName] = value.format('YYYY-MM-DD');
+      change.projectedResource[attributeName] = value.toISODate()!;
     }
   }
 
-  setElementPositionAndSize(element:HTMLElement, renderInfo:RenderInfo, start:Moment, due:Moment) {
+  setElementPositionAndSize(element:HTMLElement, renderInfo:RenderInfo, start:DateTime, due:DateTime) {
     const { viewParams } = renderInfo;
     // offset left
-    const offsetStart = start.diff(viewParams.dateDisplayStart, 'days');
+    const offsetStart = start.diff(viewParams.dateDisplayStart, 'days').days;
     element.style.left = calculatePositionValueForDayCount(viewParams, offsetStart);
 
     // duration
-    const duration = due.diff(start, 'days') + 1;
+    const duration = due.diff(start, 'days').plus({ day: 1 }).as('days');
     element.style.width = calculatePositionValueForDayCount(viewParams, duration);
 
     // ensure minimum width
-    if (!_.isNaN(start.valueOf()) || !_.isNaN(due.valueOf())) {
+    if (start.isValid || due.isValid) {
       const minWidth = _.max([renderInfo.viewParams.pixelPerDay, 2]);
       element.style.minWidth = `${minWidth}px`;
     }
   }
 
-  cursorOrDatesAreNonWorking(evOrDates:MouseEvent|Moment[], renderInfo:RenderInfo, direction?:MouseDirection|null):boolean {
+  cursorOrDatesAreNonWorking(evOrDates:MouseEvent|DateTime[], renderInfo:RenderInfo, direction?:MouseDirection|null):boolean {
     if (renderInfo.workPackage.ignoreNonWorkingDays) {
       return false;
     }
@@ -472,10 +472,10 @@ export class TimelineCellRenderer {
       ? [this.cursorDateAndDayOffset(evOrDates, renderInfo)[0]]
       : evOrDates;
     if (!renderInfo.workPackage.ignoreNonWorkingDays && direction === 'both'
-      && (this.weekdayService.isNonWorkingDay(dates[dates.length - 1].toDate() || this.workPackageTimeline.isNonWorkingDay(dates[dates.length - 1].toDate())))) {
+      && (this.weekdayService.isNonWorkingDay(dates[dates.length - 1].toJSDate() || this.workPackageTimeline.isNonWorkingDay(dates[dates.length - 1].toJSDate())))) {
       return false;
     }
-    return dates.some((date) => (this.weekdayService.isNonWorkingDay(date.toDate()) || this.workPackageTimeline.isNonWorkingDay(date.toDate())));
+    return dates.some((date) => (this.weekdayService.isNonWorkingDay(date.toJSDate()) || this.workPackageTimeline.isNonWorkingDay(date.toJSDate())));
   }
 
   /**
@@ -501,10 +501,10 @@ export class TimelineCellRenderer {
 
     // Display the children's duration clamp
     if (wp.derivedStartDate && wp.derivedDueDate) {
-      const derivedStartDate = moment(wp.derivedStartDate);
-      const derivedDueDate = moment(wp.derivedDueDate);
-      const startDate = moment(renderInfo.change.projectedResource.startDate);
-      const dueDate = moment(renderInfo.change.projectedResource.dueDate);
+      const derivedStartDate = DateTime.fromISO(wp.derivedStartDate);
+      const derivedDueDate = DateTime.fromISO(wp.derivedDueDate);
+      const startDate = DateTime.fromISO(renderInfo.change.projectedResource.startDate);
+      const dueDate = DateTime.fromISO(renderInfo.change.projectedResource.dueDate);
       const previousChildrenDurationBar = row.querySelector('.children-duration-bar');
       const childrenDurationBar = document.createElement('div');
       const childrenDurationHoverContainer = document.createElement('div');
@@ -515,7 +515,7 @@ export class TimelineCellRenderer {
       childrenDurationHoverContainer.classList.add('children-duration-hover-container');
       childrenDurationHoverContainer.style.height = `${this.ganttChartRowHeight * visibleChildren + 10}px`;
 
-      if (derivedStartDate.isBefore(startDate) || derivedDueDate.isAfter(dueDate)) {
+      if (derivedStartDate < startDate || derivedDueDate > dueDate) {
         childrenDurationBar.classList.add('-duration-overflow');
       }
 
@@ -532,7 +532,7 @@ export class TimelineCellRenderer {
     // Check for non-working days and display a not-allowed cursor
     // when the startDate, dueDate are non-working days
     const { startDate, dueDate } = renderInfo.change.projectedResource;
-    const invalidDates = this.cursorOrDatesAreNonWorking([moment(startDate), moment(dueDate)], renderInfo, this.mouseDirection);
+    const invalidDates = this.cursorOrDatesAreNonWorking([DateTime.fromISO(startDate), DateTime.fromISO(dueDate)], renderInfo, this.mouseDirection);
 
     if (invalidDates) {
       this.workPackageTimeline.forceCursor('not-allowed');

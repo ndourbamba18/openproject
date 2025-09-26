@@ -36,7 +36,7 @@ import {
 import { I18nService } from 'core-app/core/i18n/i18n.service';
 import { HalResource } from 'core-app/features/hal/resources/hal-resource';
 import { DebouncedEventEmitter } from 'core-app/shared/helpers/rxjs/debounced-event-emitter';
-import { Moment } from 'moment';
+import { DateTime } from 'luxon';
 import { componentDestroyed } from '@w11k/ngx-componentdestroyed';
 import { TimezoneService } from 'core-app/core/datetime/timezone.service';
 import { QueryFilterInstanceResource } from 'core-app/features/hal/resources/query-filter-instance-resource';
@@ -78,7 +78,7 @@ export class FilterDateTimeValueComponent extends AbstractDateTimeValueControlle
     this.filterChanged.emit(this.filter);
   }
 
-  public get lowerBoundary():Moment|null {
+  public get lowerBoundary():DateTime|null {
     if (this.value && this.timezoneService.isValidISODateTime(this.valueString)) {
       return this.timezoneService.parseDatetime(this.valueString);
     }
@@ -86,9 +86,9 @@ export class FilterDateTimeValueComponent extends AbstractDateTimeValueControlle
     return null;
   }
 
-  public get upperBoundary():Moment|null {
+  public get upperBoundary():DateTime|null {
     if (this.value && this.timezoneService.isValidISODateTime(this.valueString)) {
-      return this.timezoneService.parseDatetime(this.valueString).add(24, 'hours');
+      return this.timezoneService.parseDatetime(this.valueString).plus({ hours: 24 });
     }
 
     return null;

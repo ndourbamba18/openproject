@@ -33,8 +33,8 @@ import URI from 'urijs';
 import { WorkPackageResource } from 'core-app/features/hal/resources/work-package-resource';
 import { ApiV3Service } from 'core-app/core/apiv3/api-v3.service';
 import { WorkDisplayField } from 'core-app/shared/components/fields/display/field-types/work-display-field.module';
-import moment from 'moment-timezone';
 import { TurboRequestsService } from 'core-app/core/turbo/turbo-requests.service';
+import { DateTime } from 'luxon';
 
 export class WorkPackageSpentTimeDisplayField extends WorkDisplayField {
   public text = {
@@ -117,7 +117,7 @@ export class WorkPackageSpentTimeDisplayField extends WorkDisplayField {
     this.workPackageForHandler = wp;
 
     void this.TurboRequests.request(
-      `${this.PathHelper.timeEntryWorkPackageDialog(wp.id as string)}?date=${moment().format('YYYY-MM-DD')}`,
+      `${this.PathHelper.timeEntryWorkPackageDialog(wp.id as string)}?date=${DateTime.now().toISODate()}`,
       { method: 'GET' },
     );
   }

@@ -27,7 +27,7 @@
 //++
 
 import { jsonArrayMember, jsonMember, jsonObject } from 'typedjson';
-import moment, { Moment } from 'moment';
+import { DateTime } from 'luxon';
 
 @jsonObject
 export class BcfTopicAuthorizationMap {
@@ -64,14 +64,14 @@ export class BcfTopicResource {
   @jsonArrayMember(String)
   labels:string[];
 
-  @jsonMember({ deserializer: (value) => moment(value), serializer: (timestamp:Moment) => timestamp.toISOString() })
-  creation_date:Moment;
+  @jsonMember({ deserializer: (value:string) => DateTime.fromISO(value), serializer: (timestamp:DateTime) => timestamp.toUTC().toISO() })
+  creation_date:DateTime;
 
   @jsonMember
   creation_author:string;
 
-  @jsonMember({ deserializer: (value) => moment(value), serializer: (timestamp:Moment) => timestamp.toISOString() })
-  modified_date:Moment;
+  @jsonMember({ deserializer: (value:string) => DateTime.fromISO(value), serializer: (timestamp:DateTime) => timestamp.toUTC().toISO() })
+  modified_date:DateTime;
 
   @jsonMember({ preserveNull: true })
   modified_author:string|null;
@@ -86,10 +86,10 @@ export class BcfTopicResource {
   description:string;
 
   @jsonMember({
-    deserializer: (value) => moment(value),
-    serializer: (timestamp:Moment) => timestamp.format('YYYY-MM-DD'),
+    deserializer: (value:string) => DateTime.fromISO(value),
+    serializer: (timestamp:DateTime) => timestamp.toISODate(),
   })
-  due_date:Moment;
+  due_date:DateTime;
 
   @jsonMember
   authorization:BcfTopicAuthorizationMap;

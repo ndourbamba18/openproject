@@ -182,7 +182,7 @@ export class OpAttachmentsComponent extends UntilDestroyedMixin implements OnIni
     const compareCreatedAtTimestamps = (a:IAttachment, b:IAttachment):number => {
       const rightCreatedAt = this.timezoneService.parseDatetime(b.createdAt);
       const leftCreatedAt = this.timezoneService.parseDatetime(a.createdAt);
-      return rightCreatedAt.isBefore(leftCreatedAt) ? -1 : 1;
+      return rightCreatedAt < leftCreatedAt ? -1 : 1;
     };
 
     this.attachments$ = this

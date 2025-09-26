@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DisplayedDays } from 'core-app/features/calendar/te-calendar/te-calendar.component';
-import moment from 'moment-timezone';
+import { getLocaleOrderedWeekdays } from 'core-app/shared/helpers/date-time-helpers';
+import { Info } from 'luxon';
 
 @Injectable()
 export class TimeEntriesCurrentUserConfigurationModalService {
@@ -14,8 +15,8 @@ export class TimeEntriesCurrentUserConfigurationModalService {
 
   getOrderedDaysData(
     daysCheckedValues:boolean[],
-    localeWeekDays = moment.weekdays(true),
-    localeOffset = moment.localeData().firstDayOfWeek(),
+    localeWeekDays = getLocaleOrderedWeekdays(),
+    localeOffset = Info.getStartOfWeek()
   ):IDayData[] {
     // The daysCheckedValues come with offset 1 (the week start day is Monday (1),
     // so the first element in the array is Monday). We have to subtract 1 to the
@@ -24,7 +25,7 @@ export class TimeEntriesCurrentUserConfigurationModalService {
     // daysCheckedValues (with offset 1) = [MondayValue, TuesdayValue, WednesdayValue, ThursdayValue, FridayValue, SaturdayValue, SundayValue]
     // offsetToApply = -1, so we need to pass the last daysCheckedValues to the start of the array to match the localeWeekDays order
     // In order save the result, we will have to reorder it with offset 1 (getCheckedValuesInOriginalOrder)
-    const offsetToApply = localeOffset - 1;
+    const offsetToApply = localeOffset % 7 - 1;
     const checkedValues = Array.from(daysCheckedValues);
     const offsetCheckedValues = offsetToApply >= 0 ? checkedValues.splice(0, offsetToApply) : checkedValues.splice(offsetToApply);
     const orderedDaysCheckedValues = offsetToApply >= 0 ? [...checkedValues, ...offsetCheckedValues] : [...offsetCheckedValues, ...checkedValues];

@@ -25,7 +25,7 @@
 //
 // See COPYRIGHT and LICENSE files for more details.
 //++
-import moment from 'moment';
+import { DateTime } from 'luxon';
 import flatpickr from 'flatpickr';
 import { Instance } from 'flatpickr/dist/types/instance';
 import { ConfigurationService } from 'core-app/core/config/configuration.service';
@@ -132,7 +132,7 @@ export class DatePicker {
     return {
       weekNumbers: true,
       getWeek(dateObj:Date) {
-        return moment(dateObj).format('W');
+        return DateTime.fromJSDate(dateObj).toFormat('W');
       },
       dateFormat: this.datepickerFormat,
       defaultDate: this.date,

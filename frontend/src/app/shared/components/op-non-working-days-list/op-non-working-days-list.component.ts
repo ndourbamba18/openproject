@@ -27,8 +27,8 @@ import { opIconElement } from 'core-app/shared/helpers/op-icon-builder';
 import { ConfirmDialogService } from 'core-app/shared/components/modals/confirm-dialog/confirm-dialog.service';
 import { ConfirmDialogOptions } from '../modals/confirm-dialog/confirm-dialog.modal';
 import { ToastService } from 'core-app/shared/components/toaster/toast.service';
-import moment from 'moment-timezone';
 import allLocales from '@fullcalendar/core/locales-all';
+import { DateTime } from 'luxon';
 
 
 export interface INonWorkingDay {
@@ -189,7 +189,7 @@ export class OpNonWorkingDaysListComponent implements OnInit, AfterViewInit {
     return this
       .nonWorkingDays
       .filter((el) => el._destroy)
-      .map((el) => moment(el.date).format('MMMM DD, YYYY'));
+      .map((el) => DateTime.fromISO(el.date).toFormat('MMMM dd, yyyy'));
   }
 
   // Initializes nonWorkingDays from the API

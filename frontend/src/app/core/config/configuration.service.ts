@@ -27,8 +27,7 @@
 //++
 
 import { Injectable } from '@angular/core';
-import moment from 'moment';
-
+import { DateTime, Settings } from 'luxon';
 import { ConfigurationResource } from 'core-app/features/hal/resources/configuration-resource';
 import { ApiV3Service } from 'core-app/core/apiv3/api-v3.service';
 import { type DurationFormat } from 'core-app/shared/helpers/chronic_duration';
@@ -96,12 +95,12 @@ export class ConfigurationService {
     return this.systemPreference('allowedLinkProtocols') || null;
   }
 
-  public dateFormatPresent():boolean {
-    return !!this.systemPreference('dateFormat');
+  public dateFormat():string|null {
+    return this.systemPreference('dateFormat') ?? null;
   }
 
-  public dateFormat():string {
-    return this.systemPreference('dateFormat');
+  public dateFormatOptions():Intl.DateTimeFormatOptions {
+    return this.systemPreference('dateFormatOptions') ?? {...DateTime.DATE_SHORT, month: '2-digit' };
   }
 
   public durationFormat():DurationFormat {
@@ -120,12 +119,12 @@ export class ConfigurationService {
     return this.systemPreference('daysPerMonth');
   }
 
-  public timeFormatPresent():boolean {
-    return !!this.systemPreference('timeFormat');
+  public timeFormat():string|null {
+    return this.systemPreference('timeFormat') ?? null;
   }
 
-  public timeFormat():string {
-    return this.systemPreference('timeFormat');
+  public timeFormatOptions():Intl.DateTimeFormatOptions {
+    return this.systemPreference('timeFormatOptions') ?? DateTime.TIME_SIMPLE;
   }
 
   public defaultTimezone():string {
@@ -140,7 +139,7 @@ export class ConfigurationService {
     if (this.startOfWeekPresent()) {
       return this.systemPreference('startOfWeek');
     }
-    return moment.localeData(I18n.locale).firstDayOfWeek();
+    return Settings.defaultWeekSettings?.firstDay ?? 1;
   }
 
   public get hostName():string {

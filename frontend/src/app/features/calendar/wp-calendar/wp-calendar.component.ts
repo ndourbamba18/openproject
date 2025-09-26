@@ -45,7 +45,7 @@ import {
 } from '@fullcalendar/core';
 import { FullCalendarComponent } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import moment from 'moment';
+import { DateTime } from 'luxon';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
@@ -204,8 +204,8 @@ export class WorkPackagesCalendarComponent extends UntilDestroyedMixin implement
       return;
     }
 
-    const startDate = moment(fetchInfo.start).format('YYYY-MM-DD');
-    const endDate = moment(fetchInfo.end).format('YYYY-MM-DD');
+    const startDate = DateTime.fromJSDate(fetchInfo.start).toISODate()!;
+    const endDate = DateTime.fromJSDate(fetchInfo.end).toISODate()!;
 
     const filters = new ApiV3FilterBuilder();
     filters.add('datesInterval', '<>d', [startDate, endDate]);
@@ -225,8 +225,8 @@ export class WorkPackagesCalendarComponent extends UntilDestroyedMixin implement
           const title:string = sameProject ? meeting.title : `${meeting.project.name}: ${meeting.title}`;
           return {
             title,
-            start: this.timezoneService.parseDatetime(meeting.startTime as string).format(),
-            end: this.timezoneService.parseDatetime(meeting.endTime as string).format(),
+            start: this.timezoneService.parseDatetime(meeting.startTime).toISO({ suppressMilliseconds: true }),
+            end: this.timezoneService.parseDatetime(meeting.endTime).toISO({ suppressMilliseconds: true }),
             editable: false,
             durationEditable: false,
             allDay: false,
@@ -296,8 +296,8 @@ export class WorkPackagesCalendarComponent extends UntilDestroyedMixin implement
         el.dataset.workPackageId = workPackage.id as string;
       },
       eventResize: (resizeInfo:EventResizeDoneArg) => {
-        const due = moment(resizeInfo.event.endStr).subtract(1, 'day').toDate();
-        const start = moment(resizeInfo.event.startStr).toDate();
+        const due = DateTime.fromISO(resizeInfo.event.endStr).minus({ day: 1 });
+        const start = DateTime.fromISO(resizeInfo.event.startStr);
         const wp = resizeInfo.event.extendedProps.workPackage as WorkPackageResource;
         if (!wp.ignoreNonWorkingDays && (this.weekdayService.isNonWorkingDay(start) || this.weekdayService.isNonWorkingDay(due)
           || this.workPackagesCalendar.isNonWorkingDay(start) || this.workPackagesCalendar.isNonWorkingDay(due))) {
@@ -308,7 +308,7 @@ export class WorkPackagesCalendarComponent extends UntilDestroyedMixin implement
         void this.updateEvent(resizeInfo, false);
       },
       eventDrop: (dropInfo:EventDropArg) => {
-        const start = moment(dropInfo.event.startStr).toDate();
+        const start = DateTime.fromISO(dropInfo.event.startStr);
         const wp = dropInfo.event.extendedProps.workPackage as WorkPackageResource;
         if (!wp.ignoreNonWorkingDays && (this.weekdayService.isNonWorkingDay(start) || this.workPackagesCalendar.isNonWorkingDay(start))) {
           this.toastService.addError(this.text.cannot_drag_to_non_working_day);
@@ -401,7 +401,7 @@ export class WorkPackagesCalendarComponent extends UntilDestroyedMixin implement
       const startDate = this.workPackagesCalendar.eventDate(workPackage, 'start');
       const endDate = this.workPackagesCalendar.eventDate(workPackage, 'due');
 
-      const exclusiveEnd = endDate && moment(endDate).add(1, 'days').format('YYYY-MM-DD');
+      const exclusiveEnd = endDate && DateTime.fromISO(endDate).plus({ day: 1 }).toISODate()!;
       // An event is visible on the calendar only if it has a start date.
       // That's why the end date is used as event start date if the work package
       // does not have a proper start date.
@@ -434,7 +434,7 @@ export class WorkPackagesCalendarComponent extends UntilDestroyedMixin implement
   }
 
   private handleDateClicked(info:DateSelectArg) {
-    const due = moment(info.endStr).subtract(1, 'day').toDate();
+    const due = DateTime.fromISO(info.endStr).minus({ day: 1 });
     const nonWorkingDays = this.weekdayService.isNonWorkingDay(info.start) || this.weekdayService.isNonWorkingDay(due)
       || this.workPackagesCalendar.isNonWorkingDay(info.start) || this.workPackagesCalendar.isNonWorkingDay(due);
 

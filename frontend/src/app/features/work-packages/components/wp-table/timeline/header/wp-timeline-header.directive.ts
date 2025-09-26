@@ -28,7 +28,7 @@
 
 import { Component, ElementRef, OnInit } from '@angular/core';
 import { WorkPackageTimelineTableController } from 'core-app/features/work-packages/components/wp-table/timeline/container/wp-timeline-container.directive';
-import moment, { Moment } from 'moment';
+import { DateTime, DateTimeUnit } from 'luxon';
 import { I18nService } from 'core-app/core/i18n/i18n.service';
 import { WorkPackageViewTimelineService } from 'core-app/features/work-packages/routing/wp-view-base/view-services/wp-view-timeline.service';
 import { TimelineZoomLevel } from 'core-app/features/hal/resources/query-resource';
@@ -98,61 +98,61 @@ export class WorkPackageTimelineHeaderController implements OnInit {
 
   private renderLabelsDays(vp:TimelineViewParameters) {
     this.renderTimeSlices(vp, 'month', 0, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('MMM YYYY');
+      cell.innerHTML = start.toFormat('MMM yyyy');
       cell.classList.add('wp-timeline--header-top-bold-element');
       cell.style.height = '13px';
     });
 
     this.renderTimeSlices(vp, 'week', 13, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('ww');
+      cell.innerHTML = start.toFormat('WW');
       cell.classList.add('-top-border');
       cell.style.height = '32px';
     });
 
     this.renderTimeSlices(vp, 'day', 23, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('D');
+      cell.innerHTML = start.toFormat('d');
       cell.classList.add('-top-border');
       cell.style.height = '22px';
     });
 
     this.renderTimeSlices(vp, 'day', 33, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('dd');
+      cell.innerHTML = start.toFormat('dd');
       cell.classList.add('wp-timeline--header-day-element');
     });
   }
 
   private renderLabelsWeeks(vp:TimelineViewParameters) {
     this.renderTimeSlices(vp, 'month', 0, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('MMM YYYY');
+      cell.innerHTML = start.toFormat('MMM yyyy');
       cell.classList.add('wp-timeline--header-top-bold-element');
     });
 
     this.renderTimeSlices(vp, 'week', 15, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('ww');
+      cell.innerHTML = start.toFormat('WW');
       cell.classList.add('-top-border');
       cell.style.height = '22px';
     });
 
     this.renderTimeSlices(vp, 'day', 25, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('D');
+      cell.innerHTML = start.toFormat('d');
       cell.classList.add('wp-timeline--header-middle-element');
     });
   }
 
   private renderLabelsMonths(vp:TimelineViewParameters) {
     this.renderTimeSlices(vp, 'year', 0, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('YYYY');
+      cell.innerHTML = start.toFormat('yyyy');
       cell.classList.add('wp-timeline--header-top-bold-element');
     });
 
     this.renderTimeSlices(vp, 'month', 15, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('MMM');
+      cell.innerHTML = start.toFormat('MMM');
       cell.classList.add('-top-border');
       cell.style.height = '30px';
     });
 
     this.renderTimeSlices(vp, 'week', 25, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('ww');
+      cell.innerHTML = start.toFormat('WW');
       cell.classList.add('wp-timeline--header-middle-element');
     });
   }
@@ -160,62 +160,62 @@ export class WorkPackageTimelineHeaderController implements OnInit {
   private renderLabelsQuarters(vp:TimelineViewParameters) {
     this.renderTimeSlices(vp, 'year', 0, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
       cell.classList.add('wp-timeline--header-top-bold-element');
-      cell.innerHTML = start.format('YYYY');
+      cell.innerHTML = start.toFormat('yyyy');
     });
 
     this.renderTimeSlices(vp, 'quarter', 15, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
       cell.innerHTML = this.I18n.t('js.gantt_chart.quarter_label',
-        { quarter_number: start.format('Q') });
+        { quarter_number: start.quarter });
       cell.classList.add('-top-border');
       cell.style.height = '30px';
     });
 
     this.renderTimeSlices(vp, 'month', 25, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('MMM');
+      cell.innerHTML = start.toFormat('MMM');
       cell.classList.add('wp-timeline--header-middle-element');
     });
   }
 
   private renderLabelsYears(vp:TimelineViewParameters) {
     this.renderTimeSlices(vp, 'year', 0, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('YYYY');
+      cell.innerHTML = start.toFormat('yyyy');
       cell.classList.add('wp-timeline--header-top-bold-element');
     });
 
     this.renderTimeSlices(vp, 'quarter', 15, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
       cell.innerHTML = this.I18n.t('js.gantt_chart.quarter_label',
-        { quarter_number: start.format('Q') });
+        { quarter_number: start.quarter });
       cell.classList.add('-top-border');
       cell.style.height = '30px';
     });
 
     this.renderTimeSlices(vp, 'month', 25, vp.dateDisplayStart, vp.dateDisplayEnd, (start, cell) => {
-      cell.innerHTML = start.format('M');
+      cell.innerHTML = start.toFormat('M');
       cell.classList.add('wp-timeline--header-middle-element');
     });
   }
 
   private renderTimeSlices(vp:TimelineViewParameters,
-    unit:moment.unitOfTime.DurationConstructor,
+    unit:DateTimeUnit,
     marginTop:number,
-    startView:Moment,
-    endView:Moment,
-    cellCallback:(start:Moment, cell:HTMLElement) => void) {
+    startView:DateTime,
+    endView:DateTime,
+    cellCallback:(start:DateTime, cell:HTMLElement) => void) {
     const { inViewportAndBoundaries, rest } = getTimeSlicesForHeader(vp, unit, startView, endView);
 
     for (const [start, end] of inViewportAndBoundaries) {
       const cell = this.addLabelCell();
       cell.style.top = `${marginTop}px`;
-      cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days'));
-      cell.style.width = calculatePositionValueForDayCount(vp, end.diff(start, 'days') + 1);
+      cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days').days);
+      cell.style.width = calculatePositionValueForDayCount(vp, end.diff(start, 'days').days + 1);
       cellCallback(start, cell);
     }
     setTimeout(() => {
       for (const [start, end] of rest) {
         const cell = this.addLabelCell();
         cell.style.top = `${marginTop}px`;
-        cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days'));
-        cell.style.width = calculatePositionValueForDayCount(vp, end.diff(start, 'days') + 1);
+        cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days').days);
+        cell.style.width = calculatePositionValueForDayCount(vp, end.diff(start, 'days').days + 1);
         cellCallback(start, cell);
       }
     }, 0);

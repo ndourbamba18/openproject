@@ -39,8 +39,9 @@ import { TimezoneService } from 'core-app/core/datetime/timezone.service';
 import { WeekdayService } from 'core-app/core/days/weekday.service';
 import { DayResourceService } from 'core-app/core/state/days/day.service';
 import { WorkPackageResource } from 'core-app/features/hal/resources/work-package-resource';
-import moment, { Moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import { QueryFilterInstanceResource } from 'core-app/features/hal/resources/query-filter-instance-resource';
+import { DateLike, toDateTime } from 'core-app/shared/helpers/date-time-helpers';
 
 export const DEFAULT_TIMESTAMP = 'PT0S';
 export const BASELINE_INCOMPATIBLE_FILTERS = [
@@ -96,15 +97,15 @@ export class WorkPackageViewBaselineService extends WorkPackageQueryStateService
   }
 
   public yesterdayDate():string {
-    return moment().subtract(1, 'days').format('YYYY-MM-DD');
+    return DateTime.now().minus({ day: 1 }).toISODate();
   }
 
   public lastMonthDate():string {
-    return moment().subtract(1, 'month').format('YYYY-MM-DD');
+    return DateTime.now().minus({ month: 1 }).toISODate();
   }
 
   public lastweekDate():string {
-    return moment().subtract(1, 'week').format('YYYY-MM-DD');
+    return DateTime.now().minus({ week: 1 }).toISODate();
   }
 
   requireNonWorkingDaysOfTwoYears() {
@@ -122,19 +123,19 @@ export class WorkPackageViewBaselineService extends WorkPackageQueryStateService
     return nonWorkingDays$;
   }
 
-  isNonWorkingDay(date:Moment|string):boolean {
-    const formatted = moment(date).format('YYYY-MM-DD');
+  isNonWorkingDay(date:DateLike):boolean {
+    const formatted = toDateTime(date).toISODate();
     return (this.nonWorkingDays.findIndex((el) => el.date === formatted) !== -1);
   }
 
   public lastWorkingDate():string {
-    const date = moment().subtract(1, 'days');
+    let date = DateTime.now().minus({ day: 1 });
     // eslint-disable-next-line no-constant-condition
     while (true) {
       if (this.isNonWorkingDay(date) || this.weekdaysService.isNonWorkingDay(date)) {
-        date.subtract(1, 'days');
+        date = date.minus({ day: 1 });
       } else {
-        return date.format('YYYY-MM-DD');
+        return date.toISODate();
       }
     }
   }

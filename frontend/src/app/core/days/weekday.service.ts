@@ -30,7 +30,6 @@ import {
   Injectable,
   Injector,
 } from '@angular/core';
-import moment, { Moment } from 'moment';
 import {
   take,
   tap,
@@ -42,6 +41,7 @@ import {
   Observable,
   of,
 } from 'rxjs';
+import { DateLike, toDateTime } from 'core-app/shared/helpers/date-time-helpers';
 
 @Injectable({ providedIn: 'root' })
 export class WeekdayService {
@@ -57,8 +57,9 @@ export class WeekdayService {
    * @param date The iso day number (1-7) or a date instance
    * @return {boolean} whether the given iso day is working or not
    */
-  public isNonWorkingDay(date:Moment|Date|number):boolean {
-    const isoDayOfWeek = (typeof date === 'number') ? date : moment(date).isoWeekday();
+  public isNonWorkingDay(date:DateLike|number):boolean {
+    const isoDayOfWeek = typeof date === 'number' ? date : toDateTime(date).weekday;
+
     return !!(this.weekdays || []).find((wd) => wd.day === isoDayOfWeek && !wd.working);
   }
 

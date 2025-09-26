@@ -22,7 +22,7 @@ import {
   FormGroupDirective,
 } from '@angular/forms';
 import { ConfigurationService } from 'core-app/core/config/configuration.service';
-import moment from 'moment';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'op-reminder-settings-daily-time',
@@ -161,7 +161,7 @@ export class ReminderSettingsDailyTimeComponent implements OnInit {
     this.inactiveTimes
       .forEach((inactiveTime) => {
         if (inactiveTime.position > index) {
-          // eslint-disable-next-line no-param-reassign
+
           inactiveTime.position -= 1;
         }
       });
@@ -195,11 +195,10 @@ export class ReminderSettingsDailyTimeComponent implements OnInit {
       .I18n
       .toTime(
         'time.formats.time',
-        ReminderSettingsDailyTimeComponent.dateForHour(parseInt(time.split(':')[0], 10)),
+        ReminderSettingsDailyTimeComponent.dateForHour(parseInt(time.split(':')[0], 10)).toJSDate(),
       );
   }
 
-  // eslint-disable-next-line class-methods-use-this
   isDisabled(time:string, activeTimes:string[]):boolean {
     return activeTimes.length === 0 || (activeTimes.length === 1 && activeTimes[0] === time);
   }
@@ -238,16 +237,13 @@ export class ReminderSettingsDailyTimeComponent implements OnInit {
   }
 
   private static setupAvailableTimes() {
-    return Array.from({ length: 24 }, (v, i) => ReminderSettingsDailyTimeComponent
+    return Array.from({ length: 24 }, (_v, i) => ReminderSettingsDailyTimeComponent
       .dateForHour(i)
-      .toLocaleTimeString('en-US', { hour12: false, hour: 'numeric', minute: 'numeric' }));
+      .setLocale('en-US')
+      .toLocaleString({ hour12: false, hour: 'numeric', minute: 'numeric' }));
   }
 
-  private static dateForHour(hour:number) {
-    const currentTime = new Date();
-    currentTime.setTime(1000 * 60 * 60 * (hour - 1));
-    const convertTimeObject = new Date(moment(currentTime).utc().hours(hour).format('YYYY-MM-DDTHH:mm:ss'));
-
-    return convertTimeObject;
+  private static dateForHour(hour:number):DateTime {
+    return DateTime.local().set({ hour }).startOf('hour');
   }
 }

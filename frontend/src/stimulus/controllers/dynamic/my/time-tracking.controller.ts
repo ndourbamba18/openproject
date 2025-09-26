@@ -3,11 +3,10 @@ import { Calendar, EventApi } from '@fullcalendar/core';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import momentTimezonePlugin from '@fullcalendar/moment-timezone';
-import { toMoment } from '@fullcalendar/moment';
+import luxonPlugin, { toLuxonDateTime } from '@fullcalendar/luxon3';
 import { TurboRequestsService } from 'core-app/core/turbo/turbo-requests.service';
 import { PathHelperService } from 'core-app/core/path-helper/path-helper.service';
-import moment from 'moment';
+import { DateTime, Duration } from 'luxon';
 import allLocales from '@fullcalendar/core/locales-all';
 import { renderStreamMessage } from '@hotwired/turbo';
 import { opStopwatchStopIconData, toDOMString } from '@openproject/octicons-angular';
@@ -85,7 +84,7 @@ export default class MyTimeTrackingController extends Controller {
 
   initializeCalendar() {
     this.calendar = new Calendar(this.calendarTarget, {
-      plugins: [timeGridPlugin, dayGridPlugin, interactionPlugin, momentTimezonePlugin],
+      plugins: [timeGridPlugin, dayGridPlugin, interactionPlugin, luxonPlugin],
       initialView: this.calendarView(),
       locales: allLocales,
       locale: this.localeValue,
@@ -133,7 +132,7 @@ export default class MyTimeTrackingController extends Controller {
         }
 
         if (!info.event.allDay) {
-          const time = `${toMoment(info.event.start!, this.calendar).format('LT')} - ${toMoment(info.event.end!, this.calendar).format('LT')}`;
+          const time = `${toLuxonDateTime(info.event.start!, this.calendar).toLocaleString(DateTime.TIME_SIMPLE)} - ${toLuxonDateTime(info.event.end!, this.calendar).toLocaleString(DateTime.TIME_SIMPLE)}`;
           timeDetails = `<div class="fc-event-times" title="${time}">${time}</div>`;
         }
 
@@ -180,15 +179,15 @@ export default class MyTimeTrackingController extends Controller {
           return;
         }
 
-        const startMoment = toMoment(info.event.start, this.calendar);
+        const startDateTime = toLuxonDateTime(info.event.start, this.calendar);
         const newEventHours = this.calculateHours(info.event);
 
         info.event.setExtendedProp('hours', newEventHours);
 
         this.updateTimeEntry(
           info.event.id,
-          startMoment.format('YYYY-MM-DD'),
-          info.event.allDay ? null : startMoment.format('HH:mm'),
+          startDateTime.toISODate()!,
+          info.event.allDay ? null : startDateTime.toFormat('HH:mm'),
           newEventHours,
           info.revert,
         );
@@ -198,7 +197,7 @@ export default class MyTimeTrackingController extends Controller {
         // When dragging from all day into the calendar set the defaultTimedEventDuration to the hours of the event so
         // that we display it correctly in the calendar. Will be reset in the drop event
         if (info.event.allDay) {
-          this.calendar.setOption('defaultTimedEventDuration', moment.duration(info.event.extendedProps.hours as number, 'hours').asMilliseconds());
+          this.calendar.setOption('defaultTimedEventDuration', Duration.fromObject({ hours: info.event.extendedProps.hours }).toMillis());
         }
       },
 
@@ -219,21 +218,21 @@ export default class MyTimeTrackingController extends Controller {
       },
 
       eventDrop: (info) => {
-        const startMoment = toMoment(info.event.start!, this.calendar);
+        const startDateTime = toLuxonDateTime(info.event.start!, this.calendar);
 
         this.updateTimeEntry(
           info.event.id,
-          startMoment.format('YYYY-MM-DD'),
-          info.event.allDay ? null : startMoment.format('HH:mm'),
+          startDateTime.toISODate()!,
+          info.event.allDay ? null : startDateTime.toFormat('HH:mm'),
           info.event.extendedProps.hours as number,
           info.revert,
         );
 
         if (!info.event.allDay) {
           info.event.setEnd(
-            startMoment
-              .add(info.event.extendedProps.hours as number, 'hours')
-              .toDate(),
+            startDateTime
+              .plus({ hours: info.event.extendedProps.hours as number })
+              .toJSDate(),
           );
         }
 
@@ -290,9 +289,9 @@ export default class MyTimeTrackingController extends Controller {
       if (!eventStart) return;
 
       // Format event date for comparison
-      const eventDateStr = toMoment(eventStart, this.calendar).format('YYYY-MM-DD');
+      const eventDateStr = toLuxonDateTime(eventStart, this.calendar).toISODate()!;
 
-      if (eventDateStr === dayStr && event.extendedProps && event.extendedProps.hours) {
+      if (eventDateStr === dayStr && event.extendedProps?.hours) {
         totalHours += event.extendedProps.hours as number;
       }
     });
@@ -420,10 +419,10 @@ export default class MyTimeTrackingController extends Controller {
       return 0;
     }
 
-    const startMoment = toMoment(start, this.calendar);
-    const endMoment = toMoment(end, this.calendar);
+    const startDateTime = toLuxonDateTime(start, this.calendar);
+    const endDateTime = toLuxonDateTime(end, this.calendar);
 
-    return moment.duration(endMoment.diff(startMoment)).asHours();
+    return endDateTime.diff(startDateTime).as('hours');
   }
 
   calendarView():string {

@@ -426,28 +426,20 @@ module ApplicationHelper
 
   def locale_first_day_of_week
     case Setting.start_of_week.to_i
-    when 1
-      "1" # Monday
-    when 7
-      "0" # Sunday
-    when 6
-      "6" # Saturday
+    in 1 | 6 | 7 => value # Monday, Saturday, Sunday
+      value
     else
-      # use language default (pass a blank string) and moment.js will reuse existing info
-      # /frontend/src/main.ts
+      # use language default (pass a blank string)
       ""
     end
   end
 
   def locale_first_week_of_year
     case Setting.first_week_of_year.to_i
-    when 1
-      "1" # Monday
-    when 4
-      "4" # Thursday
+    in 1 | 4 => value # Monday, Thursday
+      value
     else
-      # use language default (pass a blank string) and moment.js will reuse existing info
-      # /frontend/src/main.ts
+      # use language default (pass a blank string)
       ""
     end
   end

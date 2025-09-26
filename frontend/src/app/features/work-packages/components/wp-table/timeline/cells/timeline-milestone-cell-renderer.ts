@@ -1,4 +1,4 @@
-import moment, { Moment } from 'moment';
+import { DateTime } from 'luxon';
 import { WorkPackageResource } from 'core-app/features/hal/resources/work-package-resource';
 import { WorkPackageChangeset } from 'core-app/features/work-packages/components/wp-edit/work-package-changeset';
 import {
@@ -30,8 +30,8 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
   }
 
   public isEmpty(wp:WorkPackageResource) {
-    const date = moment(wp.date as any);
-    return _.isNaN(date.valueOf());
+    const date = DateTime.fromISO(wp.date);
+    return !date.isValid;
   }
 
   public canMoveDates(wp:WorkPackageResource) {
@@ -77,14 +77,14 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
    * Handle movement by <delta> days of milestone.
    */
   public onDaysMoved(change:WorkPackageChangeset,
-    dayUnderCursor:Moment,
+    dayUnderCursor:DateTime,
     delta:number,
     _direction:MouseDirection):CellDateMovement {
     const initialDate = change.pristineResource.date;
     const dates:CellDateMovement = {};
 
     if (initialDate) {
-      dates.date = moment(initialDate).add(delta, 'days');
+      dates.date = DateTime.fromISO(initialDate).plus({ days: delta });
     }
 
     return dates;
@@ -117,10 +117,10 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
 
   public update(element:HTMLDivElement, labels:WorkPackageCellLabels|null, renderInfo:RenderInfo):boolean {
     const { viewParams } = renderInfo;
-    const date = moment(renderInfo.change.projectedResource.date);
+    const date = DateTime.fromISO(renderInfo.change.projectedResource.date);
 
     // abort if no date
-    if (_.isNaN(date.valueOf())) {
+    if (!date.isValid) {
       return false;
     }
 
@@ -134,7 +134,7 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
     this.applyTypeColor(renderInfo, diamond);
 
     // offset left
-    const offsetStart = date.diff(viewParams.dateDisplayStart, 'days');
+    const offsetStart = date.diff(viewParams.dateDisplayStart, 'days').days;
     element.style.left = `${calculatePositionValueForDayCountingPx(viewParams, offsetStart)}px`;
 
     // Update labels if any
@@ -149,8 +149,8 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
 
   getMarginLeftOfLeftSide(renderInfo:RenderInfo):number {
     const { change } = renderInfo;
-    const start = moment(change.projectedResource.date);
-    const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days');
+    const start = DateTime.fromISO(change.projectedResource.date);
+    const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days').days;
     return calculatePositionValueForDayCountingPx(renderInfo.viewParams, offsetStart);
   }
 

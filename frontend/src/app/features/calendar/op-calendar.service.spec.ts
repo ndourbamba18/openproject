@@ -41,27 +41,27 @@ describe('OP calendar service', () => {
 
   describe('stripYearFromDateFormat', () => {
     it('from dotted syntax', () => {
-      expect(service.stripYearFromDateFormat('DD.MM.YYYY')).toEqual('DD.MM.');
+      expect(service.stripYearFromDateFormat('dd.MM.yyyy')).toEqual('dd.MM.');
     });
 
     it('from slash syntax', () => {
-      expect(service.stripYearFromDateFormat('MM/DD/YYYY')).toEqual('MM/DD');
-      expect(service.stripYearFromDateFormat('DD/MM/YYYY')).toEqual('DD/MM');
+      expect(service.stripYearFromDateFormat('MM/dd/yyyy')).toEqual('MM/dd');
+      expect(service.stripYearFromDateFormat('dd/MM/yyyy')).toEqual('dd/MM');
     });
 
     it('from dash syntax', () => {
-      expect(service.stripYearFromDateFormat('DD-MM-YYYY')).toEqual('DD-MM');
-      expect(service.stripYearFromDateFormat('YYYY-MM-DD')).toEqual('MM-DD');
+      expect(service.stripYearFromDateFormat('dd-MM-yyyy')).toEqual('dd-MM');
+      expect(service.stripYearFromDateFormat('yyyy-MM-dd')).toEqual('MM-dd');
     });
 
     it('from spaced syntax', () => {
-      expect(service.stripYearFromDateFormat('DD MMM YYYY')).toEqual('DD MMM');
-      expect(service.stripYearFromDateFormat('DD MMMM YYYY')).toEqual('DD MMMM');
+      expect(service.stripYearFromDateFormat('dd MMM yyyy')).toEqual('dd MMM');
+      expect(service.stripYearFromDateFormat('dd MMMM yyyy')).toEqual('dd MMMM');
     });
 
     it('from comma syntax', () => {
-      expect(service.stripYearFromDateFormat('MMM DD, YYYY')).toEqual('MMM DD');
-      expect(service.stripYearFromDateFormat('MMMM DD, YYY')).toEqual('MMMM DD');
+      expect(service.stripYearFromDateFormat('MMM dd, yyyy')).toEqual('MMM dd');
+      expect(service.stripYearFromDateFormat('MMMM dd, yy')).toEqual('MMMM dd');
     });
   });
 });

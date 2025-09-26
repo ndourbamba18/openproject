@@ -26,14 +26,14 @@
 // See COPYRIGHT and LICENSE files for more details.
 //++
 
-import moment from 'moment';
+import { DateTime } from 'luxon';
 import { calculatePositionValueForDayCount, TimelineViewParameters } from '../wp-timeline';
 import { TimelineStaticElement } from './timeline-static-element';
 
 export class TodayLineElement extends TimelineStaticElement {
   protected finishElement(elem:HTMLElement, vp:TimelineViewParameters):HTMLElement {
-    const offsetToday = vp.now.diff(vp.dateDisplayStart, 'days');
-    const dayProgress = moment().hour() / 24;
+    const offsetToday = vp.now.diff(vp.dateDisplayStart, 'days').days;
+    const dayProgress = DateTime.now().hour / 24;
     elem.style.left = calculatePositionValueForDayCount(vp, offsetToday + dayProgress);
 
     return elem;

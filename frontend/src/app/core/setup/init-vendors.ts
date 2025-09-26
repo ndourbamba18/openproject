@@ -41,14 +41,12 @@ import lodash from 'lodash';
 // import 'jquery-ui/ui/widgets/tooltip';
 import 'core-vendor/jquery-ui-1.14.1/jquery-ui';
 
-import moment from 'moment';
-import './init-moment-locales';
+import { DateTime } from 'luxon';
 
 import 'jquery.caret';
 // Text highlight for autocompleter
 import 'mark.js/dist/jquery.mark.min';
 
-import 'moment-timezone/builds/moment-timezone-with-data.min';
 // eslint-disable-next-line import/extensions,import/no-extraneous-dependencies
 import '@openproject/primer-view-components/app/assets/javascripts/primer_view_components.js';
 
@@ -58,9 +56,10 @@ import 'urijs/src/URITemplate';
 declare global {
   interface Window {
     _:typeof lodash;
+    DateTime:typeof DateTime;
   }
 }
 
 window._ = lodash;
-window.moment = moment;
+window.DateTime = DateTime;
 window.URI = URI;

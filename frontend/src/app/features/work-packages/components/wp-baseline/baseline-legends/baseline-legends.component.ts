@@ -47,7 +47,7 @@ import {
   BaselineMode,
 } from 'core-app/features/work-packages/components/wp-baseline/baseline-helpers';
 import { TimezoneService } from 'core-app/core/datetime/timezone.service';
-import moment, { Moment } from 'moment-timezone';
+import { DateTime } from 'luxon';
 import { ConfigurationService } from 'core-app/core/config/configuration.service';
 import { UntilDestroyedMixin } from 'core-app/shared/helpers/angular/until-destroyed.mixin';
 import { filter } from 'rxjs/operators';
@@ -108,7 +108,7 @@ export class OpBaselineLegendsComponent extends UntilDestroyedMixin implements O
       )
       .subscribe((timestamps) => {
         this.userTimezone = this.timezoneService.userTimezone();
-        this.userOffset = moment.tz(this.userTimezone).format('Z');
+        this.userOffset = DateTime.now().setZone(this.userTimezone).toFormat('ZZ');
 
         const parts = getPartsFromTimestamp(timestamps[0]);
         if (parts) {
@@ -151,11 +151,11 @@ export class OpBaselineLegendsComponent extends UntilDestroyedMixin implements O
         description += ` (${upstreamDate})`;
         break;
       case 'aSpecificDate':
-        [upstreamDate, localDate] = this.formatUpstreamAndLocal(moment.parseZone(timestamps[0]));
+        [upstreamDate, localDate] = this.formatUpstreamAndLocal(DateTime.fromISO(timestamps[0]));
         description += upstreamDate;
         break;
       case 'betweenTwoSpecificDates':
-        [upstreamDate, localDate] = this.deriveDateRange(moment.parseZone(timestamps[0]), moment.parseZone(timestamps[1]));
+        [upstreamDate, localDate] = this.deriveDateRange(DateTime.fromISO(timestamps[0]), DateTime.fromISO(timestamps[1]));
         description += upstreamDate;
         break;
       default:
@@ -176,11 +176,11 @@ export class OpBaselineLegendsComponent extends UntilDestroyedMixin implements O
   }
 
   private deriveSingleDate(date:string, timestamp:string):[string, string] {
-    const parsedDate:Moment = moment.parseZone(`${date}T${timestamp}`);
+    const parsedDate = DateTime.fromISO(`${date}T${timestamp}`);
     return this.formatUpstreamAndLocal(parsedDate);
   }
 
-  private deriveDateRange(start:Moment, end:Moment):[string, string] {
+  private deriveDateRange(start:DateTime, end:DateTime):[string, string] {
     const startRange = this.formatUpstreamAndLocal(start);
     const endRange = this.formatUpstreamAndLocal(end);
 
@@ -190,10 +190,10 @@ export class OpBaselineLegendsComponent extends UntilDestroyedMixin implements O
     ];
   }
 
-  private formatUpstreamAndLocal(date:Moment):[string, string] {
+  private formatUpstreamAndLocal(date:DateTime):[string, string] {
     return [
       this.formatDate(date),
-      this.formatDate(date.tz(this.userTimezone)),
+      this.formatDate(date.setZone(this.userTimezone)),
     ];
   }
 
@@ -221,10 +221,10 @@ export class OpBaselineLegendsComponent extends UntilDestroyedMixin implements O
     }
   }
 
-  private formatDate(date:Moment):string {
-    const formattedDate = date.format(this.timezoneService.getDateFormat());
-    const formattedTime = date.format(this.timezoneService.getTimeFormat());
-    const offset = offsetToUtcString(date.format('Z'));
+  private formatDate(date:DateTime):string {
+    const formattedDate = this.timezoneService.formattedDate(date);
+    const formattedTime = this.timezoneService.formattedTime(date);
+    const offset = offsetToUtcString(date.toFormat('ZZ'));
 
     return `${formattedDate} ${formattedTime} ${offset}`;
   }

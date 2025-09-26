@@ -114,6 +114,32 @@ RSpec.describe API::V3::Configuration::ConfigurationRepresenter do
       end
     end
 
+    describe "timeFormatOptions" do
+      context "with time format", with_settings: { time_format: "%I:%M %p" } do
+        it "indicates the timeFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ hour: "2-digit", hour12: true, minute: "2-digit" }.to_json)
+            .at_path("timeFormatOptions")
+        end
+      end
+
+      context "with time format", with_settings: { time_format: "%H:%M" } do
+        it "indicates the timeFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ hour: "2-digit", hour12: false, minute: "2-digit" }.to_json)
+            .at_path("timeFormatOptions")
+        end
+      end
+
+      context "with a time format", with_settings: { time_format: "" } do
+        it "indicates the timeFormatOptions" do
+          expect(subject)
+            .to be_json_eql(nil.to_json)
+            .at_path("timeFormatOptions")
+        end
+      end
+    end
+
     describe "dateFormat" do
       context "without a date format", with_settings: { date_format: "" } do
         it "indicates the dateFormat" do
@@ -184,6 +210,80 @@ RSpec.describe API::V3::Configuration::ConfigurationRepresenter do
           expect(subject)
             .to be_json_eql("MMMM DD, YYYY".to_json)
             .at_path("dateFormat")
+        end
+      end
+    end
+
+    describe "dateFormatOptions" do
+      context "without a date format", with_settings: { date_format: "" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql(nil.to_json)
+            .at_path("dateFormatOptions")
+        end
+      end
+
+      context "with date format (%Y-%m-%d)", with_settings: { date_format: "%Y-%m-%d" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ day: "2-digit", month: "2-digit", year: "numeric" }.to_json)
+            .at_path("dateFormatOptions")
+        end
+      end
+
+      context "with date format (%d.%m.%Y)", with_settings: { date_format: "%d.%m.%Y" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ day: "2-digit", month: "2-digit", year: "numeric" }.to_json)
+            .at_path("dateFormatOptions")
+        end
+      end
+
+      context "with date format (%d-%m-%Y)", with_settings: { date_format: "%d-%m-%Y" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ day: "2-digit", month: "2-digit", year: "numeric" }.to_json)
+            .at_path("dateFormatOptions")
+        end
+      end
+
+      context "with date format (%m/%d/%Y)", with_settings: { date_format: "%m/%d/%Y" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ day: "2-digit", month: "2-digit", year: "numeric" }.to_json)
+            .at_path("dateFormatOptions")
+        end
+      end
+
+      context "with date format (%d %b %Y)", with_settings: { date_format: "%d %b %Y" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ day: "2-digit", month: "short", year: "numeric" }.to_json)
+            .at_path("dateFormatOptions")
+        end
+      end
+
+      context "with date format (%d %B %Y)", with_settings: { date_format: "%d %B %Y" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ day: "2-digit", month: "long", year: "numeric" }.to_json)
+            .at_path("dateFormatOptions")
+        end
+      end
+
+      context "with date format (%b %d, %Y)", with_settings: { date_format: "%b %d, %Y" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ day: "2-digit", month: "short", year: "numeric" }.to_json)
+            .at_path("dateFormatOptions")
+        end
+      end
+
+      context "with date format (%B %d, %Y)", with_settings: { date_format: "%B %d, %Y" } do
+        it "indicates the dateFormatOptions" do
+          expect(subject)
+            .to be_json_eql({ day: "2-digit", month: "long", year: "numeric" }.to_json)
+            .at_path("dateFormatOptions")
         end
       end
     end
