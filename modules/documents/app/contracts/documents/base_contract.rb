@@ -40,6 +40,7 @@ module Documents
     attribute :category
     attribute :title
     attribute :description
+    attribute :content_binary
 
     validate :validate_manage_allowed
 

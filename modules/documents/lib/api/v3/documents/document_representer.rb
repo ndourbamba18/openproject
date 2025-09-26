@@ -49,6 +49,8 @@ module API
 
         formattable_property :description
 
+        property :content_binary
+
         date_time_property :created_at
         date_time_property :updated_at
 

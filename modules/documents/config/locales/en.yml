@@ -34,6 +34,9 @@ en:
   activerecord:
     models:
       document: "Document"
+    attributes:
+      document:
+        content_binary: "Content binary"
 
   activity:
     filter:

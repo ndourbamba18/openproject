@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "base64"
+require "json"
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -56,14 +59,6 @@ module API
               def document
                 Document.visible.find(params[:id])
               end
-
-              def allowed_content_types
-                if request.env["REQUEST_METHOD"] == "PUT" && request.path.end_with?("content_binary")
-                  %w(application/octet-stream)
-                else
-                  super
-                end
-              end
             end
 
             get do
@@ -72,34 +67,20 @@ module API
                                                             embed_links: true)
             end
 
-            get "content_binary" do
+            patch do
               doc = document
-              binary = doc.content_binary
+              request_body = JSON.parse(request.body.read)
 
-              if binary.present?
-                header["Content-Type"] = "application/octet-stream"
-                header["Content-Disposition"] = "attachment; filename=\"document_#{doc.id}_binary\""
+              result = ::Documents::UpdateService
+                .new(user: current_user, model: doc)
+                .call(request_body)
 
-                body binary
+              if result.success?
+                ::API::V3::Documents::DocumentRepresenter.new(doc,
+                                                              current_user:,
+                                                              embed_links: true)
               else
-                error!("No binary content", 404)
-              end
-            end
-
-            put "content_binary" do
-              doc = document
-              binary_data = request.body.read
-
-              if binary_data.present?
-                doc.content_binary = binary_data
-                if doc.save
-                  status 200
-                  { message: "Binary content updated successfully" }
-                else
-                  error!("Failed to update binary content", 422)
-                end
-              else
-                error!("No binary data provided", 400)
+                fail ::API::Errors::ErrorBase.create_and_merge_errors(doc.errors)
               end
             end
 

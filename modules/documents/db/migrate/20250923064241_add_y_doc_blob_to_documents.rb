@@ -30,6 +30,6 @@
 
 class AddYDocBlobToDocuments < ActiveRecord::Migration[8.0]
   def change
-    add_column :documents, :content_binary, :binary
+    add_column :documents, :content_binary, :text
   end
 end
