@@ -26,8 +26,10 @@
 // See COPYRIGHT and LICENSE files for more details.
 //++
 
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { TimezoneService } from 'core-app/core/datetime/timezone.service';
+import { toDateTime } from 'core-app/shared/helpers/date-time-helpers';
+import { type DateTime } from 'luxon';
 
 @Component({
   selector: 'op-date-time',
@@ -40,19 +42,18 @@ import { TimezoneService } from 'core-app/core/datetime/timezone.service';
   `,
   standalone: false,
 })
-export class OpDateTimeComponent {
-  @Input('dateTimeValue') dateTimeValue:any;
+export class OpDateTimeComponent implements OnInit {
+  readonly timezoneService = inject(TimezoneService);
 
-  public date:any;
+  @Input({ transform: toDateTime }) dateTimeValue:DateTime;
 
-  public time:any;
+  public date:string;
 
-  constructor(readonly timezoneService:TimezoneService) {
-  }
+  public time:string;
 
   ngOnInit() {
-    const c = this.timezoneService.formattedDatetimeComponents(this.dateTimeValue);
-    this.date = c[0];
-    this.time = c[1];
+    const [date, time] = this.timezoneService.formattedDatetimeComponents(this.dateTimeValue);
+    this.date = date;
+    this.time = time;
   }
 }

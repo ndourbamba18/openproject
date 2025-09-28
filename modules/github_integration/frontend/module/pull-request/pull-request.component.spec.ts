@@ -5,6 +5,7 @@ import { PullRequestComponent } from "./pull-request.component";
 import { OpIconComponent } from 'core-app/shared/components/icon/icon.component';
 import { IGithubCheckRunResource, IGithubPullRequest, IGithubUserResource } from '../state/github-pull-request.model';
 import { PullRequestStateComponent } from './pull-request-state.component';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'op-date-time',
@@ -12,7 +13,7 @@ import { PullRequestStateComponent } from './pull-request-state.component';
   standalone: false,
 })
 class OpDateTimeComponent {
-  @Input('dateTimeValue') dateTimeValue:any;
+  @Input('dateTimeValue') dateTimeValue:DateTime;
 }
 
 describe('PullRequestComponent', () => {
