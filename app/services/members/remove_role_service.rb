@@ -28,21 +28,26 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-# Only return Principals that are visible to the current user.
-#
-# Either the user has the `manage_members` permission in any project,
-# or all principals in visible projects are returned.
-module Principals::Scopes
-  module Visible
-    extend ActiveSupport::Concern
+module Members
+  class RemoveRoleService
+    attr_reader :current_user
 
-    class_methods do
-      def visible(user = ::User.current)
-        if user.allowed_globally?(:view_all_principals)
-          all
-        else
-          in_visible_project_or_me_or_same_groups(user)
-        end
+    def initialize(current_user:)
+      @current_user = current_user
+    end
+
+    def call(user_id:, role_id:, project_id:, send_notifications: true)
+      member = Member.find_by(user_id:, project_id:)
+      return ServiceResult.success if member.nil?
+
+      if member.role_ids == [role_id]
+        Members::DeleteService
+          .new(model: member, user: current_user)
+          .call
+      else
+        Members::UpdateService
+          .new(model: member, user: current_user)
+          .call(send_notifications:, role_ids: member.role_ids - [role_id])
       end
     end
   end

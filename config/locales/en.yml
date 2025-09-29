@@ -3927,6 +3927,9 @@ en:
   permission_share_work_packages: "Share work packages"
   permission_manage_types: "Select types"
   permission_manage_own_reminders: "Create own reminders"
+  permission_view_all_principals: "View all users and groups"
+  permission_view_all_principals_explanation: >
+    Allows users to see all users and groups in the system, even if they are not members of any joined projects or groups.
   permission_view_project: "View projects"
   permission_view_changesets: "View repository revisions in OpenProject"
   permission_view_internal_comments: "View internal comments"

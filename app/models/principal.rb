@@ -30,6 +30,7 @@
 
 class Principal < ApplicationRecord
   include ::Scopes::Scoped
+
   default_scope -> { where.not(status: Principal.statuses[:deleted]) }
 
   # Account statuses
@@ -164,6 +165,18 @@ class Principal < ApplicationRecord
   def self.in_visible_project_or_me(user = User.current)
     in_visible_project(user)
       .or(me)
+  end
+
+  def self.in_visible_project_or_me_or_same_groups(user = User.current)
+    in_visible_project(user)
+      .or(me)
+      .or(in_same_groups(user))
+  end
+
+  def self.in_same_groups(user = User.current)
+    return none if user.groups.empty?
+
+    where(id: user.groups.joins(:users).select(:user_id))
   end
 
   def active_user_auth_provider_link

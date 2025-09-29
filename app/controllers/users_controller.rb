@@ -51,9 +51,11 @@ class UsersController < ApplicationController
 
   # Password confirmation helpers and actions
   include PasswordConfirmation
+
   before_action :check_password_confirmation, only: [:destroy]
 
   include Accounts::UserLimits
+
   before_action :enforce_user_limit, only: [:create]
   before_action -> { enforce_user_limit flash_now: true }, only: [:new]
 
@@ -229,6 +231,8 @@ class UsersController < ApplicationController
   def can_show_user?
     return true if can_manage_or_create_users?
     return true if @user == User.current
+    return true if current_user.allowed_globally?(:view_all_principals)
+    return true if @user.visible?(current_user)
 
     @user.active? || @user.registered?
   end

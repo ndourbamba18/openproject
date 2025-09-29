@@ -34,7 +34,7 @@ module Groups::Scopes
 
     class_methods do
       def visible(current_user = User.current)
-        if current_user.allowed_in_any_project?(:manage_members)
+        if current_user.allowed_in_any_project?(:view_all_principals)
           Group.all
         else
           Group

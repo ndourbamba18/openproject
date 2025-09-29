@@ -83,7 +83,16 @@ Rails.application.reloader.to_prepare do
                      },
                      permissible_on: :global,
                      require: :loggedin,
+                     dependencies: :view_all_principals,
                      contract_actions: { users: %i[read update] }
+
+      map.permission :view_all_principals,
+                     {
+                       users: %i[index show]
+                     },
+                     permissible_on: :global,
+                     require: :loggedin,
+                     contract_actions: { users: %i[read] }
 
       map.permission :manage_placeholder_user,
                      {

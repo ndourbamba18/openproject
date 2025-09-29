@@ -419,6 +419,8 @@ global_roles:
       - :create_user
       - :manage_user
       - :manage_placeholder_user
+      - :view_all_principals
+      - :invite_users_by_email
   - reference: :default_role_standard_global
     t_name: Standard global role
     position: 7

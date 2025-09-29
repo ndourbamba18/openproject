@@ -32,8 +32,9 @@ require "spec_helper"
 
 RSpec.describe MembersController do
   shared_let(:admin) { create(:admin) }
+  shared_let(:project) { create(:project, identifier: "pet_project") }
+
   let(:user) { create(:user) }
-  let(:project) { create(:project, identifier: "pet_project") }
   let(:role) { create(:project_role) }
   let(:member) do
     create(:member, project:,
@@ -117,8 +118,9 @@ RSpec.describe MembersController do
       login_as(user)
     end
 
-    describe "WHEN the user is authorized WHEN a project is provided" do
+    describe "WHEN the user is authorized to view all users WHEN a project is provided" do
       let(:project_permissions) { [:manage_members] }
+      let(:global_permissions) { [:view_all_principals] }
 
       it "is success" do
         subject
@@ -149,7 +151,7 @@ RSpec.describe MembersController do
       end
 
       context "when the user is authorized to see email addresses" do
-        let(:global_permissions) { [:view_user_email] }
+        let(:global_permissions) { %i[view_all_principals view_user_email] }
 
         it "returns id, name, email and href" do
           subject
@@ -175,6 +177,78 @@ RSpec.describe MembersController do
                 "name" => admin.name,
                 "email" => admin.mail,
                 "href" => "/api/v3/users/#{admin.id}"
+              }
+            )
+          end
+        end
+      end
+    end
+
+    describe "WHEN the user has manage_members but no view_all_users (reduced visibility)" do
+      let(:project_permissions) { [:manage_members] }
+      let!(:other_project) { create(:project) }
+      let!(:other_user) { create(:user, member_with_permissions: { other_project => %i[view_project] }) }
+      let!(:user) do
+        create(:user, member_with_permissions: { project => project_permissions, other_project => %i[view_project] })
+      end
+
+      context "when the user is not authorized to see email addresses" do
+        it "returns only users visible through shared projects" do
+          subject
+          expect(json_response).to be_an(Array)
+          expect(json_response).to include(
+            {
+              "id" => other_user.id,
+              "name" => other_user.name,
+              "href" => "/api/v3/users/#{other_user.id}"
+            }
+          )
+          expect(json_response).not_to include(
+            {
+              "id" => admin.id,
+              "name" => admin.name,
+              "href" => "/api/v3/users/#{admin.id}"
+            }
+          )
+        end
+
+        context "when searching email addresses" do
+          let(:query) { other_user.mail }
+
+          it "does not return matches from emails" do
+            subject
+            expect(json_response).to be_empty
+          end
+        end
+      end
+
+      context "when the user is authorized to see email addresses" do
+        let(:global_permissions) { [:view_user_email] }
+
+        it "returns id, name, email and href for visible users" do
+          subject
+          expect(json_response).to be_an(Array)
+          expect(json_response).to include(
+            {
+              "id" => other_user.id,
+              "name" => other_user.name,
+              "email" => other_user.mail,
+              "href" => "/api/v3/users/#{other_user.id}"
+            }
+          )
+        end
+
+        context "when searching email addresses" do
+          let(:query) { other_user.mail }
+
+          it "returns matches from emails for visible users" do
+            subject
+            expect(json_response).to include(
+              {
+                "id" => other_user.id,
+                "name" => other_user.name,
+                "email" => other_user.mail,
+                "href" => "/api/v3/users/#{other_user.id}"
               }
             )
           end
