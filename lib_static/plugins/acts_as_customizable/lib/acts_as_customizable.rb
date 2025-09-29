@@ -40,7 +40,7 @@ module Redmine
           cattr_accessor :customizable_options
           self.customizable_options = options
 
-          # we are validating custom_values manually in :validate_custom_values
+          # We are validating custom_values manually in :validate_custom_values
           # N.B. the default for validate should be false, however specs seem to think differently
           has_many :custom_values, -> {
             includes(:custom_field)
@@ -131,7 +131,7 @@ module Redmine
         #
         # In some cases, the implementing class has a changing list of custom field values
         # depending on certain attributes. When those attributes are changed, the cache can
-        # be kept up to date by including them in the overriden custom_field_cache_key method.
+        # be kept up to date by including them in the overridden custom_field_cache_key method.
         #
         # i.e.: The work package custom field values are changing based on the project_id and type_id.
         # The only way to keep the cache updated is to include those ids in the cache key.
@@ -256,7 +256,7 @@ module Redmine
             next cfv_changes unless cfv.changed?
 
             # In order to construct a valid changes hash, we need to find the old value if it exists.
-            # Otherwise set it to nil.
+            # Otherwise, set it to nil.
             cfv_was = custom_value_was_for(cfv)
             value_was = cfv_was&.value
 
@@ -402,7 +402,7 @@ module Redmine
         end
 
         # Explicitly touch the customizable if
-        # there where only changes to custom_values (added or removed).
+        # there were only changes to custom_values (added or removed).
         # Particularly important for caching.
         def touch_customizable
           touch if !saved_changes? && custom_values.loaded? && (custom_values.any?(&:saved_changes?) || custom_value_destroyed)
