@@ -29,6 +29,27 @@
 #++
 
 class CustomValue::HierarchyStrategy < CustomValue::ARObjectStrategy
+  def typed_value
+    item = super
+
+    item.score.presence || item
+  end
+
+  def formatted_value
+    # TODO: add caching for `ar_object`
+    item = ar_object(value)
+
+    if item.nil?
+      "#{value} #{I18n.t(:label_not_found)}"
+    elsif item.short.present?
+      "#{item.label} (#{item.short})"
+    elsif item.score.present?
+      "#{item.label} (#{item.score})"
+    else
+      item.label
+    end
+  end
+
   def validate_type_of_value
     item = CustomField::Hierarchy::Item.find_by(id: value)
     return :invalid if item.nil?
@@ -47,14 +68,7 @@ class CustomValue::HierarchyStrategy < CustomValue::ARObjectStrategy
   end
 
   def ar_object(value)
-    item = CustomField::Hierarchy::Item.find_by(id: value.to_s)
-    if item.nil?
-      "#{value} #{I18n.t(:label_not_found)}"
-    elsif item.short.present?
-      "#{item.label} (#{item.short})"
-    else
-      item.label
-    end
+    CustomField::Hierarchy::Item.find_by(id: value.to_s)
   end
 
   def persistence_service
