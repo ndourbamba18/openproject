@@ -59,7 +59,7 @@ module API
             def link_value_getter_values(represented, custom_field)
               Array(represented.custom_value_for(custom_field)).flat_map do |custom_value|
                 if custom_value && custom_value.value.present?
-                  title = link_value_title(custom_value)
+                  title = link_value_title(custom_value, custom_field)
 
                   [{
                     title:,
@@ -96,9 +96,11 @@ module API
               API::V3::Principals::PrincipalType.for(custom_value.typed_value)
             end
 
-            def link_value_title(custom_value)
+            def link_value_title(custom_value, custom_field)
               if custom_value.typed_value.respond_to?(:name)
                 custom_value.typed_value.name
+              elsif custom_field.field_format.in?(%w[scored_list hierarchy])
+                custom_value.formatted_value
               else
                 custom_value.typed_value
               end
