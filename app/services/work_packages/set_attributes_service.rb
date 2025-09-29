@@ -34,6 +34,7 @@ class WorkPackages::SetAttributesService < BaseServices::SetAttributes
   private
 
   def set_attributes(attributes)
+    validate_custom_fields = attributes.delete(:validate_custom_fields)
     file_links_ids = attributes.delete(:file_links_ids)
     model.file_links = Storages::FileLink.where(id: file_links_ids) if file_links_ids
 
@@ -45,7 +46,7 @@ class WorkPackages::SetAttributesService < BaseServices::SetAttributes
     end
 
     set_custom_attributes(attributes)
-    set_custom_values_to_validate(params)
+    set_custom_values_to_validate(attributes, validate_custom_fields)
 
     mark_templated_subject
   end
@@ -53,6 +54,16 @@ class WorkPackages::SetAttributesService < BaseServices::SetAttributes
   def mark_templated_subject
     if work_package.type&.replacement_pattern_defined_for?(:subject)
       work_package.subject = I18n.t("work_packages.templated_subject_hint", type: work_package.type.name)
+    end
+  end
+
+  def set_custom_values_to_validate(attributes, validate_custom_fields = nil)
+    if validate_custom_fields
+      # When validate_custom_fields is explicitly set to true from frontend,
+      # activate validation for all custom fields regardless of whether they're in params
+      model.activate_custom_field_validations!
+    else
+      super(attributes)
     end
   end
 

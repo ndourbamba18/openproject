@@ -27,44 +27,19 @@
 //++
 
 import { WorkPackageChangeset } from 'core-app/features/work-packages/components/wp-edit/work-package-changeset';
-import { IFieldSchema } from 'core-app/shared/components/fields/field.base';
+
 /**
- * Specialized WorkPackageChangeset for edit form submissions.
- * Automatically includes required custom fields for validation.
+ * Specialized WorkPackageChangeset for dynamically rendered Angular edit forms.
+ * Ensures custom field validation for form submissions.
  */
 export class EditFormWorkPackageChangeset extends WorkPackageChangeset {
   protected applyChanges(payload:any):any {
     const result = super.applyChanges(payload);
 
-    // Include required custom fields when changeset is in flight (being saved)
-    // This ensures validation happens during form submissions
-    if (this.inFlight && this.schema) {
-      this.includeRequiredCustomFieldsForValidation(result);
-    }
+    // Add validateCustomFields for dynamic Angular edit forms
+    // This ensures custom field validation happens during form submissions
+    result.validateCustomFields = true;
 
     return result;
-  }
-
-  /**
-   * Include required custom fields in the payload for edit form submissions
-   * to ensure they are validated on the backend
-   */
-  private includeRequiredCustomFieldsForValidation(payload:any):void {
-    // Get all custom field keys from the schema
-    const customFieldKeys =
-      this.schema.availableAttributes.filter(key => key.startsWith('customField'));
-
-    customFieldKeys.forEach(customFieldKey => {
-      // Only include required custom fields that aren't already in payload from changes
-      const property = this.schema.ofProperty(customFieldKey) as IFieldSchema|null;
-
-      if (!(customFieldKey in payload) && property?.required) {
-        // Include the current value from the pristine resource
-        const currentValue = this.pristineResource[customFieldKey];
-        if (currentValue !== undefined) {
-          payload[customFieldKey] = currentValue;
-        }
-      }
-    });
   }
 }
