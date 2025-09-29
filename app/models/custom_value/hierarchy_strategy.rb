@@ -30,13 +30,13 @@
 
 class CustomValue::HierarchyStrategy < CustomValue::ARObjectStrategy
   def typed_value
-    item = cached_ar_object
+    item = cached_typed_value
 
     item.score.presence || item
   end
 
   def formatted_value
-    item = cached_ar_object
+    item = cached_typed_value
 
     if item.nil?
       "#{value} #{I18n.t(:label_not_found)}"
@@ -59,16 +59,6 @@ class CustomValue::HierarchyStrategy < CustomValue::ARObjectStrategy
   end
 
   private
-
-  def cached_ar_object
-    return memoized_typed_value if memoized_typed_value
-
-    if value.present?
-      RequestStore.fetch(:"#{ar_class.name.underscore}_custom_value_#{value}") do
-        self.memoized_typed_value = ar_object(value)
-      end
-    end
-  end
 
   def ar_class
     CustomField::Hierarchy::Item
