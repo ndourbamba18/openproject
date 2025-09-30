@@ -590,6 +590,51 @@ RSpec.describe "Show project custom fields on project overview page", :js do
             end
           end
         end
+
+        context "when one of the values is a scored list", with_flag: { scored_list_custom_fields: true } do
+          let!(:scored_list) do
+            field = create(:scored_list_project_custom_field,
+                           projects: [project],
+                           name: "Scored List",
+                           project_custom_field_section: section_for_input_fields,
+                           possible_values: %w[Ten])
+
+            item = create(:hierarchy_item, score: 10, label: "Ten")
+            create(:custom_value, :skip_validations, customized: project, custom_field: field, value: item.id.to_s)
+
+            field
+          end
+
+          let!(:calculated_from_scored_list) do
+            field = create(
+              :calculated_value_project_custom_field,
+              :skip_validations,
+              formula: "{{cf_#{scored_list.id}}} * 2",
+              projects: [project],
+              name: "Calculated field using scored list",
+              project_custom_field_section: section_for_input_fields
+            )
+
+            create(:custom_value, customized: project, custom_field: field, value: 10 * 2)
+
+            field
+          end
+
+          it "shows the correct value for the project custom field" do
+            overview_page.visit_page
+
+            overview_page.within_project_attributes_sidebar do
+              overview_page.within_custom_field_container(scored_list) do
+                expect(page).to have_text "Ten"
+              end
+
+              overview_page.within_custom_field_container(calculated_from_scored_list) do
+                expect(page).to have_text "Calculated field using scored list"
+                expect(page).to have_text "20"
+              end
+            end
+          end
+        end
       end
 
       describe "with an error present" do
