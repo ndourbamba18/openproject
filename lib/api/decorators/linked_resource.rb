@@ -80,6 +80,29 @@ module API
         raise ::API::Errors::BadRequest.new(I18n.t("api_v3.errors.bad_request.invalid_link", key: invalid))
       end
 
+      def associated_resource_default_link(represented,
+                                           name,
+                                           v3_path:,
+                                           skip_link:,
+                                           title_attribute:,
+                                           getter: :"#{name}_id",
+                                           undisclosed: false)
+        if undisclosed && instance_exec(&skip_link)
+          {
+            href: API::V3::URN_UNDISCLOSED,
+            title: I18n.t(:"api_v3.undisclosed.#{name}")
+          }
+        elsif !instance_exec(&skip_link)
+          ::API::Decorators::LinkObject
+            .new(represented,
+                 path: v3_path.is_a?(Proc) ? instance_exec(&v3_path) : v3_path,
+                 property_name: name,
+                 title_attribute:,
+                 getter:)
+            .to_hash
+        end
+      end
+
       module ClassMethods
         def resource(name,
                      getter:,
@@ -154,11 +177,11 @@ module API
                                 uncacheable_link: false,
                                 getter: associated_resource_default_getter(name, representer),
                                 setter: associated_resource_default_setter(name, as, v3_path),
-                                link: associated_resource_default_link(name,
-                                                                       v3_path:,
-                                                                       skip_link:,
-                                                                       undisclosed:,
-                                                                       title_attribute: link_title_attribute))
+                                link: associated_resource_default_link_lambda(name,
+                                                                              v3_path:,
+                                                                              skip_link:,
+                                                                              undisclosed:,
+                                                                              title_attribute: link_title_attribute))
           resource(as || name,
                    getter:,
                    setter:,
@@ -198,27 +221,20 @@ module API
           end
         end
 
-        def associated_resource_default_link(name,
+        def associated_resource_default_link_lambda(name,
+                                                    v3_path:,
+                                                    skip_link:,
+                                                    title_attribute:,
+                                                    getter: :"#{name}_id",
+                                                    undisclosed: false)
+          ->(*) do
+            associated_resource_default_link(represented,
+                                             name,
                                              v3_path:,
                                              skip_link:,
                                              title_attribute:,
-                                             getter: :"#{name}_id",
-                                             undisclosed: false)
-          ->(*) do
-            if undisclosed && instance_exec(&skip_link)
-              {
-                href: API::V3::URN_UNDISCLOSED,
-                title: I18n.t(:"api_v3.undisclosed.#{name}")
-              }
-            elsif !instance_exec(&skip_link)
-              ::API::Decorators::LinkObject
-                .new(represented,
-                     path: v3_path.is_a?(Proc) ? instance_exec(&v3_path) : v3_path,
-                     property_name: name,
-                     title_attribute:,
-                     getter:)
-                .to_hash
-            end
+                                             getter:,
+                                             undisclosed:)
           end
         end
 

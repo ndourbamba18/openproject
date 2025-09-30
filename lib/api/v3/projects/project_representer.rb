@@ -37,6 +37,7 @@ module API
         include ::API::Caching::CachedRepresenter
         include API::Decorators::FormattableProperty
         extend ::API::V3::Utilities::CustomFieldInjector::RepresenterClass
+        include ::API::V3::Workspaces::WorkspaceRepresenterFactory::Associations
 
         def self.current_user_view_allowed_lambda
           ->(*) { current_user.allowed_in_project?(:view_project, represented) || current_user.allowed_globally?(:add_project) }
@@ -149,19 +150,7 @@ module API
         links :ancestors,
               uncacheable: true do
           represented.ancestors_from_root.map do |ancestor|
-            # Explicitly check for admin as an archived project
-            # will lead to the admin losing permissions in the project.
-            if current_user.admin? || ancestor.visible?
-              {
-                href: strategy(ancestor).path(ancestor),
-                title: ancestor.name
-              }
-            else
-              {
-                href: API::V3::URN_UNDISCLOSED,
-                title: I18n.t(:"api_v3.undisclosed.ancestor")
-              }
-            end
+            project_link(ancestor, name: :ancestor, getter: :id)
           end
         end
 
@@ -186,12 +175,10 @@ module API
           { href: api_v3_paths.favor_workspace(represented.id) }
         end
 
-        associated_resource :parent,
-                            v3_path: ->(*) { represented.parent and strategy(represented.parent).path_name },
-                            representer: ::API::V3::Projects::ProjectRepresenter,
-                            uncacheable_link: true,
-                            undisclosed: true,
-                            skip_render: ->(*) { represented.parent && !represented.parent.visible? && !current_user.admin? }
+        associated_project :parent,
+                           skip_render: ->(*) {
+                             represented.parent && !represented.parent.visible? && !current_user.admin?
+                           }
 
         property :id
         property :identifier,

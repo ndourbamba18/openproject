@@ -32,15 +32,65 @@ module API
   module V3
     module Workspaces
       module WorkspaceRepresenterFactory
+        module Associations
+          extend ActiveSupport::Concern
+          include API::Decorators::LinkedResource
+
+          def project_link(project, name:, getter: "#{name}_id")
+            # Explicitly check for admin as an archived project
+            # will lead to the admin losing permissions in the project.
+            if project && !project.visible? && !current_user.admin?
+              {
+                href: API::V3::URN_UNDISCLOSED,
+                title: I18n.t(:"api_v3.undisclosed.#{name}")
+              }
+            elsif !project
+              {
+                href: nil
+              }
+            else
+              associated_resource_default_link(project,
+                                               :itself,
+                                               v3_path: project&.workspace_type,
+                                               skip_link: -> { false },
+                                               title_attribute: :name,
+                                               getter:)
+            end
+          end
+
+          class_methods do
+            def associated_project(name, skip_render: false)
+              associated_resource name,
+                                  representer: ::API::V3::Projects::ProjectRepresenter,
+                                  uncacheable_link: true,
+                                  skip_render:,
+                                  link: ::API::V3::Workspaces::WorkspaceRepresenterFactory
+                                          .create_link_lambda(name),
+                                  setter: ::API::V3::Workspaces::WorkspaceRepresenterFactory
+                                            .create_setter_lambda(name)
+            end
+          end
+        end
+
         module_function
 
-        def create_link_lambda(name, getter: "#{name}_id")
+        def create_link_lambda(name, property_name: name)
           ->(*) {
-            instance_exec(&self.class.associated_resource_default_link(name,
-                                                                       v3_path: represented.project&.workspace_type,
-                                                                       skip_link: -> { false },
-                                                                       title_attribute: :name,
-                                                                       getter:))
+            project_link(represented.public_send(name),
+                         name: property_name,
+                         getter: :id)
+          }
+        end
+
+        def create_setter_lambda(name, property_name: name, namespaces: %i(projects programs portfolios))
+          ->(fragment:, **) {
+            ::API::Decorators::LinkObject
+              .new(represented,
+                   property_name:,
+                   namespace: namespaces,
+                   getter: :"#{name}_id",
+                   setter: :"#{name}_id=")
+              .from_hash(fragment)
           }
         end
       end

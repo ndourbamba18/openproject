@@ -59,11 +59,13 @@ module API
           ->(*) {
             v3_path = API::V3::Principals::PrincipalType.for(represented.send(name))
 
-            instance_exec(&self.class.associated_resource_default_link(name,
-                                                                       v3_path:,
-                                                                       skip_link: -> { false },
-                                                                       title_attribute: :name,
-                                                                       getter:))
+            # TODO: check if this can be turned into a call to
+            # associated_resource_default_link
+            instance_exec(&self.class.associated_resource_default_link_lambda(name,
+                                                                              v3_path:,
+                                                                              skip_link: -> { false },
+                                                                              title_attribute: :name,
+                                                                              getter:))
           }
         end
 
