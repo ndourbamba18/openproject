@@ -30,7 +30,10 @@
 
 require "spec_helper"
 
-RSpec.describe ActsAsCustomizable::CalculatedValue, with_flag: { calculated_value_project_attribute: true } do
+RSpec.describe ActsAsCustomizable::CalculatedValue, with_flag: {
+  calculated_value_project_attribute: true,
+  scored_list_custom_fields: true
+} do
   using CustomFieldFormulaReferencing
   include CalculatedValues::ErrorsHelper
 
@@ -379,6 +382,33 @@ RSpec.describe ActsAsCustomizable::CalculatedValue, with_flag: { calculated_valu
         instance.calculate_custom_fields([cf2, cf3, cf4])
         expect(instance).to have_received(:custom_field_values=)
           .with(cf2.id => 3 * 5 * 7 * 11, cf3.id => 5 * 7 * 11, cf4.id => 5 * 7).once
+      end
+    end
+
+    context "when using scored lists" do
+      let(:cf_list) { build_stubbed(:scored_list_project_custom_field) }
+      let(:cf1) { build_stubbed(:calculated_value_project_custom_field) }
+      let(:hierarchy_item) { create(:hierarchy_item, score: 7) }
+
+      let(:enabled_custom_field_ids) { [cf_list, cf1].map(&:id) }
+      let(:custom_field_values) do
+        {
+          cf_list => hierarchy_item.id
+        }.map { |custom_field, value| build_stubbed(:custom_value, custom_field:, value:) }
+      end
+
+      before do
+        {
+          cf1 => "#{cf_list} * 2"
+        }.each do |cf, formula|
+          cf.formula = formula
+        end
+      end
+
+      it "calculates values using the score of the selected entry" do
+        instance.calculate_custom_fields([cf1])
+        expect(instance).to have_received(:custom_field_values=)
+                              .with(cf1.id => 2 * 7).once
       end
     end
   end
