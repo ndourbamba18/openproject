@@ -73,6 +73,9 @@ export class ResourceChangeset<T extends HalResource = HalResource> {
   /** Flag whether this is currently being saved */
   public inFlight = false;
 
+  /** Flag whether to validate all custom fields */
+  public validateCustomFields = false;
+
   /** Keep a reference to the original resource */
   protected _pristineResource:T;
 
@@ -400,6 +403,11 @@ export class ResourceChangeset<T extends HalResource = HalResource> {
         plainPayload[key] = val.to;
       }
     });
+
+    // Validate all custom fields if the flag is set
+    if (this.validateCustomFields) {
+      plainPayload.validateCustomFields = true;
+    }
 
     return plainPayload;
   }

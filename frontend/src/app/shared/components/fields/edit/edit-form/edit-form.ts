@@ -174,6 +174,9 @@ export abstract class EditForm<T extends HalResource = HalResource> {
     // Mark changeset as in flight
     this.change.inFlight = true;
 
+    // Request custom field validation
+    this.change.validateCustomFields = true;
+
     // Reset old error notifications
     this.errorsPerAttribute = {};
 
@@ -205,6 +208,7 @@ export abstract class EditForm<T extends HalResource = HalResource> {
           }
 
           this.change.inFlight = false;
+          this.change.validateCustomFields = false;
 
           return Promise.reject(error);
         });
