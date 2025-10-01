@@ -50,10 +50,15 @@ module WorkPackages
         def wrapper_data_attributes
           {
             controller: infinite_scroll_stimulus_controller,
+            infinite_scroll_stimulus_controller("-insert-target-id-value") => insert_target_id,
             infinite_scroll_stimulus_controller("-page-value") => page,
             infinite_scroll_stimulus_controller("-is-last-page-value") => next_page.blank?,
             infinite_scroll_stimulus_controller("-url-value") => page_streams_url
           }
+        end
+
+        def insert_target_id
+          WorkPackages::ActivitiesTab::Journals::IndexComponent.insert_target_modifier_id
         end
 
         def page_streams_url

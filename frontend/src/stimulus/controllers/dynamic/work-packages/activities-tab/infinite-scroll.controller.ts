@@ -28,9 +28,11 @@
  * ++
  */
 
-import BaseController from './base.controller';
 import { TurboRequestsService } from 'core-app/core/turbo/turbo-requests.service';
+import type { TurboBeforeStreamRenderEvent } from 'core-typings/turbo';
 import { useIntersection } from 'stimulus-use';
+import BaseController from './base.controller';
+import { DomHelpers } from './services/dom_helpers';
 
 export default class extends BaseController {
   static values = {
@@ -52,6 +54,8 @@ export default class extends BaseController {
 
   private updateInProgress = false;
   private turboRequests:TurboRequestsService;
+  private abortController = new AbortController();
+  private pageStreamHandler?:(_event:TurboBeforeStreamRenderEvent) => void;
 
   connect() {
     if (this.isLastPageValue) return;
@@ -59,6 +63,14 @@ export default class extends BaseController {
     super.connect();
     void this.initializeTurboRequestService();
     useIntersection(this, { threshold: 1.0 });
+
+    this.setupScrollPreservation();
+  }
+
+  disconnect() {
+    super.disconnect();
+    this.abortController.abort();
+    if (this.pageStreamHandler) this.pageStreamHandler = undefined;
   }
 
   async appear() {
@@ -79,6 +91,31 @@ export default class extends BaseController {
       (this.element as HTMLElement).hidden = true;
       if (this.hasSkeletonTarget) this.skeletonTarget.remove();
     }
+  }
+
+  setupScrollPreservation() {
+    if (!this.scrollableContainer || this.pageStreamHandler) return;
+
+    const { signal } = this.abortController;
+
+    this.pageStreamHandler = (event:TurboBeforeStreamRenderEvent) => {
+      event.preventDefault();
+
+      const stream = event.detail.newStream;
+      const scrollContainer = this.scrollableContainer!;
+
+      if (stream.target.includes(this.insertTargetIdValue)) {
+        const isPrepend = stream.action === 'prepend';
+        void DomHelpers.keepScroll(scrollContainer, isPrepend, () => {
+          event.detail.render(stream);
+          return Promise.resolve();
+        });
+      } else {
+        event.detail.render(stream);
+      }
+    };
+
+    document.addEventListener('turbo:before-stream-render', this.pageStreamHandler as EventListener, { signal });
   }
 
   private fetchNextPageStream():Promise<{ html:string, headers:Headers }> {

@@ -55,6 +55,9 @@ module WorkPackages
           WorkPackages::ActivitiesTab::Journals::PageComponent.new(journals:, emoji_reactions:, page:, filter:)
         end
 
+        def self.insert_target_modifier_id = "#{wrapper_key}-pages"
+        delegate :insert_target_modifier_id, to: :class
+
         private
 
         attr_reader :work_package, :journals, :page, :next_page, :filter
