@@ -73,6 +73,10 @@ class Group < Principal
 
   scopes :visible
 
+  def self.containing_user(user = User.current)
+    joins(:group_users).where(group_users: { user_id: user.id })
+  end
+
   # Columns required for formatting the group's name.
   def self.columns_for_name(_formatter = nil)
     [:lastname]

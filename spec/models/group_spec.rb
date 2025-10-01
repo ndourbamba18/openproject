@@ -140,6 +140,42 @@ RSpec.describe Group do
     it { expect(group).to validate_uniqueness_of :name }
   end
 
+  describe ".containing_user" do
+    let(:user1) { create(:user) }
+    let(:user2) { create(:user) }
+    let(:group1) { create(:group) }
+    let(:group2) { create(:group) }
+    let(:group3) { create(:group) }
+
+    before do
+      # Add user1 to group1 and group2
+      group1.group_users.create(user: user1)
+      group2.group_users.create(user: user1)
+
+      # Add user2 to group2 and group3
+      group2.group_users.create(user: user2)
+      group3.group_users.create(user: user2)
+    end
+
+    it "returns groups that contain the given user" do
+      groups_for_user1 = described_class.containing_user(user1)
+      expect(groups_for_user1).to contain_exactly(group1, group2)
+
+      groups_for_user2 = described_class.containing_user(user2)
+      expect(groups_for_user2).to contain_exactly(group2, group3)
+    end
+
+    it "returns empty collection when user is not in any groups" do
+      user_without_groups = create(:user)
+      expect(described_class.containing_user(user_without_groups)).to be_empty
+    end
+
+    it "defaults to current user when no user is provided" do
+      User.current = user1
+      expect(described_class.containing_user).to contain_exactly(group1, group2)
+    end
+  end
+
   it_behaves_like "creates an audit trail on destroy" do
     subject { create(:attachment) }
   end

@@ -33,10 +33,9 @@ require "rails_helper"
 RSpec.describe Users::HoverCardComponent, type: :component do
   include Rails.application.routes.url_helpers
 
-  let(:project) { create(:project) }
-  let(:user) { create(:user) }
-  let(:another_user) { create(:user, member_with_permissions: { project => [:manage_members] }) }
-  let(:current_user) { another_user }
+  shared_let(:project) { create(:project) }
+  let(:user) { create(:user, firstname: "in my project", member_with_permissions: { project => [:view_project] }) }
+  let(:current_user) { create(:user, member_with_permissions: { project => [:manage_members] }) }
 
   let(:groups) { [] }
 
@@ -48,6 +47,14 @@ RSpec.describe Users::HoverCardComponent, type: :component do
     render_inline(subject)
   end
 
+  context "when user is not visible" do
+    let(:user) { create(:user, firstname: 'not visible') }
+
+    it "renders nothing" do
+      expect(rendered_content).to eq ""
+    end
+  end
+
   it "renders successfully" do
     find_test_selector("user-hover-card-name", text: user.name)
   end
@@ -55,8 +62,8 @@ RSpec.describe Users::HoverCardComponent, type: :component do
   context "when the user does not exist" do
     let(:user) { instance_double(User, id: 9000) }
 
-    it "renders a generic error message" do
-      expect(page).to have_text(I18n.t("http.response.unexpected"))
+    it "renders nothing" do
+      expect(rendered_content).to eq ""
     end
   end
 
