@@ -207,7 +207,7 @@ RSpec.describe "create users" do
             required_custom_field
           end
 
-          it "I can activate an external user successfully despite missing custom fields" do
+          it "can activate an external user successfully despite missing custom fields" do
             # LDAP users should be able to authenticate successfully even with required custom fields
             # missing because they cannot fill custom fields during the authentication process.
             # Custom field validation should not block LDAP authentication.
@@ -224,6 +224,11 @@ RSpec.describe "create users" do
             allow(auth_source)
               .to(receive(:authenticate).with("bob", "dummy"))
               .and_return({ dn: "cn=bob,ou=users,dc=example,dc=com" })
+
+            visit "/account/activate?token=#{token}"
+            wait_for_reload
+
+            expect(page).to have_text "Please login as bob to activate your account."
 
             # LDAP authentication should succeed despite missing custom fields
             fill_in "password", with: "dummy"
