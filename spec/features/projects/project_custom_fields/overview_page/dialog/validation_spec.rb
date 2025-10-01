@@ -357,6 +357,19 @@ RSpec.describe "Edit project custom fields on project overview page", :js, :sele
         end
       end
 
+      shared_examples "a calculated custom field input" do
+        it "allows saving the dialog even if the calculated custom field is invalid" do
+          custom_field.update!(is_required: true)
+          custom_field.custom_values.destroy_all
+
+          overview_page.open_edit_dialog_for_section(section)
+
+          dialog.submit
+
+          dialog.expect_closed
+        end
+      end
+
       # boolean CFs can not be validated
 
       describe "with string CF" do
@@ -404,14 +417,14 @@ RSpec.describe "Edit project custom fields on project overview page", :js, :sele
           let(:custom_field) { calculated_from_int_project_custom_field }
           let(:field) { FormFields::Primerized::InputField.new(custom_field) }
 
-          it_behaves_like "a custom field input"
+          it_behaves_like "a calculated custom field input"
         end
 
         describe "using int and float" do
           let(:custom_field) { calculated_from_int_and_float_project_custom_field }
           let(:field) { FormFields::Primerized::InputField.new(custom_field) }
 
-          it_behaves_like "a custom field input"
+          it_behaves_like "a calculated custom field input"
         end
       end
     end
