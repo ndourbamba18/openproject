@@ -45,7 +45,7 @@ module PlaceholderUsers::Scopes
            user.allowed_globally?(:view_all_principals)
           all
         else
-          in_visible_project(user)
+          in_visible_project_or_me_or_same_groups(user)
         end
       end
     end

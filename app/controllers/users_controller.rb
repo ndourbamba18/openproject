@@ -232,9 +232,10 @@ class UsersController < ApplicationController
     return true if can_manage_or_create_users?
     return true if @user == User.current
     return true if current_user.allowed_globally?(:view_all_principals)
-    return true if @user.visible?(current_user)
 
-    @user.active? || @user.registered?
+    return false unless @user.active? || @user.registered?
+
+    @user.visible?(current_user)
   end
 
   def can_manage_or_create_users?
