@@ -24,6 +24,7 @@ import AutoScrollingController from './controllers/dynamic/work-packages/activit
 import PollingController from './controllers/dynamic/work-packages/activities-tab/polling.controller';
 import StemsController from './controllers/dynamic/work-packages/activities-tab/stems.controller';
 import EditorController from './controllers/dynamic/work-packages/activities-tab/editor.controller';
+import InfiniteScrollController from './controllers/dynamic/work-packages/activities-tab/infinite-scroll.controller';
 
 import AutoSubmit from '@stimulus-components/auto-submit';
 import AutoThemeSwitcher from './controllers/auto-theme-switcher.controller';
@@ -66,6 +67,7 @@ OpenProjectStimulusApplication.preregister('work-packages--activities-tab--auto-
 OpenProjectStimulusApplication.preregister('work-packages--activities-tab--polling', PollingController);
 OpenProjectStimulusApplication.preregister('work-packages--activities-tab--stems', StemsController);
 OpenProjectStimulusApplication.preregister('work-packages--activities-tab--editor', EditorController);
+OpenProjectStimulusApplication.preregister('work-packages--activities-tab--infinite-scroll', InfiniteScrollController);
 OpenProjectStimulusApplication.preregister('beforeunload', BeforeunloadController);
 OpenProjectStimulusApplication.preregister('auto-theme-switcher', AutoThemeSwitcher);
 OpenProjectStimulusApplication.preregister('external-links', ExternalLinksController);

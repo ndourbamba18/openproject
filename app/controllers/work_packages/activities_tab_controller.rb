@@ -32,6 +32,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   include Pagy::Backend
   include OpTurbo::ComponentStream
   include FlashMessagesOutputSafetyHelper
+  include WorkPackages::ActivitiesTab::StimulusControllers
 
   before_action :find_work_package
   before_action :find_project
@@ -64,13 +65,13 @@ class WorkPackages::ActivitiesTabController < ApplicationController
         page: @paginator.page,
         filter: @filter
       ),
-      action: journal_sorting.asc? ? :append : :prepend
+      action: journal_sorting.desc? ? :append : :prepend
     )
 
     set_dataset_attributes_via_turbo_stream(
       WorkPackages::ActivitiesTab::Journals::InfiniteScrollComponent.wrapper_key,
-      infinite_scroll_current_page_value: @paginator.page,
-      infinite_scroll_is_last_page_value: @paginator.next.blank?
+      infinite_scroll_stimulus_controller("-page-value") => @paginator.page,
+      infinite_scroll_stimulus_controller("-is-last-page-value") => @paginator.next.blank?
     )
 
     respond_with_turbo_streams

@@ -1,13 +1,5 @@
 <%=
-  component_wrapper(
-    data: {
-      controller: "infinite-scroll",
-      infinite_scroll_insert_target_id_value: insert_target_id,
-      infinite_scroll_page_url_value: page_streams_url,
-      infinite_scroll_current_page_value: 1, # initial page
-      infinite_scroll_is_last_page_value: false # initial value
-    }
-  ) do
+  component_wrapper(data: wrapper_data_attributes) do
     flex_layout(
       data: { infinite_scroll_target: "skeleton" },
       class: "work-packages-activities-tab-journals-item-component",

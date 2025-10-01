@@ -34,6 +34,7 @@ module WorkPackages
       class InfiniteScrollComponent < ApplicationComponent
         include OpPrimer::ComponentHelpers
         include OpTurbo::Streamable
+        include WorkPackages::ActivitiesTab::StimulusControllers
 
         def initialize(work_package:)
           super
@@ -43,6 +44,16 @@ module WorkPackages
         private
 
         attr_reader :work_package
+
+        def wrapper_data_attributes
+          {
+            controller: infinite_scroll_stimulus_controller,
+            infinite_scroll_stimulus_controller("-insert-target-id-value") => insert_target_id,
+            infinite_scroll_stimulus_controller("-page-value") => 1,
+            infinite_scroll_stimulus_controller("-is-last-page-value") => false,
+            infinite_scroll_stimulus_controller("-url-value") => page_streams_url
+          }
+        end
 
         def insert_target_id
           WorkPackages::ActivitiesTab::Journals::IndexComponent.insert_target_modifier_id
