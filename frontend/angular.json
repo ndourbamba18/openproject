@@ -53,7 +53,7 @@
                 "bundleName": "backlogs"
               },
               "src/styles.scss",
-              "node_modules/@blocknote/mantine/dist/style.css",
+              "node_modules/@blocknote/mantine/src/style.css",
               "node_modules/codemirror/lib/codemirror.css",
               "src/vendor/jquery-ui-1.14.1/jquery-ui.css",
               "src/vendor/jquery-ui-1.14.1/jquery-ui.structure.css",
