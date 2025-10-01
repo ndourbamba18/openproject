@@ -46,6 +46,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
       WorkPackages::ActivitiesTab::IndexComponent.new(
         work_package: @work_package,
         journals: @paginated_journals,
+        paginator: @paginator,
         filter: @filter,
         last_server_timestamp: get_current_server_timestamp
       ),
@@ -358,6 +359,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
       component: WorkPackages::ActivitiesTab::IndexComponent.new(
         work_package: @work_package,
         journals: @paginated_journals,
+        paginator: @paginator,
         filter: @filter,
         last_server_timestamp: get_current_server_timestamp
       )

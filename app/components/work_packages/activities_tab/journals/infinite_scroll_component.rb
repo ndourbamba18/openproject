@@ -36,27 +36,24 @@ module WorkPackages
         include OpTurbo::Streamable
         include WorkPackages::ActivitiesTab::StimulusControllers
 
-        def initialize(work_package:)
+        def initialize(work_package:, page: 1, next_page: nil)
           super
           @work_package = work_package
+          @page = page
+          @next_page = next_page
         end
 
         private
 
-        attr_reader :work_package
+        attr_reader :work_package, :page, :next_page
 
         def wrapper_data_attributes
           {
             controller: infinite_scroll_stimulus_controller,
-            infinite_scroll_stimulus_controller("-insert-target-id-value") => insert_target_id,
-            infinite_scroll_stimulus_controller("-page-value") => 1,
-            infinite_scroll_stimulus_controller("-is-last-page-value") => false,
+            infinite_scroll_stimulus_controller("-page-value") => page,
+            infinite_scroll_stimulus_controller("-is-last-page-value") => next_page.blank?,
             infinite_scroll_stimulus_controller("-url-value") => page_streams_url
           }
-        end
-
-        def insert_target_id
-          WorkPackages::ActivitiesTab::Journals::IndexComponent.insert_target_modifier_id
         end
 
         def page_streams_url

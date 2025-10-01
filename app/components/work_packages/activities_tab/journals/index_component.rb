@@ -37,28 +37,27 @@ module WorkPackages
         include OpTurbo::Streamable
         include WorkPackages::ActivitiesTab::SharedHelpers
 
-        def initialize(work_package:, journals:, filter: :all)
+        def initialize(work_package:, journals:, page: 1, next_page: nil, filter: :all)
           super
 
           @work_package = work_package
           @journals = journals
+          @page = page
+          @next_page = next_page
           @filter = filter
         end
 
         def infinite_scroll_component
-          WorkPackages::ActivitiesTab::Journals::InfiniteScrollComponent.new(work_package:)
+          WorkPackages::ActivitiesTab::Journals::InfiniteScrollComponent.new(work_package:, page:, next_page:)
         end
 
         def page_component
-          WorkPackages::ActivitiesTab::Journals::PageComponent.new(journals:, emoji_reactions:, page: 1, filter:)
+          WorkPackages::ActivitiesTab::Journals::PageComponent.new(journals:, emoji_reactions:, page:, filter:)
         end
-
-        def self.insert_target_modifier_id = "work-package-journal-days"
-        delegate :insert_target_modifier_id, to: :class
 
         private
 
-        attr_reader :work_package, :journals, :filter
+        attr_reader :work_package, :journals, :page, :next_page, :filter
 
         def insert_target_modified?
           true

@@ -1,7 +1,7 @@
 <%=
   component_wrapper(data: wrapper_data_attributes) do
     flex_layout(
-      data: { infinite_scroll_target: "skeleton" },
+      data: { "#{infinite_scroll_stimulus_controller}-target": "skeleton" },
       class: "work-packages-activities-tab-journals-item-component",
       bg: :default
     ) do |skeleton|

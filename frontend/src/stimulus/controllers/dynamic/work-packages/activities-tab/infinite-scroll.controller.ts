@@ -74,6 +74,13 @@ export default class extends BaseController {
       });
   }
 
+  isLastPageValueChanged(isLastPage:boolean, _previousValue:boolean) {
+    if (isLastPage) {
+      (this.element as HTMLElement).hidden = true;
+      if (this.hasSkeletonTarget) this.skeletonTarget.remove();
+    }
+  }
+
   private fetchNextPageStream():Promise<{ html:string, headers:Headers }> {
     const url = this.preparePageStreamsUrl();
     return this.turboRequests.requestStream(url);

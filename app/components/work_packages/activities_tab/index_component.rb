@@ -37,11 +37,12 @@ module WorkPackages
       include WorkPackages::ActivitiesTab::SharedHelpers
       include WorkPackages::ActivitiesTab::StimulusControllers
 
-      def initialize(work_package:, journals:, last_server_timestamp:, filter: :all)
+      def initialize(work_package:, journals:, paginator:, last_server_timestamp:, filter: :all)
         super
 
         @work_package = work_package
         @journals = journals
+        @paginator = paginator
         @filter = filter
         @last_server_timestamp = last_server_timestamp
       end
@@ -56,7 +57,8 @@ module WorkPackages
       end
 
       def list_journals_component
-        WorkPackages::ActivitiesTab::Journals::IndexComponent.new(work_package:, journals:, filter:)
+        WorkPackages::ActivitiesTab::Journals::IndexComponent
+          .new(work_package:, journals:, filter:, page: paginator.page, next_page: paginator.next)
       end
 
       def add_journal_component
@@ -69,7 +71,7 @@ module WorkPackages
 
       private
 
-      attr_reader :work_package, :journals, :filter, :last_server_timestamp
+      attr_reader :work_package, :journals, :paginator, :filter, :last_server_timestamp
 
       def wrapper_data_attributes # rubocop:disable Metrics/AbcSize
         stimulus_controllers = {
