@@ -3898,6 +3898,11 @@ en:
   permission_edit_wiki_pages: "Edit wiki pages"
   permission_export_work_packages: "Export work packages"
   permission_export_wiki_pages: "Export wiki pages"
+  permission_invite_members_by_email: "Invite members by email"
+  permission_invite_members_by_email_explanation: >
+    Allows users to invite new members by email.
+    Invited users will receive an email with a link to set their password and activate their account.
+    Depends on the permission to manage members
   permission_list_attachments: "List attachments"
   permission_log_own_time: "Log own time"
   permission_log_time: "Log time for other users"

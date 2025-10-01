@@ -30,6 +30,7 @@
 
 class MembersController < ApplicationController
   include MemberHelper
+
   model_object Member
   before_action :find_model_object_and_project, except: %i[autocomplete_for_member destroy_by_principal]
   before_action :find_project_by_project_id, only: %i[autocomplete_for_member destroy_by_principal]
@@ -175,10 +176,11 @@ class MembersController < ApplicationController
     }
   end
 
-  def suggest_invite_via_email?(user, query, principals)
-    user.allowed_globally?(:create_user) &&
-      query =~ mail_regex &&
-      principals.none? { |p| p.mail == query || p.login == query } &&
+  def suggest_invite_via_email?(user, query, visible_principals)
+    return false unless user_allowed_to_invite?(user)
+
+    query =~ mail_regex &&
+      visible_principals.none? { |p| p.mail == query || p.login == query } &&
       query # finally return email
   end
 

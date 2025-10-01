@@ -191,6 +191,12 @@ Rails.application.reloader.to_prepare do
                      dependencies: :view_members,
                      contract_actions: { members: %i[create update destroy] }
 
+      map.permission :invite_members_by_email,
+                     {},
+                     permissible_on: :project,
+                     require: :member,
+                     dependencies: :manage_members
+
       map.permission :view_members,
                      {
                        members: %i[index menu],

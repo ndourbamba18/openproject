@@ -264,6 +264,47 @@ RSpec.describe MembersController do
     end
   end
 
+  describe "#create with reduced visibility" do
+    let(:project_permissions) { %i[manage_members invite_members_by_email] }
+    let!(:other_project) { create(:project) }
+    let!(:other_user) { create(:user, member_with_permissions: { other_project => %i[view_project] }) }
+    let!(:user) do
+      create(:user, member_with_permissions: { project => project_permissions, other_project => %i[view_project] })
+    end
+
+    before do
+      login_as(user)
+    end
+
+    context "when inviting by email an existing user who is not visible" do
+      let!(:hidden_user) { create(:user, mail: "hidden@example.com") }
+      let(:params) do
+        {
+          project_id: project.id,
+          member: {
+            role_ids: [role.id],
+            user_ids: [hidden_user.mail]
+          }
+        }
+      end
+
+      it "adds the existing user as a member instead of creating a new invitation" do
+        expect { post :create, params: }
+          .to change { User.count }.by(0)
+          .and change { Member.count }.by(1)
+
+        expect(response).to redirect_to "/projects/pet_project/members?status=all"
+
+        # The hidden user should now be a member of the project
+        hidden_user.reload
+        expect(hidden_user).to be_member_of(project)
+
+        # No invitation email should be sent since the user already exists
+        expect(ActionMailer::Base.deliveries).to be_empty
+      end
+    end
+  end
+
   describe "#create" do
     render_views
     let(:user2) { create(:user) }

@@ -219,6 +219,7 @@ Rails/DynamicFindBy:
     - "modules/*/spec/features/**/*.rb"
   Whitelist:
     - find_by_login
+    - find_by_mail
 
 # Allow reorder to prevent find each cop triggering
 Rails/FindEach:
