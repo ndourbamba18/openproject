@@ -62,15 +62,14 @@ export default class extends BaseController {
 
     super.connect();
     void this.initializeTurboRequestService();
-    useIntersection(this, { threshold: 1.0 });
+    useIntersection(this, { threshold: 0.25 });
 
     this.setupScrollPreservation();
   }
 
   disconnect() {
     super.disconnect();
-    this.abortController.abort();
-    if (this.pageStreamHandler) this.pageStreamHandler = undefined;
+    this.tearDownScrollPreservation();
   }
 
   async appear() {
@@ -93,7 +92,7 @@ export default class extends BaseController {
     }
   }
 
-  setupScrollPreservation() {
+  private setupScrollPreservation() {
     if (!this.scrollableContainer || this.pageStreamHandler) return;
 
     const { signal } = this.abortController;
@@ -116,6 +115,11 @@ export default class extends BaseController {
     };
 
     document.addEventListener('turbo:before-stream-render', this.pageStreamHandler as EventListener, { signal });
+  }
+
+  private tearDownScrollPreservation() {
+    this.abortController.abort();
+    if (this.pageStreamHandler) this.pageStreamHandler = undefined;
   }
 
   private fetchNextPageStream():Promise<{ html:string, headers:Headers }> {
