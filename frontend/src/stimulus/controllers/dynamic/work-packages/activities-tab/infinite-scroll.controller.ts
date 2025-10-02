@@ -62,7 +62,6 @@ export default class extends BaseController {
 
     super.connect();
     void this.initializeTurboRequestService();
-    useIntersection(this, { threshold: 0.25 });
 
     this.setupScrollPreservation();
   }
@@ -96,12 +95,14 @@ export default class extends BaseController {
     if (!this.scrollableContainer || this.pageStreamHandler) return;
 
     const { signal } = this.abortController;
+    const scrollContainer = this.scrollableContainer;
+
+    useIntersection(this, { root: scrollContainer });
 
     this.pageStreamHandler = (event:TurboBeforeStreamRenderEvent) => {
       event.preventDefault();
 
       const stream = event.detail.newStream;
-      const scrollContainer = this.scrollableContainer!;
 
       if (stream.target.includes(this.insertTargetIdValue)) {
         const isPrepend = stream.action === 'prepend';
