@@ -335,7 +335,6 @@ RSpec.describe CustomFields::Hierarchy::HierarchicalItemService, with_ee: [:cust
                                                                  scored_list_custom_fields: true } do
     current_user { create(:admin) }
 
-    let!(:contract_class) { CustomFields::Hierarchy::UpdateScoredItemContract }
     let!(:project) { create(:project) }
     let!(:custom_field) { create(:scored_list_project_custom_field, projects: [project]) }
     let!(:one) { create(:hierarchy_item, parent: custom_field.hierarchy_root, label: "One", score: 1) }
@@ -351,11 +350,24 @@ RSpec.describe CustomFields::Hierarchy::HierarchicalItemService, with_ee: [:cust
       project.custom_values.create!(custom_field: custom_field, value: one.id)
     end
 
-    it "updates calculated values affected by the change" do
-      result = service.update_item(contract_class:, item: one, score: 42)
-      expect(result).to be_success
+    describe "updating the score of an item" do
+      let!(:contract_class) { CustomFields::Hierarchy::UpdateScoredItemContract }
 
-      expect(project.custom_value_for(calculated_value).value).to eq("84.0")
+      it "updates calculated values affected by the change" do
+        result = service.update_item(contract_class:, item: one, score: 42)
+        expect(result).to be_success
+
+        expect(project.custom_value_for(calculated_value).value).to eq("84.0")
+      end
+    end
+
+    describe "deleting an item" do
+      it "updates calculated values affected by the change" do
+        result = service.delete_branch(item: one)
+        expect(result).to be_success
+
+        expect(project.custom_value_for(calculated_value).value).to be_nil
+      end
     end
   end
 end
