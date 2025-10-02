@@ -31,6 +31,12 @@
 module WorkPackages
   module ActivitiesTab
     module SharedHelpers
+      extend ActiveSupport::Concern
+
+      included do
+        include WorkPackages::ActivitiesTab::JournalSortingInquirable
+      end
+
       def truncated_user_name(user, hover_card: false)
         helpers.primer_link_to_user(user, scheme: :primary, font_weight: :bold, hover_card:)
       end
@@ -59,18 +65,6 @@ module WorkPackages
         render(Primer::Beta::Text.new(font_size: :small, color: :subtle, mt: 1)) do
           format_time(journal.updated_at)
         end
-      end
-
-      def journal_sorting_asc?
-        journal_sorting == "asc"
-      end
-
-      def journal_sorting_desc?
-        journal_sorting == "desc"
-      end
-
-      def journal_sorting
-        User.current.preference&.comments_sorting || OpenProject::Configuration.default_comment_sort_order
       end
 
       def activity_url(journal)

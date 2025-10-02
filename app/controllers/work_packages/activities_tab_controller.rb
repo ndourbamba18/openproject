@@ -32,6 +32,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   include Pagy::Backend
   include OpTurbo::ComponentStream
   include FlashMessagesOutputSafetyHelper
+  include WorkPackages::ActivitiesTab::JournalSortingInquirable
   include WorkPackages::ActivitiesTab::StimulusControllers
 
   before_action :find_work_package
@@ -285,11 +286,6 @@ class WorkPackages::ActivitiesTabController < ApplicationController
 
   def set_filter
     @filter = (params[:filter] || params.dig(:journal, :filter))&.to_sym || :all
-  end
-
-  def journal_sorting
-    ActiveSupport::StringInquirer
-      .new(User.current.preference&.comments_sorting || OpenProject::Configuration.default_comment_sort_order)
   end
 
   def sanitized_journal_notes

@@ -13,7 +13,7 @@
               render(WorkPackages::ActivitiesTab::Journals::EmptyComponent.new)
             end
           else
-            if journal_sorting_asc?
+            if journal_sorting.asc?
               journals_index_container.with_row do
                 render(infinite_scroll_component)
               end
@@ -23,7 +23,7 @@
               render(page_component)
             end
 
-            if journal_sorting_desc?
+            if journal_sorting.desc?
               journals_index_container.with_row do
                 render(infinite_scroll_component)
               end

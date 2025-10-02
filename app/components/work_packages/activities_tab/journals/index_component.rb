@@ -82,11 +82,7 @@ module WorkPackages
         end
 
         def inner_container_margin_bottom
-          if journal_sorting_desc?
-            3
-          else
-            0
-          end
+          journal_sorting.desc? ? 3 : 0
         end
       end
     end
