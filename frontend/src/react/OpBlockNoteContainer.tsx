@@ -56,7 +56,7 @@ export interface OpBlockNoteContainerProps {
 const schema = BlockNoteSchema.create({
   blockSpecs: {
     ...defaultBlockSpecs,
-    openProjectWorkPackage: openProjectWorkPackageBlockSpec,
+    openProjectWorkPackage: openProjectWorkPackageBlockSpec(),
   },
 });
 
