@@ -76,7 +76,7 @@ export class ConfigurationService {
     return this.userPreference('timeZone');
   }
 
-  public isDirectUploads():boolean {
+  public isDirectUploads():boolean { // I need to know this, can I use this service here?
     return !!this.prepareAttachmentURL;
   }
 
