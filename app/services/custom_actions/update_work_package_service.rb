@@ -42,9 +42,6 @@ class CustomActions::UpdateWorkPackageService
   end
 
   def call(work_package:, &)
-    # Activate all custom field validations because by default
-    # no custom fields are validated on existing work packages
-    work_package.activate_custom_field_validations!
     apply_actions(work_package, action.actions)
 
     result = ::WorkPackages::UpdateService
