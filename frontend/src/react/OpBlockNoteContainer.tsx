@@ -51,6 +51,7 @@ export interface OpBlockNoteContainerProps {
   activeUser:User;
   documentId:string;
   openProjectUrl:string;
+  attachmentsUploadUrl:string;
 }
 
 const schema = BlockNoteSchema.create({
@@ -69,7 +70,8 @@ export default function OpBlockNoteContainer({ inputField,
                                                hocuspocusUrl,
                                                hocuspocusAccessToken,
                                                documentId,
-                                               openProjectUrl }:OpBlockNoteContainerProps) {
+                                               openProjectUrl,
+                                               attachmentsUploadUrl }:OpBlockNoteContainerProps) {
   initOpenProjectApi({ baseUrl: openProjectUrl});
 
   const [isLoading, setIsLoading] = useState(true);
@@ -107,6 +109,24 @@ export default function OpBlockNoteContainer({ inputField,
     };
   }
 
+  async function uploadFile(file: File) {
+    const metadata = {
+      fileName: file.name,
+    };
+    const body = new FormData();
+    body.append('metadata', JSON.stringify(metadata));
+    body.append('file', file);
+
+    const ret = await fetch(`${attachmentsUploadUrl}`, {
+      method: 'POST',
+      body: body,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    });
+    return (await ret.json())._links.staticDownloadLocation.href;
+  }
+
   let editor:any;
   if(collaborationEnabled) {
     const resolveUsers = async (userIds:string[]) => {
@@ -118,13 +138,17 @@ export default function OpBlockNoteContainer({ inputField,
         resolveUsers,
         collaboration,
         schema,
-        comments
+        comments,
+        uploadFile
       },
       [activeUser, threadStore]
     );
   } else {
     editor = useCreateBlockNote(
-      { schema },
+      {
+        schema,
+        uploadFile
+      },
     );
   };
   type EditorType = typeof editor;

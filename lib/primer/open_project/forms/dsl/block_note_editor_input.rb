@@ -33,20 +33,21 @@ module Primer
     module Forms
       module Dsl
         class BlockNoteEditorInput < Primer::Forms::Dsl::Input
-          attr_reader :name, :label, :value, :classes, :document_id
+          attr_reader :name, :label, :value, :classes, :document_id, :attachments_upload_url
 
-          def initialize(name:, label:, value:, document_id:, **system_arguments)
+          def initialize(name:, label:, value:, document_id:, attachments_upload_url:, **system_arguments)
             @name = name
             @label = label
             @value = value
             @classes = system_arguments[:classes]
             @document_id = document_id
+            @attachments_upload_url = attachments_upload_url
 
             super(**system_arguments)
           end
 
           def to_component
-            BlockNoteEditor.new(input: self, value:, document_id:)
+            BlockNoteEditor.new(input: self, value:, document_id:, attachments_upload_url:)
           end
 
           def type

@@ -53,7 +53,8 @@ class DocumentForm < ApplicationForm
         label: I18n.t("label_document_description"),
         classes: "document-form--long-description",
         value: model.description,
-        document_id: ::CollaborativeEditing::DocumentIdGenerator.call("documents", model.id)
+        document_id: ::CollaborativeEditing::DocumentIdGenerator.call("documents", model.id),
+        attachments_upload_url: ::API::V3::Utilities::PathHelper::ApiV3Path.attachments_by_document(model.id)
       )
     else
       f.rich_text_area(
