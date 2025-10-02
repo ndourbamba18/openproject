@@ -31,301 +31,331 @@
 require "spec_helper"
 
 RSpec.describe CustomFields::Hierarchy::HierarchicalItemService, with_ee: [:custom_field_hierarchies] do
-  let!(:custom_field) { create(:custom_field, field_format: "hierarchy", hierarchy_root: nil) }
-  let!(:invalid_custom_field) { create(:custom_field, field_format: "text", hierarchy_root: nil) }
-  let!(:contract_class) { CustomFields::Hierarchy::InsertListItemContract }
-
-  let!(:root) { service.generate_root(custom_field).value! }
-  let!(:luke) { service.insert_item(contract_class:, parent: root, label: "luke", short: "LS").value! }
-  let!(:mara) { service.insert_item(contract_class:, parent: luke, label: "mara").value! }
-
   subject(:service) { described_class.new }
 
-  describe "#generate_root" do
-    context "with valid hierarchy root" do
-      it "creates a root item successfully" do
-        expect(service.generate_root(custom_field)).to be_success
+  context "with ListItemContract" do
+    let!(:custom_field) { create(:custom_field, field_format: "hierarchy", hierarchy_root: nil) }
+    let!(:invalid_custom_field) { create(:custom_field, field_format: "text", hierarchy_root: nil) }
+    let!(:contract_class) { CustomFields::Hierarchy::InsertListItemContract }
+
+    let!(:root) { service.generate_root(custom_field).value! }
+    let!(:luke) { service.insert_item(contract_class:, parent: root, label: "luke", short: "LS").value! }
+    let!(:mara) { service.insert_item(contract_class:, parent: luke, label: "mara").value! }
+
+    describe "#generate_root" do
+      context "with valid hierarchy root" do
+        it "creates a root item successfully" do
+          expect(service.generate_root(custom_field)).to be_success
+        end
+      end
+
+      it "requires a custom field of type hierarchy" do
+        result = service.generate_root(invalid_custom_field).failure
+
+        expect(result.errors[:custom_field]).to eq(["format 'text' is unsupported."])
+      end
+
+      context "with persistence of hierarchy root fails" do
+        it "fails to create a root item" do
+          allow(CustomField::Hierarchy::Item)
+            .to receive(:create)
+                  .and_return(instance_double(CustomField::Hierarchy::Item, new_record?: true, errors: "some errors"))
+
+          result = service.generate_root(custom_field)
+          expect(result).to be_failure
+        end
       end
     end
 
-    it "requires a custom field of type hierarchy" do
-      result = service.generate_root(invalid_custom_field).failure
+    describe "#insert_item" do
+      let(:label) { "Child Item" }
+      let(:short) { "Short Description" }
 
-      expect(result.errors[:custom_field]).to eq(["format 'text' is unsupported."])
-    end
+      context "with valid parameters" do
+        it "inserts an item successfully without short" do
+          result = service.insert_item(contract_class:, parent: luke, label:)
 
-    context "with persistence of hierarchy root fails" do
-      it "fails to create a root item" do
-        allow(CustomField::Hierarchy::Item)
-          .to receive(:create)
-                .and_return(instance_double(CustomField::Hierarchy::Item, new_record?: true, errors: "some errors"))
+          expect(result).to be_success
+          expect(luke.reload.children.count).to eq(2)
+        end
 
-        result = service.generate_root(custom_field)
-        expect(result).to be_failure
+        it "inserts an item successfully with short" do
+          result = service.insert_item(contract_class:, parent: root, label:, short:)
+          expect(result).to be_success
+        end
+
+        it "insert an item into a specific sort_order" do
+          leia = service.insert_item(contract_class:, parent: root, label: "leia").value!
+          expect(root.reload.children).to contain_exactly(luke, leia)
+
+          bob = service.insert_item(contract_class:, parent: root, label: "Bob", sort_order: 1).value!
+          expect(root.reload.children).to contain_exactly(luke, bob, leia)
+        end
+
+        it "updates the position_cache" do
+          leia = service.insert_item(contract_class:, parent: root, label: "leia").value!
+          expect(root.reload.position_cache).to eq(64)
+
+          service.insert_item(contract_class:, parent: root, label: "Bob", sort_order: 1).value!
+          expect(leia.reload.position_cache).to eq(200)
+        end
+      end
+
+      context "with invalid item" do
+        it "fails to insert an item" do
+          child = instance_double(CustomField::Hierarchy::Item, new_record?: true, errors: "some errors")
+          allow(root.children).to receive(:create).and_return(child)
+
+          result = service.insert_item(contract_class:, parent: root, label:, short:)
+          expect(result).to be_failure
+        end
       end
     end
-  end
 
-  describe "#insert_item" do
-    let(:label) { "Child Item" }
-    let(:short) { "Short Description" }
-
-    context "with valid parameters" do
-      it "inserts an item successfully without short" do
-        result = service.insert_item(contract_class:, parent: luke, label:)
-
-        expect(result).to be_success
-        expect(luke.reload.children.count).to eq(2)
+    describe "#update_item" do
+      context "with valid parameters" do
+        it "updates the item with new attributes" do
+          update_contract = CustomFields::Hierarchy::UpdateListItemContract
+          result = service.update_item(contract_class: update_contract, item: luke, label: "Luke Skywalker", short: "LS")
+          expect(result).to be_success
+        end
       end
 
-      it "inserts an item successfully with short" do
-        result = service.insert_item(contract_class:, parent: root, label:, short:)
-        expect(result).to be_success
+      context "with invalid parameters" do
+        let!(:leia) { service.insert_item(contract_class:, parent: root, label: "leia").value! }
+
+        it "refuses to update the item with new attributes" do
+          update_contract = CustomFields::Hierarchy::UpdateListItemContract
+          result = service.update_item(contract_class: update_contract, item: leia, label: "luke", short: "LS")
+          expect(result).to be_failure
+
+          errors = result.failure.errors
+          expect(errors[:label]).to eq(["must be unique within the same hierarchy level."])
+          expect(errors[:short]).to eq(["must be unique within the same hierarchy level."])
+        end
+      end
+    end
+
+    describe "#delete_branch" do
+      context "with valid item to destroy" do
+        it "deletes the entire branch" do
+          result = service.delete_branch(item: luke)
+          expect(result).to be_success
+          expect(luke).to be_frozen
+          expect(CustomField::Hierarchy::Item.count).to eq(1)
+          expect(root.reload.children).to be_empty
+        end
+
+        it "updates the position_cache" do
+          result = service.delete_branch(item: luke)
+
+          expect(result).to be_success
+          expect(root.reload.position_cache).to eq(27)
+        end
       end
 
-      it "insert an item into a specific sort_order" do
-        leia = service.insert_item(contract_class:, parent: root, label: "leia").value!
-        expect(root.reload.children).to contain_exactly(luke, leia)
+      context "with root item" do
+        it "refuses to delete the item" do
+          result = service.delete_branch(item: root)
+          expect(result).to be_failure
+        end
+      end
+    end
 
-        bob = service.insert_item(contract_class:, parent: root, label: "Bob", sort_order: 1).value!
-        expect(root.reload.children).to contain_exactly(luke, bob, leia)
+    describe "#get_branch" do
+      context "with a non-root node" do
+        it "returns all the ancestors to that item" do
+          result = service.get_branch(item: mara)
+          expect(result).to be_success
+
+          ancestors = result.value!
+          expect(ancestors.size).to eq(3)
+          expect(ancestors).to contain_exactly(root, luke, mara)
+          expect(ancestors.last).to eq(mara)
+        end
+      end
+
+      context "with a root node" do
+        it "returns a empty list" do
+          result = service.get_branch(item: root)
+          expect(result).to be_success
+          expect(result.value!).to match_array(root)
+        end
+      end
+    end
+
+    describe "#get_descendants" do
+      let!(:subitem) { service.insert_item(contract_class:, parent: mara, label: "Sub1").value! }
+      let!(:subitem2) { service.insert_item(contract_class:, parent: mara, label: "sub two").value! }
+      let!(:unrelated_subitem) { service.insert_item(contract_class:, parent: luke, label: "not related").value! }
+
+      context "with a non-root node" do
+        it "returns all the descendants to that item" do
+          result = service.get_descendants(item: mara)
+          expect(result).to be_success
+
+          descendants = result.value!
+          expect(descendants).to contain_exactly(mara, subitem, subitem2)
+        end
+      end
+
+      context "with a leaf node" do
+        it "returns just the leaf node" do
+          result = service.get_descendants(item: subitem2)
+          expect(result).to be_success
+          expect(result.value!).to match_array(subitem2)
+        end
+      end
+
+      context "when does not include self" do
+        it "returns all descendants not including the item passed" do
+          result = service.get_descendants(item: mara, include_self: false)
+          expect(result).to be_success
+
+          descendants = result.value!
+          expect(descendants).to contain_exactly(subitem, subitem2)
+        end
+      end
+    end
+
+    describe "#move_item" do
+      let(:lando) { service.insert_item(contract_class:, parent: root, label: "lando").value! }
+
+      it "move the node to the new parent" do
+        expect { service.move_item(item: mara, new_parent: lando) }.to change { mara.reload.ancestors.first }.to(lando)
+      end
+
+      it "all child nodes follow" do
+        service.move_item(item: luke, new_parent: lando)
+
+        expect(luke.reload.ancestors).to contain_exactly(root, lando)
+        expect(mara.reload.ancestors).to contain_exactly(root, lando, luke)
       end
 
       it "updates the position_cache" do
-        leia = service.insert_item(contract_class:, parent: root, label: "leia").value!
-        expect(root.reload.position_cache).to eq(64)
+        service.move_item(item: luke, new_parent: lando)
 
-        service.insert_item(contract_class:, parent: root, label: "Bob", sort_order: 1).value!
-        expect(leia.reload.position_cache).to eq(200)
+        preordered_descendants = root.reload.self_and_descendants_preordered.pluck(:label)
+        expect(root.self_and_descendants.reorder(:position_cache).pluck(:label)).to eq(preordered_descendants)
       end
     end
 
-    context "with invalid item" do
-      it "fails to insert an item" do
-        child = instance_double(CustomField::Hierarchy::Item, new_record?: true, errors: "some errors")
-        allow(root.children).to receive(:create).and_return(child)
+    describe "#reorder_item" do
+      let!(:lando) { service.insert_item(contract_class:, parent: root, label: "lando").value! }
+      let!(:chewbacca) { service.insert_item(contract_class:, parent: root, label: "AWOOO").value! }
 
-        result = service.insert_item(contract_class:, parent: root, label:, short:)
-        expect(result).to be_failure
+      it "reorders the item to the target position" do
+        service.reorder_item(item: chewbacca, new_sort_order: 1)
+
+        expect(luke.reload.sort_order).to eq(0)
+        expect(chewbacca.reload.sort_order).to eq(1)
+        expect(lando.reload.sort_order).to eq(2)
       end
-    end
-  end
 
-  describe "#update_item" do
-    context "with valid parameters" do
-      it "updates the item with new attributes" do
-        update_contract = CustomFields::Hierarchy::UpdateListItemContract
-        result = service.update_item(contract_class: update_contract, item: luke, label: "Luke Skywalker", short: "LS")
-        expect(result).to be_success
+      it "reorders the item even if sort order is a string" do
+        service.reorder_item(item: chewbacca, new_sort_order: "1")
+
+        expect(luke.reload.sort_order).to eq(0)
+        expect(chewbacca.reload.sort_order).to eq(1)
+        expect(lando.reload.sort_order).to eq(2)
       end
-    end
 
-    context "with invalid parameters" do
-      let!(:leia) { service.insert_item(contract_class:, parent: root, label: "leia").value! }
+      it "reorders the item to the last position" do
+        service.reorder_item(item: lando, new_sort_order: root.children.length)
 
-      it "refuses to update the item with new attributes" do
-        update_contract = CustomFields::Hierarchy::UpdateListItemContract
-        result = service.update_item(contract_class: update_contract, item: leia, label: "luke", short: "LS")
-        expect(result).to be_failure
-
-        errors = result.failure.errors
-        expect(errors[:label]).to eq(["must be unique within the same hierarchy level."])
-        expect(errors[:short]).to eq(["must be unique within the same hierarchy level."])
+        expect(luke.reload.sort_order).to eq(0)
+        expect(chewbacca.reload.sort_order).to eq(1)
+        expect(lando.reload.sort_order).to eq(2)
       end
-    end
-  end
 
-  describe "#delete_branch" do
-    context "with valid item to destroy" do
-      it "deletes the entire branch" do
-        result = service.delete_branch(item: luke)
-        expect(result).to be_success
-        expect(luke).to be_frozen
-        expect(CustomField::Hierarchy::Item.count).to eq(1)
-        expect(root.reload.children).to be_empty
+      it "reorders the item to the first position" do
+        service.reorder_item(item: chewbacca, new_sort_order: 0)
+
+        expect(chewbacca.reload.sort_order).to eq(0)
+        expect(luke.reload.sort_order).to eq(1)
+        expect(lando.reload.sort_order).to eq(2)
+      end
+
+      it "does not reorder before first" do
+        service.reorder_item(item: lando, new_sort_order: -10)
+
+        expect(lando.reload.sort_order).to eq(0)
+        expect(luke.reload.sort_order).to eq(1)
+        expect(chewbacca.reload.sort_order).to eq(2)
+      end
+
+      it "does not reorder after last" do
+        service.reorder_item(item: chewbacca, new_sort_order: 99)
+
+        expect(luke.reload.sort_order).to eq(0)
+        expect(lando.reload.sort_order).to eq(1)
+        expect(chewbacca.reload.sort_order).to eq(2)
+      end
+
+      it "does not reorder when changing self" do
+        service.reorder_item(item: lando, new_sort_order: lando.sort_order)
+
+        expect(luke.reload.sort_order).to eq(0)
+        expect(lando.reload.sort_order).to eq(1)
+        expect(chewbacca.reload.sort_order).to eq(2)
       end
 
       it "updates the position_cache" do
-        result = service.delete_branch(item: luke)
+        service.reorder_item(item: chewbacca, new_sort_order: 0)
 
-        expect(result).to be_success
-        expect(root.reload.position_cache).to eq(27)
+        preordered_descendants = root.reload.self_and_descendants_preordered.pluck(:label)
+        expect(root.self_and_descendants.reorder(:position_cache).pluck(:label)).to eq(preordered_descendants)
       end
     end
 
-    context "with root item" do
-      it "refuses to delete the item" do
-        result = service.delete_branch(item: root)
-        expect(result).to be_failure
+    describe "#hashed_subtree" do
+      let!(:lando) { service.insert_item(contract_class:, parent: root, label: "lando").value! }
+      let!(:chewbacca) { service.insert_item(contract_class:, parent: root, label: "AWOOO").value! }
+      let!(:lowbacca) { service.insert_item(contract_class:, parent: chewbacca, label: "ARWWWW").value! }
+
+      it "produces a hash version of the tree" do
+        subtree = service.hashed_subtree(item: root, depth: -1)
+
+        expect(subtree.value!).to be_a(Hash)
+        expect(subtree.value![root].size).to eq(3)
+        expect(subtree.value![root][lando]).to be_empty
+        expect(subtree.value![root][chewbacca][lowbacca]).to be_empty
       end
-    end
-  end
 
-  describe "#get_branch" do
-    context "with a non-root node" do
-      it "returns all the ancestors to that item" do
-        result = service.get_branch(item: mara)
-        expect(result).to be_success
+      it "produces a hash version of a sub tree with limited depth" do
+        subtree = service.hashed_subtree(item: chewbacca, depth: 0)
 
-        ancestors = result.value!
-        expect(ancestors.size).to eq(3)
-        expect(ancestors).to contain_exactly(root, luke, mara)
-        expect(ancestors.last).to eq(mara)
-      end
-    end
-
-    context "with a root node" do
-      it "returns a empty list" do
-        result = service.get_branch(item: root)
-        expect(result).to be_success
-        expect(result.value!).to match_array(root)
+        expect(subtree.value!).to be_a(Hash)
+        expect(subtree.value![chewbacca]).to be_empty
       end
     end
   end
 
-  describe "#get_descendants" do
-    let!(:subitem) { service.insert_item(contract_class:, parent: mara, label: "Sub1").value! }
-    let!(:subitem2) { service.insert_item(contract_class:, parent: mara, label: "sub two").value! }
-    let!(:unrelated_subitem) { service.insert_item(contract_class:, parent: luke, label: "not related").value! }
+  context "with scored list and calculated values", with_flag: { calculated_value_project_attribute: true,
+                                                                 scored_list_custom_fields: true } do
+    current_user { create(:admin) }
 
-    context "with a non-root node" do
-      it "returns all the descendants to that item" do
-        result = service.get_descendants(item: mara)
-        expect(result).to be_success
-
-        descendants = result.value!
-        expect(descendants).to contain_exactly(mara, subitem, subitem2)
-      end
+    let!(:contract_class) { CustomFields::Hierarchy::UpdateScoredItemContract }
+    let!(:project) { create(:project) }
+    let!(:custom_field) { create(:scored_list_project_custom_field, projects: [project]) }
+    let!(:one) { create(:hierarchy_item, parent: custom_field.hierarchy_root, label: "One", score: 1) }
+    let!(:two) { create(:hierarchy_item, parent: custom_field.hierarchy_root, label: "Two", score: 2) }
+    let!(:calculated_value) do
+      create(:calculated_value_project_custom_field,
+             :skip_validations,
+             projects: [project],
+             formula: "{{cf_#{custom_field.id}}} * 2")
     end
 
-    context "with a leaf node" do
-      it "returns just the leaf node" do
-        result = service.get_descendants(item: subitem2)
-        expect(result).to be_success
-        expect(result.value!).to match_array(subitem2)
-      end
+    before do
+      project.custom_values.create!(custom_field: custom_field, value: one.id)
     end
 
-    context "when does not include self" do
-      it "returns all descendants not including the item passed" do
-        result = service.get_descendants(item: mara, include_self: false)
-        expect(result).to be_success
+    it "updates calculated values affected by the change" do
+      result = service.update_item(contract_class:, item: one, score: 42)
+      expect(result).to be_success
 
-        descendants = result.value!
-        expect(descendants).to contain_exactly(subitem, subitem2)
-      end
-    end
-  end
-
-  describe "#move_item" do
-    let(:lando) { service.insert_item(contract_class:, parent: root, label: "lando").value! }
-
-    it "move the node to the new parent" do
-      expect { service.move_item(item: mara, new_parent: lando) }.to change { mara.reload.ancestors.first }.to(lando)
-    end
-
-    it "all child nodes follow" do
-      service.move_item(item: luke, new_parent: lando)
-
-      expect(luke.reload.ancestors).to contain_exactly(root, lando)
-      expect(mara.reload.ancestors).to contain_exactly(root, lando, luke)
-    end
-
-    it "updates the position_cache" do
-      service.move_item(item: luke, new_parent: lando)
-
-      preordered_descendants = root.reload.self_and_descendants_preordered.pluck(:label)
-      expect(root.self_and_descendants.reorder(:position_cache).pluck(:label)).to eq(preordered_descendants)
-    end
-  end
-
-  describe "#reorder_item" do
-    let!(:lando) { service.insert_item(contract_class:, parent: root, label: "lando").value! }
-    let!(:chewbacca) { service.insert_item(contract_class:, parent: root, label: "AWOOO").value! }
-
-    it "reorders the item to the target position" do
-      service.reorder_item(item: chewbacca, new_sort_order: 1)
-
-      expect(luke.reload.sort_order).to eq(0)
-      expect(chewbacca.reload.sort_order).to eq(1)
-      expect(lando.reload.sort_order).to eq(2)
-    end
-
-    it "reorders the item even if sort order is a string" do
-      service.reorder_item(item: chewbacca, new_sort_order: "1")
-
-      expect(luke.reload.sort_order).to eq(0)
-      expect(chewbacca.reload.sort_order).to eq(1)
-      expect(lando.reload.sort_order).to eq(2)
-    end
-
-    it "reorders the item to the last position" do
-      service.reorder_item(item: lando, new_sort_order: root.children.length)
-
-      expect(luke.reload.sort_order).to eq(0)
-      expect(chewbacca.reload.sort_order).to eq(1)
-      expect(lando.reload.sort_order).to eq(2)
-    end
-
-    it "reorders the item to the first position" do
-      service.reorder_item(item: chewbacca, new_sort_order: 0)
-
-      expect(chewbacca.reload.sort_order).to eq(0)
-      expect(luke.reload.sort_order).to eq(1)
-      expect(lando.reload.sort_order).to eq(2)
-    end
-
-    it "does not reorder before first" do
-      service.reorder_item(item: lando, new_sort_order: -10)
-
-      expect(lando.reload.sort_order).to eq(0)
-      expect(luke.reload.sort_order).to eq(1)
-      expect(chewbacca.reload.sort_order).to eq(2)
-    end
-
-    it "does not reorder after last" do
-      service.reorder_item(item: chewbacca, new_sort_order: 99)
-
-      expect(luke.reload.sort_order).to eq(0)
-      expect(lando.reload.sort_order).to eq(1)
-      expect(chewbacca.reload.sort_order).to eq(2)
-    end
-
-    it "does not reorder when changing self" do
-      service.reorder_item(item: lando, new_sort_order: lando.sort_order)
-
-      expect(luke.reload.sort_order).to eq(0)
-      expect(lando.reload.sort_order).to eq(1)
-      expect(chewbacca.reload.sort_order).to eq(2)
-    end
-
-    it "updates the position_cache" do
-      service.reorder_item(item: chewbacca, new_sort_order: 0)
-
-      preordered_descendants = root.reload.self_and_descendants_preordered.pluck(:label)
-      expect(root.self_and_descendants.reorder(:position_cache).pluck(:label)).to eq(preordered_descendants)
-    end
-  end
-
-  describe "#hashed_subtree" do
-    let!(:lando) { service.insert_item(contract_class:, parent: root, label: "lando").value! }
-    let!(:chewbacca) { service.insert_item(contract_class:, parent: root, label: "AWOOO").value! }
-    let!(:lowbacca) { service.insert_item(contract_class:, parent: chewbacca, label: "ARWWWW").value! }
-
-    it "produces a hash version of the tree" do
-      subtree = service.hashed_subtree(item: root, depth: -1)
-
-      expect(subtree.value!).to be_a(Hash)
-      expect(subtree.value![root].size).to eq(3)
-      expect(subtree.value![root][lando]).to be_empty
-      expect(subtree.value![root][chewbacca][lowbacca]).to be_empty
-    end
-
-    it "produces a hash version of a sub tree with limited depth" do
-      subtree = service.hashed_subtree(item: chewbacca, depth: 0)
-
-      expect(subtree.value!).to be_a(Hash)
-      expect(subtree.value![chewbacca]).to be_empty
+      expect(project.custom_value_for(calculated_value).value).to eq("84.0")
     end
   end
 end
