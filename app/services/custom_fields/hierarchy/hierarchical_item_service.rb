@@ -178,9 +178,24 @@ module CustomFields
 
       def update_item_attributes(item:, attributes:)
         if item.update(label: attributes[:label], short: attributes[:short], score: attributes[:score])
+          update_calculated_values_using_hierarchy(item.root)
           Success(item)
         else
           Failure(item.errors)
+        end
+      end
+
+      # Recalculates Calculated Values in all projects that use the hierarchy's custom field
+      def update_calculated_values_using_hierarchy(hierarchy)
+        custom_field = hierarchy.custom_field
+
+        return unless custom_field.field_format_scored_list?
+
+        custom_field.projects.each do |project|
+          affected_cfs = project.available_custom_fields.affected_calculated_fields([custom_field.id])
+
+          project.calculate_custom_fields(affected_cfs)
+          project.save if project.changed_for_autosave?
         end
       end
 
