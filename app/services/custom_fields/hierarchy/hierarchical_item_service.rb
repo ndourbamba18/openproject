@@ -83,7 +83,13 @@ module CustomFields
       def delete_branch(item:)
         return Failure(:item_is_root) if item.root?
 
-        item.destroy ? Success() : Failure(item.errors)
+        root_item = item.root
+        if item.destroy
+          update_calculated_values_using_hierarchy(root_item)
+          Success()
+        else
+          Failure(item.errors)
+        end
       end
 
       # Gets all nodes in a tree from the item/node back to the root.

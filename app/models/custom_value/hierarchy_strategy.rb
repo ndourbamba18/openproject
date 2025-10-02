@@ -32,7 +32,7 @@ class CustomValue::HierarchyStrategy < CustomValue::ARObjectStrategy
   def typed_value
     item = cached_typed_value
 
-    item.score.presence || item
+    item&.score.presence || item
   end
 
   def formatted_value
