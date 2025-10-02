@@ -46,7 +46,11 @@ class CustomActions::Actions::CustomField < CustomActions::Actions::Base
   end
 
   def apply(work_package)
-    work_package.send(custom_field.attribute_setter, values) if work_package.respond_to?(custom_field.attribute_setter)
+    if work_package.respond_to?(custom_field.attribute_setter)
+      work_package.send(custom_field.attribute_setter, values)
+      # Validate the custom field the custom action is changing.
+      work_package.custom_values_to_validate << work_package.custom_value_for(custom_field)
+    end
   end
 
   def self.all

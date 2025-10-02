@@ -134,6 +134,35 @@ RSpec.shared_examples_for "acts_as_customizable included" do
 
         expect(subject).to contain_exactly(custom_value)
       end
+
+      it "allows appending values using << operator" do
+        custom_value = model_instance.custom_field_values.first
+
+        # Start with empty array
+        model_instance.custom_values_to_validate = []
+        expect(model_instance.custom_values_to_validate).to eq([])
+
+        # Append using << operator
+        model_instance.custom_values_to_validate << custom_value
+        expect(model_instance.custom_values_to_validate).to contain_exactly(custom_value)
+
+        # Append another value
+        another_value = model_instance.custom_field_values.last
+        model_instance.custom_values_to_validate << another_value
+        expect(model_instance.custom_values_to_validate).to contain_exactly(custom_value, another_value)
+      end
+
+      it "allows appending values using push method" do
+        custom_value = model_instance.custom_field_values.first
+        another_value = model_instance.custom_field_values.last
+
+        # Start with empty array
+        model_instance.custom_values_to_validate = []
+
+        # Append using push method
+        model_instance.custom_values_to_validate.push(custom_value, another_value)
+        expect(model_instance.custom_values_to_validate).to contain_exactly(custom_value, another_value)
+      end
     end
 
     context "for a new model_instance" do
