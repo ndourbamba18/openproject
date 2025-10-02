@@ -39,7 +39,7 @@ class CustomValue::HierarchyStrategy < CustomValue::ARObjectStrategy
     item = cached_typed_value
 
     if item.nil?
-      "#{value} #{I18n.t(:label_not_found)}"
+      ""
     elsif item.short.present?
       "#{item.label} (#{item.short})"
     else
