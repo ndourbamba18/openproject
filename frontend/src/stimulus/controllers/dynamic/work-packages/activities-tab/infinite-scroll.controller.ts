@@ -62,7 +62,6 @@ export default class extends BaseController {
 
     super.connect();
     void this.initializeTurboRequestService();
-
     this.setupScrollPreservation();
   }
 
@@ -103,8 +102,9 @@ export default class extends BaseController {
       event.preventDefault();
 
       const stream = event.detail.newStream;
+      const insertTargetId = this.insertTargetIdValue;
 
-      if (stream.target.includes(this.insertTargetIdValue)) {
+      if (insertTargetId && stream.target.includes(insertTargetId)) {
         const isPrepend = stream.action === 'prepend';
         void DomHelpers.keepScroll(scrollContainer, isPrepend, () => {
           event.detail.render(stream);
