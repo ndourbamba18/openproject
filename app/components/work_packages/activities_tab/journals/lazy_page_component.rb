@@ -31,34 +31,37 @@
 module WorkPackages
   module ActivitiesTab
     module Journals
-      class InfiniteScrollComponent < ApplicationComponent
+      class LazyPageComponent < ApplicationComponent
         include OpPrimer::ComponentHelpers
         include OpTurbo::Streamable
         include WorkPackages::ActivitiesTab::StimulusControllers
 
-        def initialize(work_package:, page: 1, next_page: nil)
+        def initialize(work_package:, page:)
           super
           @work_package = work_package
           @page = page
-          @next_page = next_page
+        end
+
+        def self.wrapper_key
+          WorkPackages::ActivitiesTab::Journals::PageComponent.wrapper_key
+        end
+
+        def wrapper_uniq_by
+          page
         end
 
         private
 
-        attr_reader :work_package, :page, :next_page
+        attr_reader :work_package, :page
 
         def wrapper_data_attributes
           {
-            controller: infinite_scroll_stimulus_controller,
-            infinite_scroll_stimulus_controller("-insert-target-id-value") => insert_target_id,
-            infinite_scroll_stimulus_controller("-page-value") => page,
-            infinite_scroll_stimulus_controller("-is-last-page-value") => next_page.blank?,
-            infinite_scroll_stimulus_controller("-url-value") => page_streams_url
+            controller: lazy_page_stimulus_controller,
+            lazy_page_stimulus_controller("-insert-target-id-value") => wrapper_key,
+            lazy_page_stimulus_controller("-page-value") => page,
+            lazy_page_stimulus_controller("-url-value") => page_streams_url,
+            lazy_page_stimulus_controller("-is-loaded-value") => false
           }
-        end
-
-        def insert_target_id
-          WorkPackages::ActivitiesTab::Journals::IndexComponent.insert_target_modifier_id
         end
 
         def page_streams_url

@@ -13,20 +13,8 @@
               render(WorkPackages::ActivitiesTab::Journals::EmptyComponent.new)
             end
           else
-            if journal_sorting.asc?
-              journals_index_container.with_row do
-                render(infinite_scroll_component)
-              end
-            end
-
             journals_index_container.with_row(id: insert_target_modifier_id) do
-              render(page_component)
-            end
-
-            if journal_sorting.desc?
-              journals_index_container.with_row do
-                render(infinite_scroll_component)
-              end
+              pages.map { concat render(it) }
             end
           end
         end

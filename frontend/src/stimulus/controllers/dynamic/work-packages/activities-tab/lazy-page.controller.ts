@@ -1,7 +1,7 @@
 /*
  * -- copyright
  * OpenProject is an open source project management software.
- * Copyright (C) 2023 the OpenProject GmbH
+ * Copyright (C) the OpenProject GmbH
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 3.
@@ -34,31 +34,26 @@ import { useIntersection } from 'stimulus-use';
 import BaseController from './base.controller';
 import { DomHelpers } from './services/dom_helpers';
 
-export default class extends BaseController {
+export default class LazyPageController extends BaseController {
   static values = {
     url: String,
     insertTargetId: String,
     page: { type: Number, default: 1 },
-    isLastPage: Boolean,
+    isLoaded: { type: Boolean, default: false },
   };
-
-  static targets = ['skeleton'];
 
   declare urlValue:string;
   declare insertTargetIdValue:string;
   declare pageValue:number;
-  declare isLastPageValue:boolean;
+  declare isLoadedValue:boolean;
 
-  declare readonly skeletonTarget:HTMLElement;
-  declare readonly hasSkeletonTarget:boolean;
-
-  private updateInProgress = false;
   private turboRequests:TurboRequestsService;
   private abortController = new AbortController();
   private pageStreamHandler?:(_event:TurboBeforeStreamRenderEvent) => void;
+  private stopObserving?:() => void;
 
   connect() {
-    if (this.isLastPageValue) return;
+    if (this.isLoadedValue) return;
 
     super.connect();
     void this.initializeTurboRequestService();
@@ -68,26 +63,19 @@ export default class extends BaseController {
   disconnect() {
     super.disconnect();
     this.tearDownScrollPreservation();
+    this.stopObserving?.();
   }
 
-  async appear() {
-    if (this.updateInProgress || this.isLastPageValue) return;
+  async appear(entry:IntersectionObserverEntry, observer:IntersectionObserver) {
+    observer.unobserve(entry.target); // observe and emit `appear()` callback just once
+    if (this.isLoadedValue) return;
 
-    this.updateInProgress = true;
-
-    await this.fetchNextPageStream()
+    await this.fetchPageStream()
       .catch((error) => {
         console.error('Error fetching next page:', error);
       }).finally(() => {
-        this.updateInProgress = false;
+        this.isLoadedValue = true;
       });
-  }
-
-  isLastPageValueChanged(isLastPage:boolean, _previousValue:boolean) {
-    if (isLastPage) {
-      (this.element as HTMLElement).hidden = true;
-      if (this.hasSkeletonTarget) this.skeletonTarget.remove();
-    }
   }
 
   private setupScrollPreservation() {
@@ -96,7 +84,7 @@ export default class extends BaseController {
     const { signal } = this.abortController;
     const scrollContainer = this.scrollableContainer;
 
-    useIntersection(this, { root: scrollContainer });
+    this.setupIntersectionObserver({ root: scrollContainer });
 
     this.pageStreamHandler = (event:TurboBeforeStreamRenderEvent) => {
       event.preventDefault();
@@ -118,12 +106,17 @@ export default class extends BaseController {
     document.addEventListener('turbo:before-stream-render', this.pageStreamHandler as EventListener, { signal });
   }
 
+  private setupIntersectionObserver({ root }:{ root:HTMLElement }) {
+    const [_observe, unobserve] = useIntersection(this, { root, threshold: 0.25, dispatchEvent: false });
+    this.stopObserving = unobserve;
+  }
+
   private tearDownScrollPreservation() {
     this.abortController.abort();
     if (this.pageStreamHandler) this.pageStreamHandler = undefined;
   }
 
-  private fetchNextPageStream():Promise<{ html:string, headers:Headers }> {
+  private fetchPageStream():Promise<{ html:string, headers:Headers }> {
     const url = this.preparePageStreamsUrl();
     return this.turboRequests.requestStream(url);
   }
@@ -131,7 +124,6 @@ export default class extends BaseController {
   private preparePageStreamsUrl():string {
     const baseUrl = window.location.origin;
     const url = new URL(this.urlValue, baseUrl);
-    this.pageValue += 1;
 
     url.searchParams.set('page', this.pageValue.toString());
     url.searchParams.set('filter', this.indexOutlet.filterValue);

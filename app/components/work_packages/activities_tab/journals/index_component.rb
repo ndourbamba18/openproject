@@ -37,22 +37,35 @@ module WorkPackages
         include OpTurbo::Streamable
         include WorkPackages::ActivitiesTab::SharedHelpers
 
-        def initialize(work_package:, journals:, page: 1, next_page: nil, filter: :all)
+        def initialize(work_package:, journals:, paginator:, filter: :all)
           super
 
           @work_package = work_package
           @journals = journals
-          @page = page
-          @next_page = next_page
+          @paginator = paginator
           @filter = filter
         end
 
-        def infinite_scroll_component
-          WorkPackages::ActivitiesTab::Journals::InfiniteScrollComponent.new(work_package:, page:, next_page:)
+        def pages
+          current_page = paginator.page
+
+          result = (1..paginator.pages).map do |page|
+            if page == current_page
+              page_component(page)
+            else
+              lazy_page_component(page)
+            end
+          end
+
+          result.tap { it.reverse! if journal_sorting.asc? && paginator.pages > 1 }
         end
 
-        def page_component
+        def page_component(page)
           WorkPackages::ActivitiesTab::Journals::PageComponent.new(journals:, emoji_reactions:, page:, filter:)
+        end
+
+        def lazy_page_component(page)
+          WorkPackages::ActivitiesTab::Journals::LazyPageComponent.new(work_package:, page:)
         end
 
         def self.insert_target_modifier_id = "#{wrapper_key}-pages"
@@ -60,7 +73,7 @@ module WorkPackages
 
         private
 
-        attr_reader :work_package, :journals, :page, :next_page, :filter
+        attr_reader :work_package, :journals, :paginator, :filter
 
         def insert_target_modified?
           true

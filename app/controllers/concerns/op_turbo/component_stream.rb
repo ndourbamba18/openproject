@@ -113,14 +113,6 @@ module OpTurbo
       turbo_streams << instance.render_as_turbo_stream(view_context:, action: :flash)
     end
 
-    def set_dataset_attributes_via_turbo_stream(target, **attributes)
-      attributes.each do |attribute, value|
-        turbo_streams << OpTurbo::StreamComponent
-          .new(action: :set_dataset_attribute, target:, attribute:, value:)
-          .render_in(view_context)
-      end
-    end
-
     def scroll_into_view_via_turbo_stream(target, behavior: :auto, block: :start)
       turbo_streams << OpTurbo::StreamComponent
         .new(action: :scroll_into_view, target:, behavior:, block:)

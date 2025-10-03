@@ -58,7 +58,7 @@ module WorkPackages
 
       def list_journals_component
         WorkPackages::ActivitiesTab::Journals::IndexComponent
-          .new(work_package:, journals:, filter:, page: paginator.page, next_page: paginator.next)
+          .new(work_package:, journals:, filter:, paginator:)
       end
 
       def add_journal_component

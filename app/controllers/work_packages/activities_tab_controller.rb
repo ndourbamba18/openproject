@@ -56,24 +56,13 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   end
 
   def page_streams
-    insert_via_turbo_stream(
-      target_component: WorkPackages::ActivitiesTab::Journals::IndexComponent.new(
-        work_package: @work_package,
-        journals: Journal.none # we do not need to pass any journals here since we just want the component key
-      ),
+    replace_via_turbo_stream(
       component: WorkPackages::ActivitiesTab::Journals::PageComponent.new(
         journals: @paginated_journals,
         emoji_reactions: wp_journals_emoji_reactions,
         page: @paginator.page,
         filter: @filter
-      ),
-      action: journal_sorting.desc? ? :append : :prepend
-    )
-
-    set_dataset_attributes_via_turbo_stream(
-      WorkPackages::ActivitiesTab::Journals::InfiniteScrollComponent.wrapper_key,
-      infinite_scroll_stimulus_controller("-page-value") => @paginator.page,
-      infinite_scroll_stimulus_controller("-is-last-page-value") => @paginator.next.blank?
+      )
     )
 
     respond_with_turbo_streams
@@ -367,6 +356,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
       component: WorkPackages::ActivitiesTab::Journals::IndexComponent.new(
         work_package: @work_package,
         journals: @paginated_journals,
+        paginator: @paginator,
         filter: @filter
       )
     )
@@ -476,6 +466,7 @@ class WorkPackages::ActivitiesTabController < ApplicationController
     target_component = WorkPackages::ActivitiesTab::Journals::IndexComponent.new(
       work_package: @work_package,
       journals: Journal.none, # we do not need to pass any journals here since we just want the component key
+      paginator: nil,
       filter: @filter
     )
 
