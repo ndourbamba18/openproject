@@ -222,18 +222,19 @@ module Redmine
 
         def custom_values_to_validate
           if persisted?
-            @custom_values_to_validate ||= Set.new
+            @custom_values_to_validate ||= []
           else
             custom_field_values
           end
         end
 
         def custom_values_to_validate=(custom_values)
-          @custom_values_to_validate = Set.new(custom_values)
+          @custom_values_to_validate = Array(custom_values)
         end
 
         def validate_custom_values
           custom_values_to_validate
+            .uniq
             .reject(&:marked_for_destruction?)
             .select(&:invalid?)
             .each { |custom_value| add_custom_value_errors! custom_value }

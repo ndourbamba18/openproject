@@ -702,12 +702,12 @@ RSpec.describe CustomActions::Actions::CustomField do
         action_instance = described_class.for(custom_field.attribute_name).new
         action_instance.values = ["test value"]
 
-        expect(other_work_package.custom_values_to_validate).to eq([])
+        expect(other_work_package.custom_values_to_validate).to be_empty
 
         action_instance.apply(other_work_package)
 
         # Should remain empty since the setter doesn't exist
-        expect(other_work_package.custom_values_to_validate).to eq([])
+        expect(other_work_package.custom_values_to_validate).to be_empty
       end
 
       context "with multiple custom actions" do
@@ -724,7 +724,7 @@ RSpec.describe CustomActions::Actions::CustomField do
           action_instance.values = ["first value"]
           another_instance.values = ["second value"]
 
-          expect(work_package.custom_values_to_validate).to eq([])
+          expect(work_package.custom_values_to_validate).to be_empty
 
           action_instance.apply(work_package)
           expect(work_package.custom_values_to_validate.size).to eq(1)
