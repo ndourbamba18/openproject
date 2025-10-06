@@ -32,14 +32,14 @@ module API
   module V3
     module Render
       class RenderAPI < ::API::OpenProjectAPI
+        SUPPORTED_CONTEXT_NAMESPACES = %w(work_packages projects news posts wiki_pages meeting_contents).freeze
+        SUPPORTED_MEDIA_TYPE = "text/plain"
+
         format :txt
         parser :txt, ::API::V3::Formatter::TxtCharset
 
         resources :render do
           helpers do
-            SUPPORTED_CONTEXT_NAMESPACES ||= %w(work_packages projects news posts wiki_pages meeting_contents).freeze
-            SUPPORTED_MEDIA_TYPE ||= "text/plain"
-
             def allowed_content_types
               [SUPPORTED_MEDIA_TYPE]
             end
