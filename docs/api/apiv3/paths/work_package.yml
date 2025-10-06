@@ -125,6 +125,15 @@ patch:
 
     The value of `lockVersion` is used to implement
     [optimistic locking](https://en.wikipedia.org/wiki/Optimistic_concurrency_control).
+
+    ## Custom Field Validation
+
+    Required custom fields are only validated when they are explicitly provided in the request body. If a custom field
+    is not included in the update request, it will not be validated. This enables clients to update
+    specific attributes independently without having to provide values for all required custom fields.
+
+    To override this behavior and validate all required custom fields regardless of whether they are included in the
+    request, set the `validateCustomFields` query parameter to `true`.
   parameters:
     - name: id
       description: Work package id
@@ -143,6 +152,18 @@ patch:
         type: boolean
         default: true
       example: false
+    - name: validateCustomFields
+      description: |-
+        When set to true, explicitly validates all required custom fields on the work package, regardless of whether
+        they are provided in the request body. This overrides the default behavior where only custom fields included
+        in the request are validated. Use this parameter when you need to ensure all required custom fields have
+        valid values before allowing the update to proceed.
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+      example: true
   requestBody:
     content:
       application/json:
