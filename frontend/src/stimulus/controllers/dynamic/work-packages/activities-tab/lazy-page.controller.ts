@@ -40,17 +40,20 @@ export default class LazyPageController extends BaseController {
     insertTargetId: String,
     page: { type: Number, default: 1 },
     isLoaded: { type: Boolean, default: false },
+    loadDelayMs: { type: Number, default: 75 },
   };
 
   declare urlValue:string;
   declare insertTargetIdValue:string;
   declare pageValue:number;
   declare isLoadedValue:boolean;
+  declare loadDelayMsValue:number;
 
   private turboRequests:TurboRequestsService;
   private abortController = new AbortController();
   private pageStreamHandler?:(_event:TurboBeforeStreamRenderEvent) => void;
   private stopObserving?:() => void;
+  private loadTimeout?:number;
 
   connect() {
     if (this.isLoadedValue) return;
@@ -63,19 +66,26 @@ export default class LazyPageController extends BaseController {
   disconnect() {
     super.disconnect();
     this.tearDownScrollPreservation();
+    this.cancelPendingLoad();
     this.stopObserving?.();
   }
 
-  async appear(entry:IntersectionObserverEntry, observer:IntersectionObserver) {
-    observer.unobserve(entry.target); // observe and emit `appear()` callback just once
+  appear() {
     if (this.isLoadedValue) return;
 
-    await this.fetchPageStream()
-      .catch((error) => {
-        console.error('Error fetching next page:', error);
-      }).finally(() => {
-        this.isLoadedValue = true;
-      });
+    // Delay loading to allow rapid scrolling without triggering loads
+    this.loadTimeout = window.setTimeout(() => {
+      void this.fetchPageStream()
+        .catch((error) => {
+          console.error('Error fetching next page:', error);
+        }).finally(() => {
+          this.isLoadedValue = true;
+        });
+    }, this.loadDelayMsValue);
+  }
+
+  disappear() {
+    this.cancelPendingLoad(); // Cancel load if element leaves viewport before delay expires
   }
 
   private setupScrollPreservation() {
@@ -107,7 +117,12 @@ export default class LazyPageController extends BaseController {
   }
 
   private setupIntersectionObserver({ root }:{ root:HTMLElement }) {
-    const [_observe, unobserve] = useIntersection(this, { root, threshold: 0.25, dispatchEvent: false });
+    const [_observe, unobserve] = useIntersection(this, {
+      root,
+      threshold: 0.25,
+      dispatchEvent: false
+    });
+
     this.stopObserving = unobserve;
   }
 
@@ -134,5 +149,12 @@ export default class LazyPageController extends BaseController {
   private async initializeTurboRequestService() {
     const context = await window.OpenProject.getPluginContext();
     this.turboRequests = context.services.turboRequests;
+  }
+
+  private cancelPendingLoad() {
+    if (this.loadTimeout) {
+      window.clearTimeout(this.loadTimeout);
+      this.loadTimeout = undefined;
+    }
   }
 }
