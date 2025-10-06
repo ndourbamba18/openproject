@@ -192,9 +192,38 @@ class WorkPackages::ActivitiesTabController < ApplicationController
   private
 
   def initialize_pagination
-    @paginator, @paginated_journals = pagy_array(base_journals, items: 30)
+    target_journal_id = extract_target_journal_id
+
+    @paginator, @paginated_journals =
+      if target_journal_id
+        pagy_array_for_target_journal(target_journal_id)
+      else
+        pagy_array(base_journals)
+      end
+
     # For UI display: if user wants "oldest first" UI, reverse the array
     @paginated_journals = @paginated_journals.reverse if journal_sorting.asc?
+  end
+
+  def extract_target_journal_id
+    anchor = params[:anchor] # e.g., "comment-78758" (without #)
+    return nil unless anchor
+
+    match = anchor.match(/^(?:comment|activity)-(\d+)$/)
+    match ? match[1].to_i : nil
+  end
+
+  def pagy_array_for_target_journal(target_journal_id)
+    journals = base_journals
+    target_index = journals.find_index { |j| j.id == target_journal_id }
+
+    if target_index
+      target_page = (target_index / Pagy::DEFAULT[:limit]) + 1
+      pagy_array(journals, page: target_page)
+    else
+      # Journal might be filtered out or deleted - fallback to page 1
+      pagy_array(journals, page: 1)
+    end
   end
 
   def base_journals

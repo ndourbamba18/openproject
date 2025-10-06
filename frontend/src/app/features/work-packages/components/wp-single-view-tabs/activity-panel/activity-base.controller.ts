@@ -59,6 +59,22 @@ export class ActivityPanelBaseController extends UntilDestroyedMixin implements 
   }
 
   ngOnInit():void {
-    this.turboFrameSrc = `${this.pathHelper.staticBase}/work_packages/${this.workPackageId}/activities`;
+    this.turboFrameSrc = this.buildTurboFrameSrc();
+  }
+
+  protected buildTurboFrameSrc(): string {
+    const baseUrl = `${this.pathHelper.staticBase}/work_packages/${this.workPackageId}/activities`;
+    const hash = window.location.hash;
+
+    if (hash) {
+      // Extract anchor (e.g., "#comment-123" or "#activity-456")
+      const anchorMatch = hash.match(/^#(comment|activity)-(\d+)$/i);
+      if (anchorMatch && anchorMatch.length === 3) {
+        const anchor = hash.slice(1); // Remove # prefix
+        return `${baseUrl}?anchor=${encodeURIComponent(anchor)}`;
+      }
+    }
+
+    return baseUrl;
   }
 }
